@@ -18,6 +18,7 @@ import type {
   CrmState,
   Deal,
   DealInput,
+  DealStatus,
   Etapa,
   EtapaInput,
   Origem,
@@ -65,9 +66,20 @@ function readCrm(): CrmState {
   }
 }
 
-/** Lê todas as coleções do CRM de uma vez (uma leitura/parse/migração). */
+/** Lê todas as coleções do CRM de uma vez, pelos repositórios ativos.
+ *
+ * Compõe o snapshot a partir das instâncias exportadas no final do arquivo
+ * (o "ponto único de troca"), então segue automaticamente a implementação em
+ * uso — hoje Supabase. As referências aos repositórios são resolvidas em tempo
+ * de execução (a função só é chamada depois do módulo já avaliado). */
 export async function loadCrmSnapshot(): Promise<CrmState> {
-  return readCrm();
+  const [deals, clientes, origens, etapas] = await Promise.all([
+    dealRepository.listAll(),
+    clientRepository.listAll(),
+    originRepository.listAll(),
+    stageRepository.listAll(),
+  ]);
+  return { deals, clientes, origens, etapas };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -319,15 +331,7 @@ class LocalStorageActivityRepository implements ActivityRepository {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Implementações Supabase — INATIVAS até o projeto Supabase existir.
-//
-// Bloco comentado de propósito: depende de `./supabase` (também comentado) e do
-// pacote @supabase/supabase-js, que ainda NÃO está instalado. Mantê-lo comentado
-// preserva `npm run typecheck` / `npm run build` limpos.
-//
-// Para ATIVAR (ver passo a passo no README): npm install @supabase/supabase-js,
-// criar .env.local, descomentar lib/supabase.ts, descomentar este bloco e trocar
-// as instâncias exportadas no final do arquivo (LocalStorage* → Supabase*).
+// Implementações Supabase — ATIVAS.
 //
 // As classes implementam exatamente as mesmas interfaces das LocalStorage*. Os
 // ids continuam sendo gerados no cliente (novoId, com prefixo) para casar com o
@@ -335,7 +339,6 @@ class LocalStorageActivityRepository implements ActivityRepository {
 // camelCase e tratam colunas anuláveis do Postgres para os campos string
 // não-anuláveis do modelo (lib/types.ts).
 // ─────────────────────────────────────────────────────────────────────────────
-/*
 import { supabase } from "./supabase";
 
 type Row = Record<string, any>;
@@ -689,20 +692,19 @@ class SupabaseActivityRepository implements ActivityRepository {
     if (error) throw error;
   }
 }
-*/
 
 // ─────────────────────────────────────────────────────────────────────────────
-// PONTO ÚNICO DE TROCA DE IMPLEMENTAÇÃO (localStorage → Supabase no futuro)
+// PONTO ÚNICO DE TROCA DE IMPLEMENTAÇÃO — agora apontando para o Supabase.
 //
-// Quando o Supabase estiver ativo, troque cada linha abaixo, ex.:
-//   export const dealRepository: DealRepository = new SupabaseDealRepository();
+// As classes LocalStorage* acima permanecem no arquivo como referência/fallback;
+// basta trocar as instâncias abaixo para voltar atrás, se necessário.
 // ─────────────────────────────────────────────────────────────────────────────
-export const dealRepository: DealRepository = new LocalStorageDealRepository();
+export const dealRepository: DealRepository = new SupabaseDealRepository();
 export const clientRepository: ClientRepository =
-  new LocalStorageClientRepository();
+  new SupabaseClientRepository();
 export const originRepository: OriginRepository =
-  new LocalStorageOriginRepository();
+  new SupabaseOriginRepository();
 export const stageRepository: StageRepository =
-  new LocalStorageStageRepository();
+  new SupabaseStageRepository();
 export const activityRepository: ActivityRepository =
-  new LocalStorageActivityRepository();
+  new SupabaseActivityRepository();

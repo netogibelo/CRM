@@ -97,6 +97,43 @@ exemplo (etiqueta `exemplo`), e o quadro de atividades com as listas
 "A fazer / Em andamento / Concluído". Para reiniciar, limpe as chaves
 `gibelo-crm-state` e `gibelo-atividades-state` no localStorage.
 
+## Migração para Supabase (quando estiver pronto)
+
+O código já está escrito e **comentado/inativo** (não quebra o build). Arquivos
+envolvidos: `supabase/schema.sql`, `lib/supabase.ts`, as classes
+`Supabase*Repository` em `lib/repository.ts` e `scripts/migrate-to-supabase.ts`.
+
+1. Criar projeto no Supabase.
+2. Rodar `supabase/schema.sql` no SQL Editor.
+3. `npm install @supabase/supabase-js` (e `npm i -D tsx` para o script de migração).
+4. Copiar URL + anon key pra `.env.local` (já está no `.gitignore`):
+   ```
+   NEXT_PUBLIC_SUPABASE_URL=...
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+   ```
+5. Descomentar `lib/supabase.ts` (remover o `export {}` final).
+6. Descomentar o bloco das classes `Supabase*Repository` em `lib/repository.ts`.
+7. Trocar as instâncias finais de `lib/repository.ts`:
+   ```diff
+   - export const dealRepository: DealRepository = new LocalStorageDealRepository();
+   + export const dealRepository: DealRepository = new SupabaseDealRepository();
+   ```
+   (idem para `clientRepository`, `originRepository`, `stageRepository`,
+   `activityRepository`.)
+8. Migrar os dados existentes: no console do navegador (CRM aberto) exporte o
+   localStorage para `crm-export.json` na raiz (snippet no topo de
+   `scripts/migrate-to-supabase.ts`), descomente o script e rode
+   `npx tsx scripts/migrate-to-supabase.ts`.
+9. `npm run typecheck` e testar o app localmente contra o Supabase.
+10. Commitar e fazer push → a Vercel deploya automaticamente (as credenciais vão
+    como Environment Variables no painel da Vercel, **nunca** commitadas).
+
+> **Nota sobre o schema:** `supabase/schema.sql` acrescenta duas colunas que o
+> rascunho original da migração não tinha mas que o modelo (`lib/types.ts`) exige
+> — `etapas.final` (marca a etapa de fechamento) e
+> `atividades_cards.criado_em`/`atualizado_em`. Sem elas o round-trip perderia
+> dados.
+
 ---
 
 Gibelo Engenharia • CREA-SP 5070966442
