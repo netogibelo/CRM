@@ -131,13 +131,13 @@ export function AtividadeCardForm({
 
           <div>
             <span className={labelCls}>Etiqueta de cor</span>
-            <div className="mt-2 flex flex-wrap items-center gap-2">
+            <div className="mt-2 flex flex-row flex-wrap items-center gap-2">
               <button
                 type="button"
                 onClick={() => setCor(null)}
                 aria-label="Sem cor"
                 aria-pressed={cor === null}
-                className={`h-7 w-7 rounded-full border-2 border-dashed border-navy-300 transition ${
+                className={`h-7 w-7 shrink-0 rounded-full border-2 border-dashed border-navy-300 transition ${
                   cor === null ? "ring-2 ring-navy-500 ring-offset-2" : ""
                 }`}
               />
@@ -148,7 +148,7 @@ export function AtividadeCardForm({
                   onClick={() => setCor(c.id)}
                   aria-label={c.nome}
                   aria-pressed={cor === c.id}
-                  className={`h-7 w-7 rounded-full ${c.swatch} transition ${
+                  className={`h-7 w-7 shrink-0 rounded-full ${c.swatch} transition ${
                     cor === c.id ? "ring-2 ring-navy-500 ring-offset-2" : ""
                   }`}
                 />

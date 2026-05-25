@@ -22,6 +22,10 @@ export const LISTA_CORES: ListaCorInfo[] = [
   { id: "purple", nome: "Roxo", header: "bg-purple-200 text-purple-900", dot: "bg-purple-600" },
   { id: "teal", nome: "Turquesa", header: "bg-teal-200 text-teal-900", dot: "bg-teal-600" },
   { id: "pink", nome: "Rosa", header: "bg-pink-200 text-pink-900", dot: "bg-pink-600" },
+  { id: "indigo", nome: "Índigo", header: "bg-indigo-200 text-indigo-900", dot: "bg-indigo-500" },
+  { id: "cyan", nome: "Ciano", header: "bg-cyan-200 text-cyan-900", dot: "bg-cyan-500" },
+  { id: "lime", nome: "Lima", header: "bg-lime-200 text-lime-900", dot: "bg-lime-500" },
+  { id: "fuchsia", nome: "Fúcsia", header: "bg-fuchsia-200 text-fuchsia-900", dot: "bg-fuchsia-500" },
 ];
 
 export const LISTA_COR_IDS: ListaCor[] = LISTA_CORES.map((c) => c.id);
@@ -46,11 +50,17 @@ export interface CardCorInfo {
 
 export const CARD_CORES: CardCorInfo[] = [
   { id: "slate", nome: "Ardósia", barra: "border-l-slate-500", swatch: "bg-slate-500" },
-  { id: "sky", nome: "Azul", barra: "border-l-sky-500", swatch: "bg-sky-500" },
-  { id: "emerald", nome: "Verde", barra: "border-l-emerald-500", swatch: "bg-emerald-500" },
+  { id: "sky", nome: "Azul-céu", barra: "border-l-sky-500", swatch: "bg-sky-500" },
+  { id: "emerald", nome: "Esmeralda", barra: "border-l-emerald-500", swatch: "bg-emerald-500" },
   { id: "orange", nome: "Laranja", barra: "border-l-orange-500", swatch: "bg-orange-500" },
   { id: "rose", nome: "Rosa", barra: "border-l-rose-500", swatch: "bg-rose-500" },
   { id: "violet", nome: "Violeta", barra: "border-l-violet-500", swatch: "bg-violet-500" },
+  { id: "zinc", nome: "Zinco", barra: "border-l-zinc-500", swatch: "bg-zinc-500" },
+  { id: "blue", nome: "Azul", barra: "border-l-blue-500", swatch: "bg-blue-500" },
+  { id: "teal", nome: "Turquesa", barra: "border-l-teal-500", swatch: "bg-teal-500" },
+  { id: "yellow", nome: "Amarelo", barra: "border-l-yellow-500", swatch: "bg-yellow-500" },
+  { id: "pink", nome: "Pink", barra: "border-l-pink-500", swatch: "bg-pink-500" },
+  { id: "purple", nome: "Roxo", barra: "border-l-purple-500", swatch: "bg-purple-500" },
 ];
 
 export const CARD_COR_IDS: CardCor[] = CARD_CORES.map((c) => c.id);

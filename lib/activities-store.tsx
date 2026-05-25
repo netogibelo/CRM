@@ -31,6 +31,8 @@ interface ActivitiesContextValue {
   pintarLista: (id: string, cor: ListaCor) => Promise<void>;
   removerLista: (id: string) => Promise<void>;
   moverLista: (id: string, dir: -1 | 1) => Promise<void>;
+  /** Reaplica a ordem das listas a partir da sequência de ids (usado no DnD). */
+  reordenarListas: (ids: string[]) => Promise<void>;
   criarCard: (
     input: Omit<AtividadeCardInput, "ordem">,
   ) => Promise<AtividadeCard>;
@@ -118,6 +120,17 @@ export function ActivitiesProvider({ children }: { children: React.ReactNode }) 
     }));
   }, []);
 
+  const reordenarListas = useCallback(async (ids: string[]) => {
+    const updated = await Promise.all(
+      ids.map((id, i) => activityRepository.updateLista(id, { ordem: i })),
+    );
+    const byId = new Map(updated.map((l) => [l.id, l]));
+    setState((s) => ({
+      ...s,
+      listas: s.listas.map((l) => byId.get(l.id) ?? l),
+    }));
+  }, []);
+
   const criarCard = useCallback(
     async (input: Omit<AtividadeCardInput, "ordem">) => {
       const card = await activityRepository.createCard({
@@ -169,6 +182,7 @@ export function ActivitiesProvider({ children }: { children: React.ReactNode }) 
     pintarLista,
     removerLista,
     moverLista,
+    reordenarListas,
     criarCard,
     atualizarCard,
     removerCard,

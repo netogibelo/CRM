@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useDroppable } from "@dnd-kit/core";
+import { useSortable } from "@dnd-kit/sortable";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import type { AtividadeCard as TCard, AtividadeLista, ListaCor } from "@/lib/types";
 import { LISTA_CORES, listaDot, listaHeader } from "@/lib/atividade-cores";
 import { AtividadeCard } from "./AtividadeCard";
@@ -58,7 +59,7 @@ function SeletorCorLista({
           />
           <div
             role="menu"
-            className="absolute right-0 top-8 z-20 grid grid-cols-4 gap-1.5 rounded-lg border border-navy-100 bg-white p-2 shadow-card-hover"
+            className="absolute right-0 top-8 z-20 flex w-52 flex-row flex-wrap gap-2 rounded-lg border border-navy-100 bg-white p-2.5 shadow-card-hover"
           >
             {LISTA_CORES.map((c) => (
               <button
@@ -71,7 +72,7 @@ function SeletorCorLista({
                   onChange(c.id);
                   setAberto(false);
                 }}
-                className={`h-6 w-6 rounded-full ${c.dot} ${
+                className={`h-6 w-6 shrink-0 rounded-full ${c.dot} ${
                   c.id === cor ? "ring-2 ring-navy-600 ring-offset-1" : ""
                 }`}
               />
@@ -97,19 +98,54 @@ export function AtividadeColuna({
   onRemover,
   onMoverLista,
 }: AtividadeColunaProps) {
-  const { setNodeRef, isOver } = useDroppable({ id: lista.id });
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    setActivatorNodeRef,
+    transform,
+    transition,
+    isDragging,
+    isOver,
+  } = useSortable({ id: lista.id, data: { type: "lista" } });
   const itemIds = cards.map((c) => c.id);
   const btn =
     "rounded-md p-1 text-navy-600 transition-colors hover:bg-white/60 disabled:opacity-30";
 
+  const style = {
+    transform: CSS.Translate.toString(transform),
+    transition,
+  };
+
   return (
     <section
+      ref={setNodeRef}
+      style={style}
       aria-label={`Lista ${lista.nome}, ${cards.length} cards`}
-      className="flex w-[280px] shrink-0 flex-col rounded-2xl bg-navy-100/50 sm:w-[300px]"
+      className={`flex w-[280px] shrink-0 flex-col rounded-2xl bg-navy-100/50 sm:w-[300px] ${
+        isDragging ? "opacity-50" : ""
+      }`}
     >
       <header
-        className={`flex items-center gap-1 rounded-t-2xl px-2.5 py-2 ${listaHeader(lista.cor)}`}
+        className={`flex items-center gap-1 rounded-t-2xl px-1.5 py-2 ${listaHeader(lista.cor)}`}
       >
+        <button
+          type="button"
+          ref={setActivatorNodeRef}
+          {...attributes}
+          {...listeners}
+          aria-label={`Arrastar lista ${lista.nome}`}
+          className="shrink-0 cursor-grab touch-none rounded-md p-1 text-navy-600 transition-colors hover:bg-white/60 active:cursor-grabbing"
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+            <circle cx="6" cy="4" r="1.2" fill="currentColor" />
+            <circle cx="10" cy="4" r="1.2" fill="currentColor" />
+            <circle cx="6" cy="8" r="1.2" fill="currentColor" />
+            <circle cx="10" cy="8" r="1.2" fill="currentColor" />
+            <circle cx="6" cy="12" r="1.2" fill="currentColor" />
+            <circle cx="10" cy="12" r="1.2" fill="currentColor" />
+          </svg>
+        </button>
         <EditableText
           value={lista.nome}
           onCommit={(nome) => onRenomear(lista.id, nome)}
@@ -159,7 +195,6 @@ export function AtividadeColuna({
       </header>
 
       <div
-        ref={setNodeRef}
         className={`flex flex-1 flex-col gap-2.5 px-2.5 pt-2.5 pb-1 transition-colors ${
           isOver ? "bg-navy-200/60" : ""
         }`}

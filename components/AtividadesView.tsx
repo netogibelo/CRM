@@ -12,7 +12,12 @@ import {
   type DragEndEvent,
   type DragStartEvent,
 } from "@dnd-kit/core";
-import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
+import {
+  SortableContext,
+  arrayMove,
+  horizontalListSortingStrategy,
+  sortableKeyboardCoordinates,
+} from "@dnd-kit/sortable";
 import type { AtividadeCard as TCard } from "@/lib/types";
 import { useBoard } from "@/lib/activities-store";
 import { cardBarra } from "@/lib/atividade-cores";
@@ -31,6 +36,7 @@ export function AtividadesView() {
     pintarLista,
     removerLista,
     moverLista,
+    reordenarListas,
     criarCard,
     atualizarCard,
     removerCard,
@@ -82,7 +88,13 @@ export function AtividadesView() {
   }
 
   function onDragStart(e: DragStartEvent) {
-    setActiveCard(cards.find((c) => c.id === e.active.id) ?? null);
+    const id = String(e.active.id);
+    // Listas e cards têm ids distintos; só cards entram no overlay.
+    setActiveCard(
+      listas.some((l) => l.id === id)
+        ? null
+        : cards.find((c) => c.id === id) ?? null,
+    );
   }
 
   function onDragEnd(e: DragEndEvent) {
@@ -91,24 +103,37 @@ export function AtividadesView() {
     if (!over) return;
 
     const activeId = String(active.id);
+    const overId = String(over.id);
+
+    // ── Reordenar listas ──
+    if (listas.some((l) => l.id === activeId)) {
+      const overListId = listas.some((l) => l.id === overId)
+        ? overId
+        : cards.find((c) => c.id === overId)?.listaId;
+      if (!overListId) return;
+      const ids = listas.map((l) => l.id);
+      const oldIndex = ids.indexOf(activeId);
+      const newIndex = ids.indexOf(overListId);
+      if (oldIndex === -1 || newIndex === -1 || oldIndex === newIndex) return;
+      reordenarListas(arrayMove(ids, oldIndex, newIndex));
+      return;
+    }
+
+    // ── Mover/reordenar card ──
     const ativo = cards.find((c) => c.id === activeId);
     if (!ativo) return;
 
-    const overId = String(over.id);
-    const overLista = listas.find((l) => l.id === overId);
-
-    // Lista de destino e posição-alvo (excluindo o próprio card arrastado).
     let destListaId: string;
     let destIndex: number;
-    if (overLista) {
-      destListaId = overLista.id;
+    if (listas.some((l) => l.id === overId)) {
+      destListaId = overId;
       destIndex = cardsDaLista(destListaId).filter((c) => c.id !== activeId).length;
     } else {
       const overCard = cards.find((c) => c.id === overId);
       if (!overCard) return;
       destListaId = overCard.listaId;
       const arr = cardsDaLista(destListaId).filter((c) => c.id !== activeId);
-      const i = arr.findIndex((c) => c.id === overId);
+      const i = arr.findIndex((c) => c.id === overCard.id);
       destIndex = i === -1 ? arr.length : i;
     }
 
@@ -137,7 +162,7 @@ export function AtividadesView() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <p className="text-sm text-navy-400">
-          Quadro de tarefas da semana — arraste os cards entre as listas.
+          Quadro de tarefas — arraste cards e listas, ou use os menus/setas.
         </p>
         <button
           type="button"
@@ -166,28 +191,33 @@ export function AtividadesView() {
           onDragCancel={() => setActiveCard(null)}
         >
           <div className="scrollbar-board -mx-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0">
-            <div className="flex min-w-max gap-4">
-              {listas.map((lista, i) => (
-                <AtividadeColuna
-                  key={lista.id}
-                  lista={lista}
-                  cards={cardsDaLista(lista.id)}
-                  listas={listas}
-                  posicao={i}
-                  total={listas.length}
-                  onAbrirCard={abrirCard}
-                  onNovoCard={novoCard}
-                  onMoverCard={moverCard}
-                  onPintarLista={pintarLista}
-                  onRenomear={renomearLista}
-                  onRemover={excluirLista}
-                  onMoverLista={moverLista}
-                />
-              ))}
-            </div>
+            <SortableContext
+              items={listas.map((l) => l.id)}
+              strategy={horizontalListSortingStrategy}
+            >
+              <div className="flex min-w-max items-start gap-4">
+                {listas.map((lista, i) => (
+                  <AtividadeColuna
+                    key={lista.id}
+                    lista={lista}
+                    cards={cardsDaLista(lista.id)}
+                    listas={listas}
+                    posicao={i}
+                    total={listas.length}
+                    onAbrirCard={abrirCard}
+                    onNovoCard={novoCard}
+                    onMoverCard={moverCard}
+                    onPintarLista={pintarLista}
+                    onRenomear={renomearLista}
+                    onRemover={excluirLista}
+                    onMoverLista={moverLista}
+                  />
+                ))}
+              </div>
+            </SortableContext>
           </div>
 
-          <DragOverlay>
+          <DragOverlay dropAnimation={null}>
             {activeCard ? (
               <div
                 className={`w-[272px] rotate-1 rounded-xl border border-navy-200 bg-white p-3 shadow-card-hover ${
