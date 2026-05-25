@@ -82,27 +82,40 @@ export interface CrmState {
 // ─────────────────────────────────────────────────────────────────────────────
 // Quadro de atividades (Trello) — persistido em chave separada
 // ─────────────────────────────────────────────────────────────────────────────
+/** Paleta de cores das listas (colunas) — pinta o cabeçalho. */
+export type ListaCor =
+  | "gray"
+  | "blue"
+  | "green"
+  | "amber"
+  | "red"
+  | "purple"
+  | "teal"
+  | "pink";
+
+/** Paleta de cores dos cards — pinta a barra lateral esquerda. */
+export type CardCor =
+  | "slate"
+  | "sky"
+  | "emerald"
+  | "orange"
+  | "rose"
+  | "violet";
+
 export interface AtividadeLista {
   id: string;
   nome: string;
   ordem: number;
+  cor: ListaCor;
 }
 export type AtividadeListaInput = Omit<AtividadeLista, "id">;
-
-export type AtividadeCor =
-  | "cinza"
-  | "azul"
-  | "verde"
-  | "ambar"
-  | "vermelho"
-  | "roxo";
 
 export interface AtividadeCard {
   id: string;
   listaId: string;
   titulo: string;
   descricao: string;
-  cor: AtividadeCor | null;
+  cor: CardCor | null;
   /** Data opcional, ISO (yyyy-mm-dd). */
   data: string | null;
   ordem: number;

@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import type { AtividadeCard as TCard, AtividadeLista } from "@/lib/types";
-import { corSwatch } from "@/lib/atividade-cores";
+import { cardBarra } from "@/lib/atividade-cores";
 import { formatDateBR } from "@/lib/format";
 
 interface AtividadeCardProps {
@@ -10,9 +12,6 @@ interface AtividadeCardProps {
   listas: AtividadeLista[];
   onAbrir: (card: TCard) => void;
   onMover: (cardId: string, listaId: string) => void;
-  onDragStart: (id: string) => void;
-  onDragEnd: () => void;
-  arrastando: boolean;
 }
 
 export function AtividadeCard({
@@ -20,38 +19,46 @@ export function AtividadeCard({
   listas,
   onAbrir,
   onMover,
-  onDragStart,
-  onDragEnd,
-  arrastando,
 }: AtividadeCardProps) {
   const [menu, setMenu] = useState(false);
-  const swatch = corSwatch(card.cor);
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: card.id });
+  const downPos = useRef<{ x: number; y: number } | null>(null);
+
+  const barra = cardBarra(card.cor);
   const outras = listas.filter((l) => l.id !== card.listaId);
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
 
   return (
     <div
-      role="button"
-      tabIndex={0}
-      draggable
-      onClick={() => onAbrir(card)}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onAbrir(card);
-        }
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      aria-roledescription="Card arrastável"
+      // Distingue toque/clique (abre) de arraste (não abre).
+      onPointerDownCapture={(e) => {
+        downPos.current = { x: e.clientX, y: e.clientY };
       }}
-      onDragStart={(e) => {
-        e.dataTransfer.effectAllowed = "move";
-        e.dataTransfer.setData("text/plain", card.id);
-        onDragStart(card.id);
+      onClick={(e) => {
+        const d = downPos.current;
+        if (d && Math.hypot(e.clientX - d.x, e.clientY - d.y) > 6) return;
+        onAbrir(card);
       }}
-      onDragEnd={onDragEnd}
-      aria-label={`Card ${card.titulo}. Abrir para editar.`}
-      className={`group relative cursor-grab overflow-hidden rounded-xl border border-navy-100 bg-white shadow-card transition-all hover:-translate-y-0.5 hover:shadow-card-hover active:cursor-grabbing ${
-        arrastando ? "opacity-40" : ""
-      }`}
+      className={`group relative cursor-grab rounded-xl border border-navy-100 bg-white shadow-card transition-shadow hover:shadow-card-hover active:cursor-grabbing ${
+        barra ? `border-l-4 ${barra}` : ""
+      } ${isDragging ? "opacity-40" : ""}`}
     >
-      {swatch && <div className={`h-1.5 w-full ${swatch}`} aria-hidden="true" />}
       <div className="p-3">
         <div className="flex items-start justify-between gap-2">
           <p className="text-sm font-medium leading-snug text-navy-900">
@@ -59,11 +66,12 @@ export function AtividadeCard({
           </p>
           <button
             type="button"
+            onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => {
               e.stopPropagation();
               setMenu((v) => !v);
             }}
-            aria-label="Mover card para outra lista"
+            aria-label="Ações do card"
             aria-haspopup="menu"
             aria-expanded={menu}
             className="-mr-1 -mt-0.5 shrink-0 rounded-md p-1 text-navy-300 transition-colors hover:bg-navy-50 hover:text-navy-700"
@@ -104,6 +112,7 @@ export function AtividadeCard({
             type="button"
             aria-hidden="true"
             tabIndex={-1}
+            onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => {
               e.stopPropagation();
               setMenu(false);
@@ -113,9 +122,22 @@ export function AtividadeCard({
           <div
             role="menu"
             className="absolute right-2 top-9 z-20 w-44 overflow-hidden rounded-lg border border-navy-100 bg-white py-1 shadow-card-hover"
+            onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => e.stopPropagation()}
           >
-            <p className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-navy-300">
+            <button
+              type="button"
+              role="menuitem"
+              onClick={(e) => {
+                e.stopPropagation();
+                setMenu(false);
+                onAbrir(card);
+              }}
+              className="block w-full px-3 py-1.5 text-left text-sm font-medium text-navy-700 transition-colors hover:bg-navy-50"
+            >
+              Editar
+            </button>
+            <p className="px-3 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-wide text-navy-300">
               Mover para
             </p>
             {outras.length === 0 ? (

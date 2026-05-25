@@ -2,7 +2,9 @@
 
 import type { Deal } from "@/lib/types";
 import { useResolvers } from "@/lib/crm-store";
+import { activationProps, dragProps } from "@/lib/dnd";
 import { formatBRL, formatDateBR, diasDesde, estaParado } from "@/lib/format";
+import { ExemploBadge } from "./ExemploBadge";
 
 interface DealCardProps {
   deal: Deal;
@@ -12,13 +14,30 @@ interface DealCardProps {
   arrastando: boolean;
 }
 
-const origemCor: Record<string, string> = {
+// Cores semânticas para as origens padrão; origens criadas pelo usuário recebem
+// uma cor estável derivada do id (não se perde ao renomear).
+const origemCorPorNome: Record<string, string> = {
   "Indicação de cliente": "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
   "Arquiteto parceiro": "bg-violet-50 text-violet-700 ring-violet-600/20",
   "Vizinho / condomínio": "bg-sky-50 text-sky-700 ring-sky-600/20",
   "Site / Instagram": "bg-amber-50 text-amber-700 ring-amber-600/20",
 };
-const origemCorPadrao = "bg-navy-100 text-navy-600 ring-navy-600/20";
+const origemPaleta = [
+  "bg-rose-50 text-rose-700 ring-rose-600/20",
+  "bg-teal-50 text-teal-700 ring-teal-600/20",
+  "bg-indigo-50 text-indigo-700 ring-indigo-600/20",
+  "bg-navy-100 text-navy-600 ring-navy-600/20",
+];
+
+function hash(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+  return Math.abs(h);
+}
+
+function origemClasse(nome: string, id: string): string {
+  return origemCorPorNome[nome] ?? origemPaleta[hash(id) % origemPaleta.length];
+}
 
 export function DealCard({
   deal,
@@ -34,22 +53,8 @@ export function DealCard({
 
   return (
     <div
-      role="button"
-      tabIndex={0}
-      draggable
-      onClick={() => onAbrir(deal)}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onAbrir(deal);
-        }
-      }}
-      onDragStart={(e) => {
-        e.dataTransfer.effectAllowed = "move";
-        e.dataTransfer.setData("text/plain", deal.id);
-        onDragStart(deal.id);
-      }}
-      onDragEnd={onDragEnd}
+      {...activationProps(() => onAbrir(deal))}
+      {...dragProps(deal.id, onDragStart, onDragEnd)}
       aria-label={`Oportunidade ${deal.projeto}, cliente ${clienteNome(
         deal.clienteId,
       )}, valor ${formatBRL(deal.valor)}. Abrir para editar.`}
@@ -61,14 +66,7 @@ export function DealCard({
         <h4 className="text-sm font-semibold leading-snug text-navy-900">
           {deal.projeto}
         </h4>
-        {deal.exemplo && (
-          <span
-            className="shrink-0 rounded bg-navy-50 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-navy-400"
-            title="Registro de exemplo — pode ser apagado"
-          >
-            exemplo
-          </span>
-        )}
+        {deal.exemplo && <ExemploBadge />}
       </div>
 
       <p className="mt-0.5 text-xs text-navy-500">{clienteNome(deal.clienteId)}</p>
@@ -79,9 +77,10 @@ export function DealCard({
 
       <div className="mt-3 flex flex-wrap items-center gap-1.5">
         <span
-          className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ring-1 ring-inset ${
-            origemCor[nomeOrigem] ?? origemCorPadrao
-          }`}
+          className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ring-1 ring-inset ${origemClasse(
+            nomeOrigem,
+            deal.origemId,
+          )}`}
         >
           {nomeOrigem}
         </span>

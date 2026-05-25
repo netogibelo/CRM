@@ -5,6 +5,7 @@ import type { Cliente, ClienteInput } from "@/lib/types";
 import { useClients } from "@/lib/crm-store";
 import { btnPrimary, inputCls } from "@/lib/ui";
 import { ClienteForm } from "./ClienteForm";
+import { ExemploBadge } from "./ExemploBadge";
 
 export function ClientesView() {
   const { clientes, criar, atualizar, remover, emUso } = useClients();
@@ -88,11 +89,7 @@ export function ClientesView() {
                     <span className="text-sm font-semibold text-navy-900">
                       {c.nome}
                     </span>
-                    {c.exemplo && (
-                      <span className="shrink-0 rounded bg-navy-50 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-navy-400">
-                        exemplo
-                      </span>
-                    )}
+                    {c.exemplo && <ExemploBadge />}
                   </div>
                   <div className="mt-2 space-y-1 text-xs text-navy-500">
                     {c.telefone && <p>{c.telefone}</p>}

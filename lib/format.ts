@@ -22,6 +22,13 @@ export function formatBRLCompact(valor: number): string {
   return brlCompact.format(valor);
 }
 
+/** Converte os dígitos digitados (centavos) em um valor em reais: "48000000" → 480000. */
+export function parseValorBRL(raw: string): number {
+  const digitos = raw.replace(/\D/g, "");
+  if (!digitos) return 0;
+  return Number(digitos) / 100;
+}
+
 /** Formata uma data ISO (yyyy-mm-dd) como dd/mm/aaaa. */
 export function formatDateBR(iso: string): string {
   if (!iso) return "—";

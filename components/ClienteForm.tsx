@@ -45,7 +45,7 @@ export function ClienteForm({
 
   return (
     <Modal
-      titulo={rapido ? "Novo cliente" : editando ? "Editar cliente" : "Novo cliente"}
+      titulo={editando ? "Editar cliente" : "Novo cliente"}
       descricao={
         rapido
           ? "Cadastro rápido — você pode completar os dados depois na aba Clientes."

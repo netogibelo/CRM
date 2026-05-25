@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import type { AtividadeCard, AtividadeCor, AtividadeLista } from "@/lib/types";
-import { ATIVIDADE_CORES } from "@/lib/atividade-cores";
+import type { AtividadeCard, CardCor, AtividadeLista } from "@/lib/types";
+import { CARD_CORES } from "@/lib/atividade-cores";
 import { btnGhost, btnPrimary, inputCls, labelCls } from "@/lib/ui";
 import { Modal } from "./Modal";
 
@@ -10,7 +10,7 @@ export interface CardFormData {
   listaId: string;
   titulo: string;
   descricao: string;
-  cor: AtividadeCor | null;
+  cor: CardCor | null;
   data: string | null;
 }
 
@@ -34,7 +34,7 @@ export function AtividadeCardForm({
   const editando = card !== null;
   const [titulo, setTitulo] = useState(card?.titulo ?? "");
   const [descricao, setDescricao] = useState(card?.descricao ?? "");
-  const [cor, setCor] = useState<AtividadeCor | null>(card?.cor ?? null);
+  const [cor, setCor] = useState<CardCor | null>(card?.cor ?? null);
   const [data, setData] = useState(card?.data ?? "");
   const [listaId, setListaId] = useState(card?.listaId ?? listaIdInicial);
   const [erro, setErro] = useState("");
@@ -141,7 +141,7 @@ export function AtividadeCardForm({
                   cor === null ? "ring-2 ring-navy-500 ring-offset-2" : ""
                 }`}
               />
-              {ATIVIDADE_CORES.map((c) => (
+              {CARD_CORES.map((c) => (
                 <button
                   key={c.id}
                   type="button"

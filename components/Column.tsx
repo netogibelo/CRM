@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import type { Deal, Etapa } from "@/lib/types";
 import { corDaEtapa } from "@/lib/stages";
 import { formatBRL } from "@/lib/format";
+import { useDropTarget } from "@/lib/dnd";
 import { DealCard } from "./DealCard";
 
 interface ColumnProps {
@@ -25,29 +25,14 @@ export function Column({
   onDragEnd,
   arrastandoId,
 }: ColumnProps) {
-  const [sobre, setSobre] = useState(false);
+  const { sobre, dropProps } = useDropTarget((id) => onDropDeal(id, stage.id));
   const total = deals.reduce((acc, d) => acc + d.valor, 0);
 
   return (
     <section
       aria-label={`Etapa ${stage.nome}, ${deals.length} oportunidades`}
       className="flex w-[280px] shrink-0 flex-col rounded-2xl bg-navy-100/50 sm:w-[300px]"
-      onDragOver={(e) => {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = "move";
-        if (!sobre) setSobre(true);
-      }}
-      onDragLeave={(e) => {
-        if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-          setSobre(false);
-        }
-      }}
-      onDrop={(e) => {
-        e.preventDefault();
-        setSobre(false);
-        const id = e.dataTransfer.getData("text/plain");
-        if (id) onDropDeal(id, stage.id);
-      }}
+      {...dropProps}
     >
       <header className="flex items-center justify-between gap-2 px-3.5 pb-2 pt-3.5">
         <div className="flex items-center gap-2">

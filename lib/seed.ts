@@ -1,25 +1,24 @@
 // Dados-semente (primeiro uso) e migração leve de estados antigos.
 
 import type {
+  AtividadeCard,
+  AtividadeLista,
   AtividadesState,
+  CardCor,
   Cliente,
   CrmState,
   Deal,
   Etapa,
   Origem,
 } from "./types";
+import { novoId } from "./id";
+import { CARD_COR_IDS, LISTA_COR_IDS } from "./atividade-cores";
 
 const DIA = 24 * 60 * 60 * 1000;
 const iso = (offsetDias: number) =>
   new Date(Date.now() - offsetDias * DIA).toISOString();
 const dataFutura = (offsetDias: number) =>
   new Date(Date.now() + offsetDias * DIA).toISOString().slice(0, 10);
-
-function novoId(prefix: string): string {
-  return `${prefix}-${Date.now().toString(36)}-${Math.random()
-    .toString(36)
-    .slice(2, 7)}`;
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Defaults (também usados pela migração quando faltam coleções)
@@ -151,16 +150,60 @@ export function gerarSeedCrm(): CrmState {
   };
 }
 
-/** Listas-semente do quadro de atividades. */
+/** Listas-semente do quadro de atividades (com cores padrão). */
 export function gerarSeedAtividades(): AtividadesState {
   return {
     listas: [
-      { id: "la-fazer", nome: "A fazer", ordem: 0 },
-      { id: "la-andamento", nome: "Em andamento", ordem: 1 },
-      { id: "la-concluido", nome: "Concluído", ordem: 2 },
+      { id: "la-fazer", nome: "A fazer", ordem: 0, cor: "gray" },
+      { id: "la-andamento", nome: "Em andamento", ordem: 1, cor: "blue" },
+      { id: "la-concluido", nome: "Concluído", ordem: 2, cor: "green" },
     ],
     cards: [],
   };
+}
+
+// Mapeia cores de cards de versões antigas (paleta pt-BR) para a nova paleta.
+const CARD_COR_LEGADA: Record<string, CardCor> = {
+  cinza: "slate",
+  azul: "sky",
+  verde: "emerald",
+  ambar: "orange",
+  vermelho: "rose",
+  roxo: "violet",
+};
+
+/**
+ * Migração leve do quadro de atividades: garante `cor` em cada lista e converte
+ * cores de cards salvas em versões anteriores para a nova paleta.
+ */
+export function migrarAtividades(parsed: unknown): {
+  state: AtividadesState;
+  changed: boolean;
+} {
+  const raw = (parsed ?? {}) as Record<string, unknown>;
+  if (!Array.isArray(raw.listas) || !Array.isArray(raw.cards)) {
+    return { state: gerarSeedAtividades(), changed: true };
+  }
+
+  let changed = false;
+
+  const listas: AtividadeLista[] = (raw.listas as AtividadeLista[]).map(
+    (l, i) => {
+      if (l.cor && LISTA_COR_IDS.includes(l.cor)) return l;
+      changed = true;
+      return { ...l, cor: LISTA_COR_IDS[i % LISTA_COR_IDS.length] };
+    },
+  );
+
+  const cardCores = new Set<string>(CARD_COR_IDS);
+  const cards: AtividadeCard[] = (raw.cards as AtividadeCard[]).map((c) => {
+    const cor = c.cor as string | null;
+    if (!cor || cardCores.has(cor)) return c;
+    changed = true;
+    return { ...c, cor: CARD_COR_LEGADA[cor] ?? null };
+  });
+
+  return { state: { listas, cards }, changed };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

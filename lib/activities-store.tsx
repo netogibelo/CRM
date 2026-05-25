@@ -8,6 +8,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -16,8 +17,10 @@ import type {
   AtividadeCardInput,
   AtividadeLista,
   AtividadesState,
+  ListaCor,
 } from "./types";
 import { activityRepository } from "./repository";
+import { LISTA_COR_IDS } from "./atividade-cores";
 
 interface ActivitiesContextValue {
   carregando: boolean;
@@ -25,6 +28,7 @@ interface ActivitiesContextValue {
   cards: AtividadeCard[];
   criarLista: (nome: string) => Promise<AtividadeLista>;
   renomearLista: (id: string, nome: string) => Promise<void>;
+  pintarLista: (id: string, cor: ListaCor) => Promise<void>;
   removerLista: (id: string) => Promise<void>;
   moverLista: (id: string, dir: -1 | 1) => Promise<void>;
   criarCard: (
@@ -63,13 +67,22 @@ export function ActivitiesProvider({ children }: { children: React.ReactNode }) 
   const criarLista = useCallback(async (nome: string) => {
     const ordem =
       ref.current.listas.reduce((m, l) => Math.max(m, l.ordem), -1) + 1;
-    const lista = await activityRepository.createLista({ nome, ordem });
+    const cor = LISTA_COR_IDS[ref.current.listas.length % LISTA_COR_IDS.length];
+    const lista = await activityRepository.createLista({ nome, ordem, cor });
     setState((s) => ({ ...s, listas: [...s.listas, lista] }));
     return lista;
   }, []);
 
   const renomearLista = useCallback(async (id: string, nome: string) => {
     const upd = await activityRepository.updateLista(id, { nome });
+    setState((s) => ({
+      ...s,
+      listas: s.listas.map((l) => (l.id === id ? upd : l)),
+    }));
+  }, []);
+
+  const pintarLista = useCallback(async (id: string, cor: ListaCor) => {
+    const upd = await activityRepository.updateLista(id, { cor });
     setState((s) => ({
       ...s,
       listas: s.listas.map((l) => (l.id === id ? upd : l)),
@@ -95,11 +108,13 @@ export function ActivitiesProvider({ children }: { children: React.ReactNode }) 
       activityRepository.updateLista(a.id, { ordem: b.ordem }),
       activityRepository.updateLista(b.id, { ordem: a.ordem }),
     ]);
+    const trocadas = new Map([
+      [ua.id, ua],
+      [ub.id, ub],
+    ]);
     setState((s) => ({
       ...s,
-      listas: s.listas.map((l) =>
-        l.id === ua.id ? ua : l.id === ub.id ? ub : l,
-      ),
+      listas: s.listas.map((l) => trocadas.get(l.id) ?? l),
     }));
   }, []);
 
@@ -151,6 +166,7 @@ export function ActivitiesProvider({ children }: { children: React.ReactNode }) 
     cards: state.cards,
     criarLista,
     renomearLista,
+    pintarLista,
     removerLista,
     moverLista,
     criarCard,
@@ -170,10 +186,22 @@ export function useBoard() {
   const ctx = useContext(ActivitiesContext);
   if (!ctx)
     throw new Error("useBoard deve ser usado dentro de <ActivitiesProvider>");
-  const listas = [...ctx.listas].sort((a, b) => a.ordem - b.ordem);
-  const cardsDaLista = (listaId: string) =>
-    ctx.cards
-      .filter((c) => c.listaId === listaId)
-      .sort((a, b) => a.ordem - b.ordem);
+
+  const listas = useMemo(
+    () => [...ctx.listas].sort((a, b) => a.ordem - b.ordem),
+    [ctx.listas],
+  );
+  // Agrupa os cards por lista (já ordenados) numa única passada.
+  const cardsPorLista = useMemo(() => {
+    const map = new Map<string, AtividadeCard[]>();
+    for (const card of [...ctx.cards].sort((a, b) => a.ordem - b.ordem)) {
+      const arr = map.get(card.listaId);
+      if (arr) arr.push(card);
+      else map.set(card.listaId, [card]);
+    }
+    return map;
+  }, [ctx.cards]);
+  const cardsDaLista = (listaId: string) => cardsPorLista.get(listaId) ?? [];
+
   return { ...ctx, listas, cardsDaLista };
 }

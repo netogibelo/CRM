@@ -9,6 +9,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -26,6 +27,7 @@ import type {
 import {
   clientRepository,
   dealRepository,
+  loadCrmSnapshot,
   originRepository,
   stageRepository,
 } from "./repository";
@@ -83,14 +85,9 @@ export function CrmProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let ativo = true;
     (async () => {
-      const [deals, clientes, origens, etapas] = await Promise.all([
-        dealRepository.listAll(),
-        clientRepository.listAll(),
-        originRepository.listAll(),
-        stageRepository.listAll(),
-      ]);
+      const snapshot = await loadCrmSnapshot();
       if (ativo) {
-        setState({ deals, clientes, origens, etapas });
+        setState(snapshot);
         setCarregando(false);
       }
     })();
@@ -256,11 +253,13 @@ export function CrmProvider({ children }: { children: React.ReactNode }) {
       stageRepository.update(a.id, { ordem: b.ordem }),
       stageRepository.update(b.id, { ordem: a.ordem }),
     ]);
+    const trocadas = new Map([
+      [ua.id, ua],
+      [ub.id, ub],
+    ]);
     setState((s) => ({
       ...s,
-      etapas: s.etapas.map((x) =>
-        x.id === ua.id ? ua : x.id === ub.id ? ub : x,
-      ),
+      etapas: s.etapas.map((x) => trocadas.get(x.id) ?? x),
     }));
   }, []);
 
@@ -345,10 +344,12 @@ export function useOrigins() {
 
 export function useStages() {
   const c = useCrm();
+  const ativas = useMemo(() => etapasAtivas(c.state.etapas), [c.state.etapas]);
+  const final = useMemo(() => etapaFinal(c.state.etapas), [c.state.etapas]);
   return {
     etapas: c.state.etapas,
-    ativas: etapasAtivas(c.state.etapas),
-    final: etapaFinal(c.state.etapas),
+    ativas,
+    final,
     carregando: c.carregando,
     criar: c.criarEtapa,
     atualizar: c.atualizarEtapa,

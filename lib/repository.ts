@@ -26,24 +26,13 @@ import type {
 import {
   gerarSeedAtividades,
   gerarSeedCrm,
+  migrarAtividades,
   migrarCrm,
 } from "./seed";
+import { agoraISO, novoId } from "./id";
 
 export const CRM_STORAGE_KEY = "gibelo-crm-state";
 export const ATIVIDADES_STORAGE_KEY = "gibelo-atividades-state";
-
-function novoId(prefix: string): string {
-  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
-    return `${prefix}-${crypto.randomUUID()}`;
-  }
-  return `${prefix}-${Date.now().toString(36)}-${Math.random()
-    .toString(36)
-    .slice(2, 7)}`;
-}
-
-function agoraISO(): string {
-  return new Date().toISOString();
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Store de baixo nível do CRM (deals, clientes, origens, etapas)
@@ -74,6 +63,11 @@ function readCrm(): CrmState {
     writeCrm(seeded);
     return seeded;
   }
+}
+
+/** Lê todas as coleções do CRM de uma vez (uma leitura/parse/migração). */
+export async function loadCrmSnapshot(): Promise<CrmState> {
+  return readCrm();
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -253,13 +247,9 @@ function readAtiv(): AtividadesState {
     return seeded;
   }
   try {
-    const parsed = JSON.parse(raw) as AtividadesState;
-    if (!parsed || !Array.isArray(parsed.listas) || !Array.isArray(parsed.cards)) {
-      const seeded = gerarSeedAtividades();
-      writeAtiv(seeded);
-      return seeded;
-    }
-    return parsed;
+    const { state, changed } = migrarAtividades(JSON.parse(raw));
+    if (changed) writeAtiv(state);
+    return state;
   } catch {
     const seeded = gerarSeedAtividades();
     writeAtiv(seeded);

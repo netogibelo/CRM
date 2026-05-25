@@ -5,6 +5,10 @@ import type { Etapa, Origem } from "@/lib/types";
 import { useOrigins, useStages } from "@/lib/crm-store";
 import { ordenarEtapas, corDaEtapa } from "@/lib/stages";
 import { btnPrimary, inputCls } from "@/lib/ui";
+import { EditableText } from "./EditableText";
+
+const nomeInlineCls =
+  "min-w-0 flex-1 rounded-md border border-transparent bg-transparent px-2 py-1 text-sm text-navy-900 hover:border-navy-200 focus:border-navy-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-navy-500/30";
 
 // ── Origem ───────────────────────────────────────────────────────────────────
 function OrigemRow({
@@ -18,19 +22,13 @@ function OrigemRow({
   onRename: (nome: string) => void;
   onDelete: () => void;
 }) {
-  const [nome, setNome] = useState(origem.nome);
   return (
     <li className="flex items-center gap-2 rounded-lg border border-navy-100 bg-white p-2">
-      <input
-        aria-label={`Nome da origem ${origem.nome}`}
-        value={nome}
-        onChange={(e) => setNome(e.target.value)}
-        onBlur={() => {
-          const t = nome.trim();
-          if (t && t !== origem.nome) onRename(t);
-          else setNome(origem.nome);
-        }}
-        className="flex-1 rounded-md border border-transparent bg-transparent px-2 py-1 text-sm text-navy-900 hover:border-navy-200 focus:border-navy-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-navy-500/30"
+      <EditableText
+        value={origem.nome}
+        onCommit={onRename}
+        ariaLabel={`Nome da origem ${origem.nome}`}
+        className={nomeInlineCls}
       />
       <span className="shrink-0 rounded-full bg-navy-50 px-2 py-0.5 text-[11px] text-navy-500">
         {usos} uso{usos === 1 ? "" : "s"}
@@ -76,7 +74,6 @@ function EtapaRow({
   onMover: (dir: -1 | 1) => void;
   onDelete: () => void;
 }) {
-  const [nome, setNome] = useState(etapa.nome);
   const [prob, setProb] = useState(Math.round(etapa.probabilidade * 100));
 
   return (
@@ -86,16 +83,11 @@ function EtapaRow({
         style={{ backgroundColor: corDaEtapa(etapa.ordem) }}
         aria-hidden="true"
       />
-      <input
-        aria-label={`Nome da etapa ${etapa.nome}`}
-        value={nome}
-        onChange={(e) => setNome(e.target.value)}
-        onBlur={() => {
-          const t = nome.trim();
-          if (t && t !== etapa.nome) onRename(t);
-          else setNome(etapa.nome);
-        }}
-        className="min-w-[8rem] flex-1 rounded-md border border-transparent bg-transparent px-2 py-1 text-sm text-navy-900 hover:border-navy-200 focus:border-navy-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-navy-500/30"
+      <EditableText
+        value={etapa.nome}
+        onCommit={onRename}
+        ariaLabel={`Nome da etapa ${etapa.nome}`}
+        className={`${nomeInlineCls} min-w-[8rem]`}
       />
 
       <div className="flex items-center gap-1">
@@ -107,7 +99,7 @@ function EtapaRow({
           value={prob}
           onChange={(e) => setProb(Number(e.target.value))}
           onBlur={() => {
-            const p = Math.max(0, Math.min(100, prob));
+            const p = Number.isNaN(prob) ? 0 : Math.max(0, Math.min(100, prob));
             setProb(p);
             if (p / 100 !== etapa.probabilidade) onProb(p / 100);
           }}
@@ -198,9 +190,10 @@ export function ConfiguracoesView() {
     if (final && final.ordem <= novaOrdem) {
       await stages.atualizar(final.id, { ordem: novaOrdem + 1 });
     }
+    const prob = Number.isNaN(novaProb) ? 0 : Math.max(0, Math.min(100, novaProb));
     await stages.criar({
       nome: t,
-      probabilidade: Math.max(0, Math.min(100, novaProb)) / 100,
+      probabilidade: prob / 100,
       ordem: novaOrdem,
     });
     setNovaEtapa("");

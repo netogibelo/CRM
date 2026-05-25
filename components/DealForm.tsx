@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { Deal, DealInput } from "@/lib/types";
 import { useClients, useOrigins, useStages } from "@/lib/crm-store";
-import { formatBRL } from "@/lib/format";
+import { formatBRL, parseValorBRL } from "@/lib/format";
 import { btnGhost, btnPrimary, inputCls, labelCls } from "@/lib/ui";
 import { Modal } from "./Modal";
 import { ClienteForm } from "./ClienteForm";
@@ -16,12 +16,6 @@ interface DealFormProps {
   onGanho?: (id: string) => void;
   onPerdido?: (id: string, motivo: string) => void;
   onReabrir?: (id: string) => void;
-}
-
-function digitosParaValor(raw: string): number {
-  const digitos = raw.replace(/\D/g, "");
-  if (!digitos) return 0;
-  return Number(digitos) / 100;
 }
 
 export function DealForm({
@@ -222,7 +216,7 @@ export function DealForm({
                 type="text"
                 inputMode="numeric"
                 value={valor > 0 ? formatBRL(valor) : ""}
-                onChange={(e) => setValor(digitosParaValor(e.target.value))}
+                onChange={(e) => setValor(parseValorBRL(e.target.value))}
                 className={inputCls}
                 placeholder="R$ 0,00"
                 aria-invalid={Boolean(erros.valor)}
