@@ -1,0 +1,68 @@
+"use client";
+
+import { useMemo } from "react";
+import { useDeals, useOrigins, useStages } from "@/lib/crm-store";
+import { calcularMetrics } from "@/lib/metrics";
+import { btnPrimary } from "@/lib/ui";
+import { Dashboard } from "./Dashboard";
+import { Board } from "./Board";
+import { useDealForm } from "./useDealForm";
+
+export function FunilView() {
+  const { deals, atualizar } = useDeals();
+  const { etapas } = useStages();
+  const { origens } = useOrigins();
+  const { abrir, abrirNovo, elemento } = useDealForm();
+
+  const abertos = useMemo(
+    () => deals.filter((d) => d.status === "aberto"),
+    [deals],
+  );
+  const metrics = useMemo(
+    () => calcularMetrics(deals, etapas, origens),
+    [deals, etapas, origens],
+  );
+
+  async function mover(dealId: string, etapaId: string) {
+    const alvo = deals.find((d) => d.id === dealId);
+    if (!alvo || alvo.etapaId === etapaId) return;
+    await atualizar(dealId, { etapaId });
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="text-base font-semibold text-navy-900">
+          Funil de oportunidades
+        </h2>
+        <button type="button" onClick={abrirNovo} className={btnPrimary}>
+          + Nova oportunidade
+        </button>
+      </div>
+
+      <Dashboard m={metrics} />
+
+      {abertos.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-navy-200 bg-white px-6 py-14 text-center">
+          <p className="text-sm font-medium text-navy-700">
+            Nenhuma oportunidade aberta no funil.
+          </p>
+          <p className="mt-1 text-sm text-navy-400">
+            Crie a primeira oportunidade para começar a acompanhar.
+          </p>
+          <button
+            type="button"
+            onClick={abrirNovo}
+            className={`${btnPrimary} mt-4`}
+          >
+            Nova oportunidade
+          </button>
+        </div>
+      ) : (
+        <Board deals={abertos} onAbrir={abrir} onMover={mover} />
+      )}
+
+      {elemento}
+    </div>
+  );
+}
