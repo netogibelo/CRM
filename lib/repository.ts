@@ -319,7 +319,383 @@ class LocalStorageActivityRepository implements ActivityRepository {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Implementações Supabase — INATIVAS até o projeto Supabase existir.
+//
+// Bloco comentado de propósito: depende de `./supabase` (também comentado) e do
+// pacote @supabase/supabase-js, que ainda NÃO está instalado. Mantê-lo comentado
+// preserva `npm run typecheck` / `npm run build` limpos.
+//
+// Para ATIVAR (ver passo a passo no README): npm install @supabase/supabase-js,
+// criar .env.local, descomentar lib/supabase.ts, descomentar este bloco e trocar
+// as instâncias exportadas no final do arquivo (LocalStorage* → Supabase*).
+//
+// As classes implementam exatamente as mesmas interfaces das LocalStorage*. Os
+// ids continuam sendo gerados no cliente (novoId, com prefixo) para casar com o
+// schema `text` e manter o padrão atual. Os mapeadores convertem snake_case ↔
+// camelCase e tratam colunas anuláveis do Postgres para os campos string
+// não-anuláveis do modelo (lib/types.ts).
+// ─────────────────────────────────────────────────────────────────────────────
+/*
+import { supabase } from "./supabase";
+
+type Row = Record<string, any>;
+
+// ── Deal ─────────────────────────────────────────────────────────────────────
+function dealFromRow(row: Row): Deal {
+  return {
+    id: row.id,
+    projeto: row.projeto,
+    clienteId: row.cliente_id,
+    valor: Number(row.valor),
+    origemId: row.origem_id,
+    previsaoFechamento: row.previsao_fechamento ?? "",
+    etapaId: row.etapa_id,
+    status: row.status as DealStatus,
+    motivoPerda: row.motivo_perda,
+    notas: row.notas ?? "",
+    criadoEm: row.criado_em,
+    atualizadoEm: row.atualizado_em,
+    exemplo: row.exemplo ?? false,
+  };
+}
+function dealToRow(d: Deal): Row {
+  return {
+    id: d.id,
+    projeto: d.projeto,
+    cliente_id: d.clienteId,
+    valor: d.valor,
+    origem_id: d.origemId,
+    previsao_fechamento: d.previsaoFechamento || null,
+    etapa_id: d.etapaId,
+    status: d.status,
+    motivo_perda: d.motivoPerda,
+    notas: d.notas,
+    exemplo: d.exemplo ?? false,
+    criado_em: d.criadoEm,
+    atualizado_em: d.atualizadoEm,
+  };
+}
+function dealPatchToRow(p: Partial<DealInput>): Row {
+  const r: Row = {};
+  if (p.projeto !== undefined) r.projeto = p.projeto;
+  if (p.clienteId !== undefined) r.cliente_id = p.clienteId;
+  if (p.valor !== undefined) r.valor = p.valor;
+  if (p.origemId !== undefined) r.origem_id = p.origemId;
+  if (p.previsaoFechamento !== undefined) r.previsao_fechamento = p.previsaoFechamento || null;
+  if (p.etapaId !== undefined) r.etapa_id = p.etapaId;
+  if (p.status !== undefined) r.status = p.status;
+  if (p.motivoPerda !== undefined) r.motivo_perda = p.motivoPerda;
+  if (p.notas !== undefined) r.notas = p.notas;
+  if (p.exemplo !== undefined) r.exemplo = p.exemplo;
+  return r;
+}
+
+class SupabaseDealRepository implements DealRepository {
+  async listAll(): Promise<Deal[]> {
+    const { data, error } = await supabase.from("deals").select("*");
+    if (error) throw error;
+    return (data ?? []).map(dealFromRow);
+  }
+  async create(input: DealInput): Promise<Deal> {
+    const ts = agoraISO();
+    const deal: Deal = { ...input, id: novoId("deal"), criadoEm: ts, atualizadoEm: ts };
+    const { error } = await supabase.from("deals").insert(dealToRow(deal));
+    if (error) throw error;
+    return deal;
+  }
+  async update(id: string, patch: Partial<DealInput>): Promise<Deal> {
+    const { data, error } = await supabase
+      .from("deals")
+      .update({ ...dealPatchToRow(patch), atualizado_em: agoraISO() })
+      .eq("id", id)
+      .select()
+      .single();
+    if (error) throw error;
+    return dealFromRow(data);
+  }
+  async remove(id: string): Promise<void> {
+    const { error } = await supabase.from("deals").delete().eq("id", id);
+    if (error) throw error;
+  }
+}
+
+// ── Cliente ──────────────────────────────────────────────────────────────────
+function clienteFromRow(row: Row): Cliente {
+  return {
+    id: row.id,
+    nome: row.nome,
+    telefone: row.telefone ?? "",
+    email: row.email ?? "",
+    observacoes: row.observacoes ?? "",
+    criadoEm: row.criado_em,
+    atualizadoEm: row.atualizado_em,
+    exemplo: row.exemplo ?? false,
+  };
+}
+function clienteToRow(c: Cliente): Row {
+  return {
+    id: c.id,
+    nome: c.nome,
+    telefone: c.telefone,
+    email: c.email,
+    observacoes: c.observacoes,
+    exemplo: c.exemplo ?? false,
+    criado_em: c.criadoEm,
+    atualizado_em: c.atualizadoEm,
+  };
+}
+function clientePatchToRow(p: Partial<ClienteInput>): Row {
+  const r: Row = {};
+  if (p.nome !== undefined) r.nome = p.nome;
+  if (p.telefone !== undefined) r.telefone = p.telefone;
+  if (p.email !== undefined) r.email = p.email;
+  if (p.observacoes !== undefined) r.observacoes = p.observacoes;
+  if (p.exemplo !== undefined) r.exemplo = p.exemplo;
+  return r;
+}
+
+class SupabaseClientRepository implements ClientRepository {
+  async listAll(): Promise<Cliente[]> {
+    const { data, error } = await supabase.from("clientes").select("*");
+    if (error) throw error;
+    return (data ?? []).map(clienteFromRow);
+  }
+  async create(input: ClienteInput): Promise<Cliente> {
+    const ts = agoraISO();
+    const cli: Cliente = { ...input, id: novoId("cli"), criadoEm: ts, atualizadoEm: ts };
+    const { error } = await supabase.from("clientes").insert(clienteToRow(cli));
+    if (error) throw error;
+    return cli;
+  }
+  async update(id: string, patch: Partial<ClienteInput>): Promise<Cliente> {
+    const { data, error } = await supabase
+      .from("clientes")
+      .update({ ...clientePatchToRow(patch), atualizado_em: agoraISO() })
+      .eq("id", id)
+      .select()
+      .single();
+    if (error) throw error;
+    return clienteFromRow(data);
+  }
+  async remove(id: string): Promise<void> {
+    const { error } = await supabase.from("clientes").delete().eq("id", id);
+    if (error) throw error;
+  }
+}
+
+// ── Origem ───────────────────────────────────────────────────────────────────
+function origemFromRow(row: Row): Origem {
+  return { id: row.id, nome: row.nome };
+}
+
+class SupabaseOriginRepository implements OriginRepository {
+  async listAll(): Promise<Origem[]> {
+    const { data, error } = await supabase.from("origens").select("*");
+    if (error) throw error;
+    return (data ?? []).map(origemFromRow);
+  }
+  async create(input: OrigemInput): Promise<Origem> {
+    const o: Origem = { ...input, id: novoId("og") };
+    const { error } = await supabase.from("origens").insert({ id: o.id, nome: o.nome });
+    if (error) throw error;
+    return o;
+  }
+  async update(id: string, patch: Partial<OrigemInput>): Promise<Origem> {
+    const { data, error } = await supabase
+      .from("origens")
+      .update(patch)
+      .eq("id", id)
+      .select()
+      .single();
+    if (error) throw error;
+    return origemFromRow(data);
+  }
+  async remove(id: string): Promise<void> {
+    const { error } = await supabase.from("origens").delete().eq("id", id);
+    if (error) throw error;
+  }
+}
+
+// ── Etapa ────────────────────────────────────────────────────────────────────
+function etapaFromRow(row: Row): Etapa {
+  return {
+    id: row.id,
+    nome: row.nome,
+    probabilidade: Number(row.probabilidade),
+    ordem: Number(row.ordem),
+    final: row.final ?? false,
+  };
+}
+function etapaPatchToRow(p: Partial<EtapaInput>): Row {
+  const r: Row = {};
+  if (p.nome !== undefined) r.nome = p.nome;
+  if (p.probabilidade !== undefined) r.probabilidade = p.probabilidade;
+  if (p.ordem !== undefined) r.ordem = p.ordem;
+  if (p.final !== undefined) r.final = p.final;
+  return r;
+}
+
+class SupabaseStageRepository implements StageRepository {
+  async listAll(): Promise<Etapa[]> {
+    const { data, error } = await supabase.from("etapas").select("*");
+    if (error) throw error;
+    return (data ?? []).map(etapaFromRow);
+  }
+  async create(input: EtapaInput): Promise<Etapa> {
+    const e: Etapa = { ...input, id: novoId("etapa") };
+    const { error } = await supabase.from("etapas").insert({
+      id: e.id,
+      nome: e.nome,
+      probabilidade: e.probabilidade,
+      ordem: e.ordem,
+      final: e.final ?? false,
+    });
+    if (error) throw error;
+    return e;
+  }
+  async update(id: string, patch: Partial<EtapaInput>): Promise<Etapa> {
+    const { data, error } = await supabase
+      .from("etapas")
+      .update(etapaPatchToRow(patch))
+      .eq("id", id)
+      .select()
+      .single();
+    if (error) throw error;
+    return etapaFromRow(data);
+  }
+  async remove(id: string): Promise<void> {
+    const { error } = await supabase.from("etapas").delete().eq("id", id);
+    if (error) throw error;
+  }
+}
+
+// ── Atividades (listas + cards) ──────────────────────────────────────────────
+function listaFromRow(row: Row): AtividadeLista {
+  return {
+    id: row.id,
+    nome: row.nome,
+    ordem: Number(row.ordem),
+    cor: row.cor as AtividadeLista["cor"],
+  };
+}
+function listaPatchToRow(p: Partial<AtividadeListaInput>): Row {
+  const r: Row = {};
+  if (p.nome !== undefined) r.nome = p.nome;
+  if (p.ordem !== undefined) r.ordem = p.ordem;
+  if (p.cor !== undefined) r.cor = p.cor;
+  return r;
+}
+function cardFromRow(row: Row): AtividadeCard {
+  return {
+    id: row.id,
+    listaId: row.lista_id,
+    titulo: row.titulo,
+    descricao: row.descricao ?? "",
+    cor: (row.cor ?? null) as AtividadeCard["cor"],
+    data: row.data ?? null,
+    ordem: Number(row.ordem),
+    criadoEm: row.criado_em,
+    atualizadoEm: row.atualizado_em,
+  };
+}
+function cardToRow(c: AtividadeCard): Row {
+  return {
+    id: c.id,
+    lista_id: c.listaId,
+    titulo: c.titulo,
+    descricao: c.descricao,
+    cor: c.cor,
+    data: c.data,
+    ordem: c.ordem,
+    criado_em: c.criadoEm,
+    atualizado_em: c.atualizadoEm,
+  };
+}
+function cardPatchToRow(p: Partial<AtividadeCardInput>): Row {
+  const r: Row = {};
+  if (p.listaId !== undefined) r.lista_id = p.listaId;
+  if (p.titulo !== undefined) r.titulo = p.titulo;
+  if (p.descricao !== undefined) r.descricao = p.descricao;
+  if (p.cor !== undefined) r.cor = p.cor;
+  if (p.data !== undefined) r.data = p.data;
+  if (p.ordem !== undefined) r.ordem = p.ordem;
+  return r;
+}
+
+class SupabaseActivityRepository implements ActivityRepository {
+  async load(): Promise<AtividadesState> {
+    const [listasRes, cardsRes] = await Promise.all([
+      supabase.from("atividades_listas").select("*"),
+      supabase.from("atividades_cards").select("*"),
+    ]);
+    if (listasRes.error) throw listasRes.error;
+    if (cardsRes.error) throw cardsRes.error;
+    return {
+      listas: (listasRes.data ?? []).map(listaFromRow),
+      cards: (cardsRes.data ?? []).map(cardFromRow),
+    };
+  }
+  async createLista(input: AtividadeListaInput): Promise<AtividadeLista> {
+    const lista: AtividadeLista = { ...input, id: novoId("lista") };
+    const { error } = await supabase.from("atividades_listas").insert({
+      id: lista.id,
+      nome: lista.nome,
+      ordem: lista.ordem,
+      cor: lista.cor,
+    });
+    if (error) throw error;
+    return lista;
+  }
+  async updateLista(
+    id: string,
+    patch: Partial<AtividadeListaInput>,
+  ): Promise<AtividadeLista> {
+    const { data, error } = await supabase
+      .from("atividades_listas")
+      .update(listaPatchToRow(patch))
+      .eq("id", id)
+      .select()
+      .single();
+    if (error) throw error;
+    return listaFromRow(data);
+  }
+  async removeLista(id: string): Promise<void> {
+    // Os cards caem em cascata via FK (on delete cascade no schema).
+    const { error } = await supabase.from("atividades_listas").delete().eq("id", id);
+    if (error) throw error;
+  }
+  async createCard(input: AtividadeCardInput): Promise<AtividadeCard> {
+    const ts = agoraISO();
+    const card: AtividadeCard = { ...input, id: novoId("card"), criadoEm: ts, atualizadoEm: ts };
+    const { error } = await supabase.from("atividades_cards").insert(cardToRow(card));
+    if (error) throw error;
+    return card;
+  }
+  async updateCard(
+    id: string,
+    patch: Partial<AtividadeCardInput>,
+  ): Promise<AtividadeCard> {
+    const { data, error } = await supabase
+      .from("atividades_cards")
+      .update({ ...cardPatchToRow(patch), atualizado_em: agoraISO() })
+      .eq("id", id)
+      .select()
+      .single();
+    if (error) throw error;
+    return cardFromRow(data);
+  }
+  async removeCard(id: string): Promise<void> {
+    const { error } = await supabase.from("atividades_cards").delete().eq("id", id);
+    if (error) throw error;
+  }
+}
+*/
+
+// ─────────────────────────────────────────────────────────────────────────────
 // PONTO ÚNICO DE TROCA DE IMPLEMENTAÇÃO (localStorage → Supabase no futuro)
+//
+// Quando o Supabase estiver ativo, troque cada linha abaixo, ex.:
+//   export const dealRepository: DealRepository = new SupabaseDealRepository();
 // ─────────────────────────────────────────────────────────────────────────────
 export const dealRepository: DealRepository = new LocalStorageDealRepository();
 export const clientRepository: ClientRepository =
