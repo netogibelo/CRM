@@ -1,53 +1,36 @@
 "use client";
 
-import { Suspense, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { btnPrimary, inputCls, labelCls } from "@/lib/ui";
 
-type Mensagem = { tipo: "ok" | "erro"; texto: string };
-
-function ErroCallback() {
-  const params = useSearchParams();
-  if (!params.get("error")) return null;
-  return (
-    <div
-      role="alert"
-      className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800"
-    >
-      Link inválido ou expirado. Solicite um novo abaixo.
-    </div>
-  );
-}
-
 export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
+  const [senha, setSenha] = useState("");
   const [enviando, setEnviando] = useState(false);
-  const [msg, setMsg] = useState<Mensagem | null>(null);
+  const [erro, setErro] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setEnviando(true);
-    setMsg(null);
+    setErro(null);
 
-    const { error } = await supabase.auth.signInWithOtp({
+    const { error } = await supabase.auth.signInWithPassword({
       email,
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-      },
+      password: senha,
     });
 
     setEnviando(false);
 
     if (error) {
-      setMsg({ tipo: "erro", texto: error.message });
-    } else {
-      setMsg({
-        tipo: "ok",
-        texto: "Link mágico enviado. Verifique seu email.",
-      });
-      setEmail("");
+      setErro(traduzErro(error.message));
+      return;
     }
+
+    router.push("/");
+    router.refresh();
   }
 
   return (
@@ -84,38 +67,47 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               disabled={enviando}
               placeholder="seu@email.com"
-              aria-label="Email para receber o link de acesso"
+              aria-label="Email"
               className={inputCls}
             />
           </div>
 
-          {!msg && (
-            <Suspense fallback={null}>
-              <ErroCallback />
-            </Suspense>
-          )}
+          <div>
+            <label htmlFor="senha" className={labelCls}>
+              Senha
+            </label>
+            <input
+              id="senha"
+              name="senha"
+              type="password"
+              required
+              autoComplete="current-password"
+              value={senha}
+              onChange={(e) => setSenha(e.target.value)}
+              disabled={enviando}
+              placeholder="••••••••"
+              aria-label="Senha"
+              className={inputCls}
+            />
+          </div>
 
-          {msg && (
+          {erro && (
             <div
               role="alert"
               aria-live="polite"
-              className={
-                msg.tipo === "ok"
-                  ? "rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-800"
-                  : "rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800"
-              }
+              className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800"
             >
-              {msg.texto}
+              {erro}
             </div>
           )}
 
           <button
             type="submit"
-            disabled={enviando || !email}
+            disabled={enviando || !email || !senha}
             className={`${btnPrimary} w-full`}
-            aria-label="Enviar link mágico para o email"
+            aria-label="Entrar"
           >
-            {enviando ? "Enviando…" : "Enviar link mágico"}
+            {enviando ? "Entrando…" : "Entrar"}
           </button>
         </form>
 
@@ -125,4 +117,18 @@ export default function LoginPage() {
       </div>
     </main>
   );
+}
+
+function traduzErro(mensagem: string): string {
+  const lower = mensagem.toLowerCase();
+  if (lower.includes("invalid login credentials")) {
+    return "Email ou senha incorretos.";
+  }
+  if (lower.includes("email not confirmed")) {
+    return "Email ainda não confirmado. Verifique a caixa de entrada.";
+  }
+  if (lower.includes("too many requests") || lower.includes("rate limit")) {
+    return "Muitas tentativas. Aguarde alguns minutos.";
+  }
+  return mensagem;
 }
