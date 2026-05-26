@@ -27,11 +27,13 @@ import type {
 import {
   clientRepository,
   dealRepository,
+  historicoRepository,
   loadCrmSnapshot,
   originRepository,
   stageRepository,
 } from "./repository";
 import { etapaFinal, etapasAtivas } from "./stages";
+import { supabase } from "./supabase";
 
 /** Resultado de operações que podem ser bloqueadas por integridade referencial. */
 export interface OpResult {
@@ -105,8 +107,27 @@ export function CrmProvider({ children }: { children: React.ReactNode }) {
 
   const atualizarDeal = useCallback(
     async (id: string, patch: Partial<DealInput>) => {
+      const anterior = ref.current.deals.find((x) => x.id === id);
       const d = await dealRepository.update(id, patch);
       setState((s) => ({ ...s, deals: s.deals.map((x) => (x.id === id ? d : x)) }));
+
+      // Auto-registro: mudança de etapa vira evento na timeline.
+      if (anterior && anterior.etapaId !== d.etapaId) {
+        const eAnt = ref.current.etapas.find((e) => e.id === anterior.etapaId);
+        const eNew = ref.current.etapas.find((e) => e.id === d.etapaId);
+        if (eAnt && eNew) {
+          const { data: userData } = await supabase.auth.getUser();
+          await historicoRepository
+            .create({
+              dealId: id,
+              tipo: "mudanca_etapa",
+              descricao: `Movido de "${eAnt.nome}" para "${eNew.nome}"`,
+              autorEmail: userData.user?.email ?? null,
+            })
+            .catch(() => null);
+        }
+      }
+
       return d;
     },
     [],

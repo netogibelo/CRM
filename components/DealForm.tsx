@@ -7,6 +7,7 @@ import { formatBRL, parseValorBRL } from "@/lib/format";
 import { btnGhost, btnPrimary, inputCls, labelCls } from "@/lib/ui";
 import { Modal } from "./Modal";
 import { ClienteForm } from "./ClienteForm";
+import { DealTimeline } from "./DealTimeline";
 
 interface DealFormProps {
   deal: Deal | null;
@@ -379,6 +380,8 @@ export function DealForm({
               </button>
             </div>
           </div>
+
+          {editando && deal && <DealTimeline dealId={deal.id} />}
         </form>
       )}
 

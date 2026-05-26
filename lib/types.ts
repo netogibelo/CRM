@@ -142,3 +142,23 @@ export interface AtividadesState {
   listas: AtividadeLista[];
   cards: AtividadeCard[];
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Histórico (timeline) de um deal
+// ─────────────────────────────────────────────────────────────────────────────
+export type HistoricoTipo =
+  | "nota"
+  | "mudanca_etapa"
+  | "contato"
+  | "follow_up";
+
+export interface HistoricoItem {
+  id: string;
+  dealId: string;
+  tipo: HistoricoTipo;
+  descricao: string;
+  /** Email do autor que registrou (null quando feito por sistema). */
+  autorEmail: string | null;
+  criadoEm: string;
+}
+export type HistoricoInput = Omit<HistoricoItem, "id" | "criadoEm">;

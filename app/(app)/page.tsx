@@ -2,14 +2,22 @@
 
 import { useState } from "react";
 import { useClients, useDeals } from "@/lib/crm-store";
+import { DashboardView } from "@/components/DashboardView";
 import { FunilView } from "@/components/FunilView";
 import { AtividadesView } from "@/components/AtividadesView";
 import { ClientesView } from "@/components/ClientesView";
 import { ConfiguracoesView } from "@/components/ConfiguracoesView";
 import { HistoricoView } from "@/components/HistoricoView";
 import { LogoutButton } from "@/components/LogoutButton";
+import { NotificacoesSino } from "@/components/NotificacoesSino";
 
-type Aba = "funil" | "atividades" | "clientes" | "config" | "historico";
+type Aba =
+  | "dashboard"
+  | "funil"
+  | "atividades"
+  | "clientes"
+  | "config"
+  | "historico";
 
 interface TabDef {
   id: Aba;
@@ -20,12 +28,13 @@ interface TabDef {
 export default function HomePage() {
   const { deals, carregando } = useDeals();
   const { clientes } = useClients();
-  const [aba, setAba] = useState<Aba>("funil");
+  const [aba, setAba] = useState<Aba>("dashboard");
 
   const abertos = deals.filter((d) => d.status === "aberto").length;
   const historico = deals.filter((d) => d.status !== "aberto").length;
 
   const tabs: TabDef[] = [
+    { id: "dashboard", label: "Dashboard" },
     { id: "funil", label: "Funil", badge: abertos },
     { id: "atividades", label: "Atividades" },
     { id: "clientes", label: "Clientes", badge: clientes.length },
@@ -50,7 +59,10 @@ export default function HomePage() {
             Gibelo Engenharia — oportunidades de projetos de alto padrão
           </p>
         </div>
-        <LogoutButton />
+        <div className="flex items-center gap-2">
+          <NotificacoesSino onIrParaDeal={() => setAba("funil")} />
+          <LogoutButton />
+        </div>
       </header>
 
       <div
@@ -96,6 +108,7 @@ export default function HomePage() {
             role="tabpanel"
             aria-labelledby={`tab-${aba}`}
           >
+            {aba === "dashboard" && <DashboardView />}
             {aba === "funil" && <FunilView />}
             {aba === "atividades" && <AtividadesView />}
             {aba === "clientes" && <ClientesView />}
