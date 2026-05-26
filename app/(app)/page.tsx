@@ -7,6 +7,7 @@ import { AtividadesView } from "@/components/AtividadesView";
 import { ClientesView } from "@/components/ClientesView";
 import { ConfiguracoesView } from "@/components/ConfiguracoesView";
 import { HistoricoView } from "@/components/HistoricoView";
+import { LogoutButton } from "@/components/LogoutButton";
 
 type Aba = "funil" | "atividades" | "clientes" | "config" | "historico";
 
@@ -41,7 +42,7 @@ export default function HomePage() {
         >
           GE
         </div>
-        <div>
+        <div className="flex-1">
           <h1 className="text-lg font-bold tracking-tight text-navy-900 sm:text-xl">
             Pipeline de Vendas
           </h1>
@@ -49,6 +50,7 @@ export default function HomePage() {
             Gibelo Engenharia — oportunidades de projetos de alto padrão
           </p>
         </div>
+        <LogoutButton />
       </header>
 
       <div

@@ -1,12 +1,14 @@
-// Cliente Supabase — ATIVO.
+// Cliente Supabase para uso no browser (Client Components).
 //
-// As credenciais vêm de .env.local (não commitado; está no .gitignore):
+// Credenciais vêm de .env.local (não commitado):
 //   NEXT_PUBLIC_SUPABASE_URL=...
 //   NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+//
+// Para uso em Server Components / Route Handlers, importe de "@/lib/supabase-server".
 
-import { createClient } from "@supabase/supabase-js";
+import { createBrowserClient } from "@supabase/ssr";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-export const supabase = createClient(supabaseUrl, supabaseKey);
+export const supabase = createBrowserClient(supabaseUrl, supabaseKey);
