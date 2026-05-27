@@ -1,7 +1,7 @@
 "use client";
 
 import type { Deal } from "@/lib/types";
-import { useResolvers, useTarefas } from "@/lib/crm-store";
+import { usePerfis, useResolvers, useTarefas } from "@/lib/crm-store";
 import { activationProps, dragProps } from "@/lib/dnd";
 import { formatBRL, formatDateBR, diasDesde, estaParado } from "@/lib/format";
 import { iniciaisOuFallback, nomeOuEmail } from "@/lib/equipe";
@@ -54,6 +54,7 @@ export function DealCard({
 }: DealCardProps) {
   const { clienteNome, origemNome } = useResolvers();
   const { tarefas } = useTarefas();
+  const { perfis } = usePerfis();
   const parado = deal.status === "aberto" && estaParado(deal.atualizadoEm);
   const diasParado = diasDesde(deal.atualizadoEm);
   const nomeOrigem = origemNome(deal.origemId);
@@ -160,10 +161,10 @@ export function DealCard({
           {deal.responsavelEmail && (
             <span
               className="flex h-5 w-5 items-center justify-center rounded-full bg-navy-900 text-[9px] font-bold text-white"
-              title={nomeOuEmail(deal.responsavelEmail)}
-              aria-label={`Responsável: ${nomeOuEmail(deal.responsavelEmail)}`}
+              title={nomeOuEmail(deal.responsavelEmail, perfis)}
+              aria-label={`Responsável: ${nomeOuEmail(deal.responsavelEmail, perfis)}`}
             >
-              {iniciaisOuFallback(deal.responsavelEmail)}
+              {iniciaisOuFallback(deal.responsavelEmail, perfis)}
             </span>
           )}
         </div>

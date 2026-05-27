@@ -232,3 +232,20 @@ export interface Automacao {
   criadoEm: string;
 }
 export type AutomacaoInput = Omit<Automacao, "id" | "criadoEm">;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Perfil (nome de exibição configurável por usuário)
+// ─────────────────────────────────────────────────────────────────────────────
+export interface Perfil {
+  /** auth.uid() do usuário Supabase. */
+  id: string;
+  nomeExibicao: string;
+  email: string;
+  criadoEm: string;
+  atualizadoEm: string;
+}
+export type PerfilInput = {
+  id: string;
+  nomeExibicao: string;
+  email: string;
+};

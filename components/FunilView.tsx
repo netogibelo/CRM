@@ -28,9 +28,26 @@ export function FunilView() {
     () => aplicarFiltros(abertos, filtros),
     [abertos, filtros],
   );
+
+  /**
+   * Métricas respeitam os filtros aplicados.
+   *
+   * - Para "abertos", usamos abertosFiltrados.
+   * - Para ganhos/perdidos, aplicamos o mesmo conjunto de filtros sobre os
+   *   deals fechados, exceto o filtro de etapa (deal ganho está sempre na
+   *   etapa final; filtrar por etapa zeraria ganhos). Decisão: status
+   *   ganho/perdido entra na conta de taxa de fechamento usando os mesmos
+   *   filtros estruturais (responsável, origem, tipo de obra, cidade, valor).
+   */
+  const dealsFiltradosParaMetrics = useMemo(() => {
+    const fechados = deals.filter((d) => d.status !== "aberto");
+    const fechadosFiltrados = aplicarFiltros(fechados, filtros);
+    return [...abertosFiltrados, ...fechadosFiltrados];
+  }, [deals, filtros, abertosFiltrados]);
+
   const metrics = useMemo(
-    () => calcularMetrics(deals, etapas, origens),
-    [deals, etapas, origens],
+    () => calcularMetrics(dealsFiltradosParaMetrics, etapas, origens),
+    [dealsFiltradosParaMetrics, etapas, origens],
   );
 
   async function mover(dealId: string, etapaId: string) {

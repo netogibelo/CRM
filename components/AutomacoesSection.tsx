@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useAutomacoes, useStages } from "@/lib/crm-store";
-import { EQUIPE } from "@/lib/equipe";
+import { useAutomacoes, usePerfis, useStages } from "@/lib/crm-store";
+import { EQUIPE, nomeOuEmail } from "@/lib/equipe";
 import { btnGhost, btnPrimary, inputCls, labelCls } from "@/lib/ui";
 import type {
   Automacao,
@@ -34,7 +34,11 @@ const VAZIA: NovaAutomacao = {
   textoNota: "",
 };
 
-function descrever(a: Automacao, nomeEtapa: (id: string) => string): string {
+function descrever(
+  a: Automacao,
+  nomeEtapa: (id: string) => string,
+  perfis: import("@/lib/types").Perfil[],
+): string {
   const gat =
     a.gatilho === "deal_criado"
       ? "Quando um deal é criado"
@@ -43,9 +47,11 @@ function descrever(a: Automacao, nomeEtapa: (id: string) => string): string {
         )}"`;
   if (a.acao === "criar_tarefa") {
     const c = a.configuracao as ConfigCriarTarefa;
-    return `${gat} → criar tarefa "${c.tituloTarefa}" (prazo ${c.prazoEmDias}d, responsável: ${
-      c.responsavel === "mesmo_do_deal" ? "mesmo do deal" : c.responsavel
-    })`;
+    const resp =
+      c.responsavel === "mesmo_do_deal"
+        ? "mesmo do deal"
+        : nomeOuEmail(c.responsavel, perfis);
+    return `${gat} → criar tarefa "${c.tituloTarefa}" (prazo ${c.prazoEmDias}d, responsável: ${resp})`;
   }
   const c = a.configuracao as ConfigRegistrarNota;
   return `${gat} → registrar nota: "${c.texto}"`;
@@ -54,11 +60,62 @@ function descrever(a: Automacao, nomeEtapa: (id: string) => string): string {
 export function AutomacoesSection() {
   const { automacoes, criar, atualizar, remover } = useAutomacoes();
   const { etapas } = useStages();
+  const { perfis } = usePerfis();
   const [novo, setNovo] = useState<NovaAutomacao>(VAZIA);
   const [salvando, setSalvando] = useState(false);
+  const [editandoId, setEditandoId] = useState<string | null>(null);
+  const [edit, setEdit] = useState<{
+    tituloTarefa: string;
+    prazoEmDias: number;
+    responsavel: string;
+    textoNota: string;
+  }>({ tituloTarefa: "", prazoEmDias: 3, responsavel: "mesmo_do_deal", textoNota: "" });
 
   function nomeEtapa(id: string): string {
     return etapas.find((e) => e.id === id)?.nome ?? "—";
+  }
+
+  function comecarEdicao(a: Automacao) {
+    setEditandoId(a.id);
+    if (a.acao === "criar_tarefa") {
+      const c = a.configuracao as ConfigCriarTarefa;
+      setEdit({
+        tituloTarefa: c.tituloTarefa ?? "",
+        prazoEmDias: c.prazoEmDias ?? 3,
+        responsavel: c.responsavel ?? "mesmo_do_deal",
+        textoNota: "",
+      });
+    } else {
+      const c = a.configuracao as ConfigRegistrarNota;
+      setEdit({
+        tituloTarefa: "",
+        prazoEmDias: 3,
+        responsavel: "mesmo_do_deal",
+        textoNota: c.texto ?? "",
+      });
+    }
+  }
+
+  async function salvarEdicao(a: Automacao) {
+    const etapaId = (a.configuracao as { etapaId?: string }).etapaId;
+    let configuracao;
+    if (a.acao === "criar_tarefa") {
+      if (!edit.tituloTarefa.trim()) return;
+      configuracao = {
+        etapaId,
+        tituloTarefa: edit.tituloTarefa.trim(),
+        prazoEmDias: Math.max(1, edit.prazoEmDias || 1),
+        responsavel: edit.responsavel || "mesmo_do_deal",
+      } satisfies ConfigCriarTarefa;
+    } else {
+      if (!edit.textoNota.trim()) return;
+      configuracao = {
+        etapaId,
+        texto: edit.textoNota.trim(),
+      } satisfies ConfigRegistrarNota;
+    }
+    await atualizar(a.id, { configuracao });
+    setEditandoId(null);
   }
 
   async function adicionar() {
@@ -118,34 +175,152 @@ export function AutomacoesSection() {
           automacoes.map((a) => (
             <li
               key={a.id}
-              className="flex items-center gap-3 rounded-lg border border-navy-100 bg-white p-3"
+              className="rounded-lg border border-navy-100 bg-white p-3"
             >
-              <div className="flex-1">
-                <p className="text-sm font-medium text-navy-900">{a.nome}</p>
-                <p className="mt-0.5 text-xs text-navy-500">
-                  {descrever(a, nomeEtapa)}
-                </p>
+              <div className="flex items-center gap-3">
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-navy-900">{a.nome}</p>
+                  <p className="mt-0.5 text-xs text-navy-500">
+                    {descrever(a, nomeEtapa, perfis)}
+                  </p>
+                </div>
+                <label className="flex shrink-0 items-center gap-1.5 text-xs text-navy-600">
+                  <input
+                    type="checkbox"
+                    checked={a.ativa}
+                    onChange={() => atualizar(a.id, { ativa: !a.ativa })}
+                    className="h-4 w-4 rounded border-navy-300 text-navy-900 focus:ring-navy-500"
+                    aria-label={`${a.ativa ? "Desativar" : "Ativar"} automação ${a.nome}`}
+                  />
+                  Ativa
+                </label>
+                <button
+                  type="button"
+                  onClick={() =>
+                    editandoId === a.id
+                      ? setEditandoId(null)
+                      : comecarEdicao(a)
+                  }
+                  className="text-xs text-navy-500 transition-colors hover:text-navy-900"
+                  aria-label={`${editandoId === a.id ? "Cancelar edição" : "Editar"} automação ${a.nome}`}
+                >
+                  {editandoId === a.id ? "Fechar" : "Editar"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (confirm(`Excluir automação "${a.nome}"?`)) remover(a.id);
+                  }}
+                  className="text-xs text-navy-400 transition-colors hover:text-red-600"
+                  aria-label={`Excluir automação ${a.nome}`}
+                >
+                  Excluir
+                </button>
               </div>
-              <label className="flex shrink-0 items-center gap-1.5 text-xs text-navy-600">
-                <input
-                  type="checkbox"
-                  checked={a.ativa}
-                  onChange={() => atualizar(a.id, { ativa: !a.ativa })}
-                  className="h-4 w-4 rounded border-navy-300 text-navy-900 focus:ring-navy-500"
-                  aria-label={`${a.ativa ? "Desativar" : "Ativar"} automação ${a.nome}`}
-                />
-                Ativa
-              </label>
-              <button
-                type="button"
-                onClick={() => {
-                  if (confirm(`Excluir automação "${a.nome}"?`)) remover(a.id);
-                }}
-                className="text-xs text-navy-400 transition-colors hover:text-red-600"
-                aria-label={`Excluir automação ${a.nome}`}
-              >
-                Excluir
-              </button>
+
+              {editandoId === a.id && (
+                <div className="mt-3 grid grid-cols-1 gap-3 rounded-md border border-navy-200 bg-navy-50/50 p-3 sm:grid-cols-2">
+                  {a.acao === "criar_tarefa" ? (
+                    <>
+                      <div className="sm:col-span-2">
+                        <label
+                          htmlFor={`edit-titulo-${a.id}`}
+                          className={labelCls}
+                        >
+                          Título da tarefa
+                        </label>
+                        <input
+                          id={`edit-titulo-${a.id}`}
+                          type="text"
+                          value={edit.tituloTarefa}
+                          onChange={(e) =>
+                            setEdit({ ...edit, tituloTarefa: e.target.value })
+                          }
+                          className={inputCls}
+                        />
+                      </div>
+                      <div>
+                        <label
+                          htmlFor={`edit-prazo-${a.id}`}
+                          className={labelCls}
+                        >
+                          Prazo (dias)
+                        </label>
+                        <input
+                          id={`edit-prazo-${a.id}`}
+                          type="number"
+                          min={1}
+                          value={edit.prazoEmDias}
+                          onChange={(e) =>
+                            setEdit({
+                              ...edit,
+                              prazoEmDias: Number(e.target.value) || 1,
+                            })
+                          }
+                          className={inputCls}
+                        />
+                      </div>
+                      <div>
+                        <label
+                          htmlFor={`edit-resp-${a.id}`}
+                          className={labelCls}
+                        >
+                          Responsável
+                        </label>
+                        <select
+                          id={`edit-resp-${a.id}`}
+                          value={edit.responsavel}
+                          onChange={(e) =>
+                            setEdit({ ...edit, responsavel: e.target.value })
+                          }
+                          className={inputCls}
+                        >
+                          <option value="mesmo_do_deal">Mesmo do deal</option>
+                          {EQUIPE.map((m) => (
+                            <option key={m.email} value={m.email}>
+                              {nomeOuEmail(m.email, perfis)}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="sm:col-span-2">
+                      <label
+                        htmlFor={`edit-nota-${a.id}`}
+                        className={labelCls}
+                      >
+                        Texto da nota
+                      </label>
+                      <input
+                        id={`edit-nota-${a.id}`}
+                        type="text"
+                        value={edit.textoNota}
+                        onChange={(e) =>
+                          setEdit({ ...edit, textoNota: e.target.value })
+                        }
+                        className={inputCls}
+                      />
+                    </div>
+                  )}
+                  <div className="flex justify-end gap-2 sm:col-span-2">
+                    <button
+                      type="button"
+                      onClick={() => setEditandoId(null)}
+                      className={btnGhost}
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => salvarEdicao(a)}
+                      className={btnPrimary}
+                    >
+                      Salvar alterações
+                    </button>
+                  </div>
+                </div>
+              )}
             </li>
           ))
         )}

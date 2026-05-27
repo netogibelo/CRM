@@ -2,13 +2,13 @@
 
 import { useMemo, useState } from "react";
 import {
+  Area,
+  AreaChart,
   Bar,
   BarChart,
   CartesianGrid,
   Cell,
   Legend,
-  Line,
-  LineChart,
   Pie,
   PieChart,
   ResponsiveContainer,
@@ -30,15 +30,33 @@ const PERIODOS: { id: Periodo; label: string; dias: number }[] = [
   { id: "ano", label: "12 meses", dias: 365 },
 ];
 
-const NAVY_900 = "#0D2137";
-const NAVY_700 = "#334863";
+// ── Paleta Gibelo profissional + vibrante ────────────────────────────────────
+const NAVY_900 = "#0D2137"; // navy Gibelo
 const NAVY_500 = "#4f6f93";
-const NAVY_300 = "#9fb6cd";
-const EMERALD = "#10b981";
-const ROSE = "#f43f5e";
-const AMBER = "#f59e0b";
+const ROYAL = "#2563eb"; // azul royal (linha temporal)
+const TEAL = "#0d9488"; // teal escuro
+const EMERALD = "#10b981"; // verde esmeralda
+const AMBER = "#f59e0b"; // âmbar
+const CORAL = "#f43f5e"; // vermelho coral
+const SLATE = "#94a3b8"; // cinza (em andamento)
+const INDIGO = "#6366f1";
+const CYAN = "#06b6d4";
+const ROSE = "#fb7185";
 
-const PALETA_FUNIL = [NAVY_300, NAVY_500, NAVY_700, NAVY_900, "#081627"];
+/** Funil: gradiente navy → teal → emerald → amber, ressaltando progressão. */
+const PALETA_FUNIL = [NAVY_900, TEAL, EMERALD, AMBER, "#fbbf24"];
+
+/** Etapas (valor em pipeline): paleta distinta por etapa. */
+const PALETA_ETAPAS = [INDIGO, CYAN, AMBER, ROSE, EMERALD, NAVY_500];
+
+/** Ranking top origens: degradê do mais escuro pro mais claro. */
+const PALETA_RANKING = [
+  "#7c2d12", // escuro
+  "#b45309",
+  AMBER,
+  "#fcd34d",
+  "#fef3c7", // claro
+];
 
 function dentroDoPeriodo(iso: string, diasJanela: number): boolean {
   const corte = Date.now() - diasJanela * 24 * 60 * 60 * 1000;
@@ -215,15 +233,19 @@ export function DashboardView() {
       .sort((a, b) => a.label.localeCompare(b.label));
   }, [dealsPeriodo, periodo.dias]);
 
-  // ── Taxa de fechamento: ganhos vs perdidos no período ───────────────────
+  // ── Taxa de fechamento: ganhos / perdidos / em andamento ───────────────
   const ganhosQtd = ganhosPeriodo.length;
   const perdidosQtd = dealsPeriodo.filter((d) => d.status === "perdido").length;
+  const abertosNoPeriodo = dealsPeriodo.filter(
+    (d) => d.status === "aberto",
+  ).length;
   const dadosFechamento = useMemo(() => {
     return [
       { nome: "Ganhos", valor: ganhosQtd, cor: EMERALD },
-      { nome: "Perdidos", valor: perdidosQtd, cor: ROSE },
+      { nome: "Perdidos", valor: perdidosQtd, cor: CORAL },
+      { nome: "Em andamento", valor: abertosNoPeriodo, cor: SLATE },
     ].filter((d) => d.valor > 0);
-  }, [ganhosQtd, perdidosQtd]);
+  }, [ganhosQtd, perdidosQtd, abertosNoPeriodo]);
   const taxaFechamento =
     ganhosQtd + perdidosQtd > 0
       ? Math.round((ganhosQtd / (ganhosQtd + perdidosQtd)) * 100)
@@ -366,10 +388,16 @@ export function DashboardView() {
             <EmptyChart />
           ) : (
             <ResponsiveContainer>
-              <LineChart
+              <AreaChart
                 data={dadosEvolucao}
                 margin={{ top: 8, right: 16, left: -16, bottom: 8 }}
               >
+                <defs>
+                  <linearGradient id="gradEvolucao" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={ROYAL} stopOpacity={0.45} />
+                    <stop offset="100%" stopColor={ROYAL} stopOpacity={0} />
+                  </linearGradient>
+                </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e9f1" />
                 <XAxis
                   dataKey="label"
@@ -385,15 +413,16 @@ export function DashboardView() {
                   formatter={(v) => [`${Number(v)} novos`, "Qtd"]}
                   contentStyle={{ fontSize: 12, borderRadius: 8 }}
                 />
-                <Line
+                <Area
                   type="monotone"
                   dataKey="qtd"
-                  stroke={NAVY_900}
+                  stroke={ROYAL}
                   strokeWidth={2.5}
-                  dot={{ fill: NAVY_900, r: 3 }}
+                  fill="url(#gradEvolucao)"
+                  dot={{ fill: ROYAL, r: 3 }}
                   activeDot={{ r: 5 }}
                 />
-              </LineChart>
+              </AreaChart>
             </ResponsiveContainer>
           )}
         </ChartCard>
@@ -469,7 +498,14 @@ export function DashboardView() {
                   formatter={(v) => [formatBRL(Number(v)), "Valor"]}
                   contentStyle={{ fontSize: 12, borderRadius: 8 }}
                 />
-                <Bar dataKey="valor" fill={NAVY_700} radius={[6, 6, 0, 0]} />
+                <Bar dataKey="valor" radius={[6, 6, 0, 0]}>
+                  {dadosValorEtapa.map((_, i) => (
+                    <Cell
+                      key={i}
+                      fill={PALETA_ETAPAS[i % PALETA_ETAPAS.length]}
+                    />
+                  ))}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           )}
@@ -507,7 +543,14 @@ export function DashboardView() {
                   formatter={(v) => [formatBRL(Number(v)), "Valor ganho"]}
                   contentStyle={{ fontSize: 12, borderRadius: 8 }}
                 />
-                <Bar dataKey="valor" fill={AMBER} radius={[0, 6, 6, 0]} />
+                <Bar dataKey="valor" radius={[0, 6, 6, 0]}>
+                  {dadosOrigens.map((_, i) => (
+                    <Cell
+                      key={i}
+                      fill={PALETA_RANKING[i % PALETA_RANKING.length]}
+                    />
+                  ))}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           )}

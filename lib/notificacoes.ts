@@ -6,7 +6,7 @@
 // "Última atividade" prefere o evento mais recente no histórico (incluindo a
 // auto-registrada mudança de etapa); fallback para deal.atualizadoEm.
 
-import type { Deal, Etapa, HistoricoItem, Tarefa } from "./types";
+import type { Deal, Etapa, HistoricoItem, Perfil, Tarefa } from "./types";
 import { diasDesde } from "./format";
 import { nomeOuEmail } from "./equipe";
 
@@ -63,10 +63,12 @@ export interface CalcularInput {
   /** Mapa dealId → histórico ordenado por criadoEm desc (já filtrado). */
   historicoPorDeal: Map<string, HistoricoItem[]>;
   tarefas: Tarefa[];
+  /** Para resolver nome de exibição do responsável. */
+  perfis?: Perfil[];
 }
 
 export function calcularNotificacoes(input: CalcularInput): Notificacao[] {
-  const { deals, etapas, historicoPorDeal, tarefas } = input;
+  const { deals, etapas, historicoPorDeal, tarefas, perfis = [] } = input;
   const mapaEtapa = new Map(etapas.map((e) => [e.id, e]));
   const hoje = hojeISO();
   const out: Notificacao[] = [];
@@ -117,7 +119,7 @@ export function calcularNotificacoes(input: CalcularInput): Notificacao[] {
     const dias = diasDesde(`${t.dataVencimento}T00:00:00`);
     const deal = deals.find((d) => d.id === t.dealId);
     if (!deal) continue;
-    const resp = nomeOuEmail(t.responsavelEmail);
+    const resp = nomeOuEmail(t.responsavelEmail, perfis);
     out.push({
       id: `tarefa:${t.id}`,
       tipo: "tarefa_vencida",

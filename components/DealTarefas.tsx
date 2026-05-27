@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useTarefas } from "@/lib/crm-store";
+import { usePerfis, useTarefas } from "@/lib/crm-store";
 import { EQUIPE, nomeOuEmail } from "@/lib/equipe";
 import { formatDateBR } from "@/lib/format";
 import { inputCls, labelCls, btnGhost } from "@/lib/ui";
@@ -22,6 +22,7 @@ function vencida(t: Tarefa): boolean {
 
 export function DealTarefas({ dealId, responsavelDoDeal }: DealTarefasProps) {
   const { tarefas, criar, atualizar, remover } = useTarefas();
+  const { perfis } = usePerfis();
   const tarefasDoDeal = useMemo(
     () =>
       tarefas
@@ -76,7 +77,7 @@ export function DealTarefas({ dealId, responsavelDoDeal }: DealTarefasProps) {
       </header>
 
       {/* Importante: NÃO usar <form> aqui (está dentro do form do DealForm). */}
-      <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-[1fr_140px_160px_auto]">
+      <div className="mt-3 space-y-2">
         <div>
           <label htmlFor="tarefa-titulo" className={`${labelCls} sr-only`}>
             Título
@@ -98,49 +99,51 @@ export function DealTarefas({ dealId, responsavelDoDeal }: DealTarefasProps) {
             }}
           />
         </div>
-        <div>
-          <label htmlFor="tarefa-vencimento" className={`${labelCls} sr-only`}>
-            Vencimento
-          </label>
-          <input
-            id="tarefa-vencimento"
-            type="date"
-            value={vencimento}
-            onChange={(e) => setVencimento(e.target.value)}
-            className={inputCls}
-            aria-label="Data de vencimento"
-            disabled={salvando}
-          />
-        </div>
-        <div>
-          <label htmlFor="tarefa-resp" className={`${labelCls} sr-only`}>
-            Responsável
-          </label>
-          <select
-            id="tarefa-resp"
-            value={responsavel}
-            onChange={(e) => setResponsavel(e.target.value)}
-            className={inputCls}
-            aria-label="Responsável pela tarefa"
-            disabled={salvando}
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-[160px_1fr_auto]">
+          <div>
+            <label htmlFor="tarefa-vencimento" className={`${labelCls} sr-only`}>
+              Vencimento
+            </label>
+            <input
+              id="tarefa-vencimento"
+              type="date"
+              value={vencimento}
+              onChange={(e) => setVencimento(e.target.value)}
+              className={inputCls}
+              aria-label="Data de vencimento"
+              disabled={salvando}
+            />
+          </div>
+          <div>
+            <label htmlFor="tarefa-resp" className={`${labelCls} sr-only`}>
+              Responsável
+            </label>
+            <select
+              id="tarefa-resp"
+              value={responsavel}
+              onChange={(e) => setResponsavel(e.target.value)}
+              className={inputCls}
+              aria-label="Responsável pela tarefa"
+              disabled={salvando}
+            >
+              <option value="">Sem responsável</option>
+              {EQUIPE.map((m) => (
+                <option key={m.email} value={m.email}>
+                  {nomeOuEmail(m.email, perfis)}
+                </option>
+              ))}
+            </select>
+          </div>
+          <button
+            type="button"
+            onClick={adicionar}
+            disabled={!titulo.trim() || !vencimento || salvando}
+            className={`${btnGhost} disabled:opacity-50 sm:self-end`}
+            aria-label="Adicionar tarefa"
           >
-            <option value="">Sem responsável</option>
-            {EQUIPE.map((m) => (
-              <option key={m.email} value={m.email}>
-                {m.nome}
-              </option>
-            ))}
-          </select>
+            {salvando ? "Salvando…" : "Adicionar"}
+          </button>
         </div>
-        <button
-          type="button"
-          onClick={adicionar}
-          disabled={!titulo.trim() || !vencimento || salvando}
-          className={`${btnGhost} disabled:opacity-50`}
-          aria-label="Adicionar tarefa"
-        >
-          {salvando ? "Salvando…" : "Adicionar"}
-        </button>
       </div>
 
       <ul className="mt-3 space-y-2">
@@ -187,7 +190,7 @@ export function DealTarefas({ dealId, responsavelDoDeal }: DealTarefasProps) {
                       {formatDateBR(t.dataVencimento)}
                     </span>
                     {t.responsavelEmail && (
-                      <span>· {nomeOuEmail(t.responsavelEmail)}</span>
+                      <span>· {nomeOuEmail(t.responsavelEmail, perfis)}</span>
                     )}
                   </div>
                 </div>

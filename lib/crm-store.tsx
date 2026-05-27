@@ -24,6 +24,8 @@ import type {
   EtapaInput,
   Origem,
   OrigemInput,
+  Perfil,
+  PerfilInput,
   Tarefa,
   TarefaInput,
 } from "./types";
@@ -34,6 +36,7 @@ import {
   historicoRepository,
   loadCrmSnapshot,
   originRepository,
+  perfilRepository,
   stageRepository,
   tarefaRepository,
 } from "./repository";
@@ -85,6 +88,9 @@ interface CrmContextValue {
     patch: Partial<import("./types").AutomacaoInput>,
   ) => Promise<Automacao>;
   removerAutomacao: (id: string) => Promise<void>;
+  // perfis
+  perfis: Perfil[];
+  salvarPerfil: (input: PerfilInput) => Promise<Perfil>;
   // lookups
   clienteNome: (id: string) => string;
   origemNome: (id: string) => string;
@@ -101,6 +107,7 @@ export function CrmProvider({ children }: { children: React.ReactNode }) {
   });
   const [tarefas, setTarefas] = useState<Tarefa[]>([]);
   const [automacoes, setAutomacoes] = useState<Automacao[]>([]);
+  const [perfis, setPerfis] = useState<Perfil[]>([]);
   const [carregando, setCarregando] = useState(true);
 
   // Ref sempre com o estado mais recente, para checagens de integridade.
@@ -112,15 +119,18 @@ export function CrmProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let ativo = true;
     (async () => {
-      const [snapshot, listaTarefas, listaAutomacoes] = await Promise.all([
-        loadCrmSnapshot(),
-        tarefaRepository.listAll().catch(() => []),
-        automacaoRepository.listAll().catch(() => []),
-      ]);
+      const [snapshot, listaTarefas, listaAutomacoes, listaPerfis] =
+        await Promise.all([
+          loadCrmSnapshot(),
+          tarefaRepository.listAll().catch(() => []),
+          automacaoRepository.listAll().catch(() => []),
+          perfilRepository.listAll().catch(() => []),
+        ]);
       if (ativo) {
         setState(snapshot);
         setTarefas(listaTarefas);
         setAutomacoes(listaAutomacoes);
+        setPerfis(listaPerfis);
         setCarregando(false);
       }
     })();
@@ -385,6 +395,16 @@ export function CrmProvider({ children }: { children: React.ReactNode }) {
     setAutomacoes((prev) => prev.filter((x) => x.id !== id));
   }, []);
 
+  // ── Perfis ─────────────────────────────────────────────────────────────
+  const salvarPerfil = useCallback(async (input: PerfilInput) => {
+    const p = await perfilRepository.upsert(input);
+    setPerfis((prev) => {
+      const semEle = prev.filter((x) => x.id !== p.id);
+      return [...semEle, p];
+    });
+    return p;
+  }, []);
+
   // ── Lookups ────────────────────────────────────────────────────────────
   const clienteNome = useCallback(
     (id: string) =>
@@ -423,6 +443,8 @@ export function CrmProvider({ children }: { children: React.ReactNode }) {
     criarAutomacao,
     atualizarAutomacao,
     removerAutomacao,
+    perfis,
+    salvarPerfil,
     clienteNome,
     origemNome,
   };
@@ -514,5 +536,13 @@ export function useAutomacoes() {
     criar: c.criarAutomacao,
     atualizar: c.atualizarAutomacao,
     remover: c.removerAutomacao,
+  };
+}
+
+export function usePerfis() {
+  const c = useCrm();
+  return {
+    perfis: c.perfis,
+    salvar: c.salvarPerfil,
   };
 }

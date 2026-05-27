@@ -8,7 +8,7 @@ import { AtividadesView } from "@/components/AtividadesView";
 import { ClientesView } from "@/components/ClientesView";
 import { ConfiguracoesView } from "@/components/ConfiguracoesView";
 import { HistoricoView } from "@/components/HistoricoView";
-import { LogoutButton } from "@/components/LogoutButton";
+import { PerfilButton } from "@/components/PerfilButton";
 import { NotificacoesSino } from "@/components/NotificacoesSino";
 
 type Aba =
@@ -61,7 +61,7 @@ export default function HomePage() {
         </div>
         <div className="flex items-center gap-2">
           <NotificacoesSino onIrParaDeal={() => setAba("funil")} />
-          <LogoutButton />
+          <PerfilButton />
         </div>
       </header>
 

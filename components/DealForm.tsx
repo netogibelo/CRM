@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import type { Deal, DealInput, TipoObra } from "@/lib/types";
-import { useClients, useOrigins, useStages } from "@/lib/crm-store";
+import { useClients, useOrigins, usePerfis, useStages } from "@/lib/crm-store";
 import { formatBRL, parseValorBRL } from "@/lib/format";
 import { btnGhost, btnPrimary, inputCls, labelCls } from "@/lib/ui";
-import { EQUIPE } from "@/lib/equipe";
+import { EQUIPE, nomeOuEmail } from "@/lib/equipe";
 import { TIPOS_OBRA } from "@/lib/tipo-obra";
 import { Modal } from "./Modal";
 import { ClienteForm } from "./ClienteForm";
@@ -34,6 +34,7 @@ export function DealForm({
   const { clientes, criar: criarCliente } = useClients();
   const { origens } = useOrigins();
   const { ativas: etapasAtivas } = useStages();
+  const { perfis } = usePerfis();
 
   const editando = deal !== null;
   const aberto = !editando || deal.status === "aberto";
@@ -122,6 +123,7 @@ export function DealForm({
           ? "Atualize os dados ou registre o desfecho do negócio."
           : "Cadastre uma nova oportunidade no funil."
       }
+      maxWidth="max-w-3xl"
       onClose={onClose}
     >
       {modoPerda ? (
@@ -325,7 +327,7 @@ export function DealForm({
                 <option value="">Sem responsável atribuído</option>
                 {EQUIPE.map((m) => (
                   <option key={m.email} value={m.email}>
-                    {m.nome}
+                    {nomeOuEmail(m.email, perfis)}
                   </option>
                 ))}
               </select>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useDeals, useStages, useTarefas } from "@/lib/crm-store";
+import { useDeals, usePerfis, useStages, useTarefas } from "@/lib/crm-store";
 import {
   calcularNotificacoes,
   filtrarNaoVistas,
@@ -25,6 +25,7 @@ export function NotificacoesSino({ onIrParaDeal }: NotificacoesSinoProps) {
   const { deals } = useDeals();
   const { etapas } = useStages();
   const { tarefas } = useTarefas();
+  const { perfis } = usePerfis();
   const [aberto, setAberto] = useState(false);
   const [vistas, setVistas] = useState<Record<string, string>>({});
   const refContainer = useRef<HTMLDivElement>(null);
@@ -64,8 +65,9 @@ export function NotificacoesSino({ onIrParaDeal }: NotificacoesSinoProps) {
         etapas,
         historicoPorDeal: new Map<string, HistoricoItem[]>(),
         tarefas,
+        perfis,
       }),
-    [deals, etapas, tarefas],
+    [deals, etapas, tarefas, perfis],
   );
   const ativas = useMemo(
     () => filtrarNaoVistas(todas, vistas),

@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { Deal, Origem, TipoObra } from "@/lib/types";
-import { EQUIPE } from "@/lib/equipe";
+import { EQUIPE, nomeOuEmail } from "@/lib/equipe";
+import { usePerfis } from "@/lib/crm-store";
 import { TIPOS_OBRA } from "@/lib/tipo-obra";
 import { parseValorBRL, formatBRL } from "@/lib/format";
 import { btnGhost } from "@/lib/ui";
@@ -92,6 +93,8 @@ export function FiltrosFunil({
   totalDeals,
   filtradosCount,
 }: FiltrosFunilProps) {
+  const { perfis } = usePerfis();
+
   const algumAtivo = useMemo(() => {
     return (
       filtros.responsavel !== "" ||
@@ -130,7 +133,7 @@ export function FiltrosFunil({
             <option value="">Todos</option>
             {EQUIPE.map((m) => (
               <option key={m.email} value={m.email}>
-                {m.nome}
+                {nomeOuEmail(m.email, perfis)}
               </option>
             ))}
           </select>
