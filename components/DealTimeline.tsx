@@ -8,6 +8,8 @@ import { btnGhost, inputCls, labelCls } from "@/lib/ui";
 
 interface DealTimelineProps {
   dealId: string;
+  /** Incrementar este número força recarregar o histórico (após registro externo). */
+  reloadKey?: number;
 }
 
 const TIPOS: { value: HistoricoTipo; label: string; cor: string }[] = [
@@ -40,7 +42,7 @@ function formatDataHora(iso: string): string {
   });
 }
 
-export function DealTimeline({ dealId }: DealTimelineProps) {
+export function DealTimeline({ dealId, reloadKey = 0 }: DealTimelineProps) {
   const [itens, setItens] = useState<HistoricoItem[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [tipo, setTipo] = useState<HistoricoTipo>("nota");
@@ -59,7 +61,7 @@ export function DealTimeline({ dealId }: DealTimelineProps) {
 
   useEffect(() => {
     carregar();
-  }, [carregar]);
+  }, [carregar, reloadKey]);
 
   async function adicionar() {
     const desc = descricao.trim();

@@ -20,6 +20,8 @@ import type {
   CrmState,
   Deal,
   DealInput,
+  DealServico,
+  DealServicoInput,
   Etapa,
   EtapaInput,
   Meta,
@@ -40,6 +42,7 @@ import {
   metaRepository,
   originRepository,
   perfilRepository,
+  servicoRepository,
   stageRepository,
   tarefaRepository,
 } from "./repository";
@@ -97,6 +100,14 @@ interface CrmContextValue {
   // metas
   metas: Meta[];
   salvarMeta: (input: MetaInput) => Promise<Meta>;
+  // servicos
+  servicos: DealServico[];
+  criarServico: (input: DealServicoInput) => Promise<DealServico>;
+  atualizarServico: (
+    id: string,
+    patch: Partial<DealServicoInput>,
+  ) => Promise<DealServico>;
+  removerServico: (id: string) => Promise<void>;
   // lookups
   clienteNome: (id: string) => string;
   origemNome: (id: string) => string;
@@ -115,6 +126,7 @@ export function CrmProvider({ children }: { children: React.ReactNode }) {
   const [automacoes, setAutomacoes] = useState<Automacao[]>([]);
   const [perfis, setPerfis] = useState<Perfil[]>([]);
   const [metas, setMetas] = useState<Meta[]>([]);
+  const [servicos, setServicos] = useState<DealServico[]>([]);
   const [carregando, setCarregando] = useState(true);
 
   // Ref sempre com o estado mais recente, para checagens de integridade.
@@ -126,20 +138,28 @@ export function CrmProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let ativo = true;
     (async () => {
-      const [snapshot, listaTarefas, listaAutomacoes, listaPerfis, listaMetas] =
-        await Promise.all([
-          loadCrmSnapshot(),
-          tarefaRepository.listAll().catch(() => []),
-          automacaoRepository.listAll().catch(() => []),
-          perfilRepository.listAll().catch(() => []),
-          metaRepository.listAll().catch(() => []),
-        ]);
+      const [
+        snapshot,
+        listaTarefas,
+        listaAutomacoes,
+        listaPerfis,
+        listaMetas,
+        listaServicos,
+      ] = await Promise.all([
+        loadCrmSnapshot(),
+        tarefaRepository.listAll().catch(() => []),
+        automacaoRepository.listAll().catch(() => []),
+        perfilRepository.listAll().catch(() => []),
+        metaRepository.listAll().catch(() => []),
+        servicoRepository.listAll().catch(() => []),
+      ]);
       if (ativo) {
         setState(snapshot);
         setTarefas(listaTarefas);
         setAutomacoes(listaAutomacoes);
         setPerfis(listaPerfis);
         setMetas(listaMetas);
+        setServicos(listaServicos);
         setCarregando(false);
       }
     })();
@@ -424,6 +444,27 @@ export function CrmProvider({ children }: { children: React.ReactNode }) {
     return m;
   }, []);
 
+  // ── Serviços (itens do deal) ───────────────────────────────────────────
+  const criarServico = useCallback(async (input: DealServicoInput) => {
+    const s = await servicoRepository.create(input);
+    setServicos((prev) => [...prev, s]);
+    return s;
+  }, []);
+
+  const atualizarServico = useCallback(
+    async (id: string, patch: Partial<DealServicoInput>) => {
+      const s = await servicoRepository.update(id, patch);
+      setServicos((prev) => prev.map((x) => (x.id === id ? s : x)));
+      return s;
+    },
+    [],
+  );
+
+  const removerServico = useCallback(async (id: string) => {
+    await servicoRepository.remove(id);
+    setServicos((prev) => prev.filter((x) => x.id !== id));
+  }, []);
+
   // ── Lookups ────────────────────────────────────────────────────────────
   const clienteNome = useCallback(
     (id: string) =>
@@ -466,6 +507,10 @@ export function CrmProvider({ children }: { children: React.ReactNode }) {
     salvarPerfil,
     metas,
     salvarMeta,
+    servicos,
+    criarServico,
+    atualizarServico,
+    removerServico,
     clienteNome,
     origemNome,
   };
@@ -573,5 +618,15 @@ export function useMetas() {
   return {
     metas: c.metas,
     salvar: c.salvarMeta,
+  };
+}
+
+export function useServicos() {
+  const c = useCrm();
+  return {
+    servicos: c.servicos,
+    criar: c.criarServico,
+    atualizar: c.atualizarServico,
+    remover: c.removerServico,
   };
 }

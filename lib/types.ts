@@ -251,6 +251,20 @@ export type PerfilInput = {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Item de serviço de um deal — permite N serviços por oportunidade.
+// Quando há ao menos um item, o valor do deal = soma dos itens (UI calcula).
+// ─────────────────────────────────────────────────────────────────────────────
+export interface DealServico {
+  id: string;
+  dealId: string;
+  descricao: string;
+  valor: number;
+  ordem: number;
+  criadoEm: string;
+}
+export type DealServicoInput = Omit<DealServico, "id" | "criadoEm">;
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Meta mensal de vendas (valor fechado em R$)
 // ─────────────────────────────────────────────────────────────────────────────
 export interface Meta {

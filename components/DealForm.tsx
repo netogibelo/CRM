@@ -11,6 +11,8 @@ import { Modal } from "./Modal";
 import { ClienteForm } from "./ClienteForm";
 import { DealTimeline } from "./DealTimeline";
 import { DealTarefas } from "./DealTarefas";
+import { ComunicacaoRapida } from "./ComunicacaoRapida";
+import { DealServicos } from "./DealServicos";
 
 interface DealFormProps {
   deal: Deal | null;
@@ -69,6 +71,16 @@ export function DealForm({
   const [novoClienteAberto, setNovoClienteAberto] = useState(false);
   const [erros, setErros] = useState<Record<string, string>>({});
 
+  // Quando o deal tem itens em deal_servicos, o valor é a soma deles (readonly).
+  // Inicializa em 0 e o componente DealServicos reporta total + quantidade.
+  const [valorServicos, setValorServicos] = useState(0);
+  const [qtdServicos, setQtdServicos] = useState(0);
+  const temServicos = qtdServicos > 0;
+  const valorEfetivo = temServicos ? valorServicos : valor;
+
+  // Força recarregar a timeline quando a comunicação rápida registra algo.
+  const [timelineReload, setTimelineReload] = useState(0);
+
   const etapaSelecionada = etapasAtivas.some((s) => s.id === etapaId)
     ? etapaId
     : etapasAtivas[0]?.id ?? "";
@@ -77,7 +89,10 @@ export function DealForm({
     const e: Record<string, string> = {};
     if (!projeto.trim()) e.projeto = "Informe o projeto/serviço.";
     if (!clienteId) e.cliente = "Selecione um cliente.";
-    if (!valor || valor <= 0) e.valor = "Informe um valor maior que zero.";
+    if (!valorEfetivo || valorEfetivo <= 0)
+      e.valor = temServicos
+        ? "Informe ao menos um serviço com valor."
+        : "Informe um valor maior que zero.";
     if (!previsao) e.previsao = "Informe a data do próximo retorno.";
     setErros(e);
     return Object.keys(e).length === 0;
@@ -90,7 +105,7 @@ export function DealForm({
     const input: DealInput = {
       projeto: projeto.trim(),
       clienteId,
-      valor,
+      valor: valorEfetivo,
       origemId: origemId || origens[0]?.id || "",
       previsaoFechamento: previsao,
       etapaId: etapaSelecionada,
@@ -238,13 +253,25 @@ export function DealForm({
                 id="valor"
                 type="text"
                 inputMode="numeric"
-                value={valor > 0 ? formatBRL(valor) : ""}
+                value={valorEfetivo > 0 ? formatBRL(valorEfetivo) : ""}
                 onChange={(e) => setValor(parseValorBRL(e.target.value))}
-                className={inputCls}
+                className={`${inputCls} ${temServicos ? "bg-navy-50 text-navy-500" : ""}`}
                 placeholder="R$ 0,00"
+                readOnly={temServicos}
                 aria-invalid={Boolean(erros.valor)}
-                aria-describedby={erros.valor ? "erro-valor" : undefined}
+                aria-describedby={
+                  erros.valor
+                    ? "erro-valor"
+                    : temServicos
+                      ? "hint-valor"
+                      : undefined
+                }
               />
+              {temServicos && (
+                <p id="hint-valor" className="mt-1 text-xs text-navy-400">
+                  Soma de {qtdServicos} {qtdServicos === 1 ? "serviço" : "serviços"}.
+                </p>
+              )}
               {erros.valor && (
                 <p id="erro-valor" className="mt-1 text-sm text-red-600">
                   {erros.valor}
@@ -495,11 +522,22 @@ export function DealForm({
 
           {editando && deal && (
             <>
+              <DealServicos
+                dealId={deal.id}
+                onTotalChange={(total, qtd) => {
+                  setValorServicos(total);
+                  setQtdServicos(qtd);
+                }}
+              />
               <DealTarefas
                 dealId={deal.id}
                 responsavelDoDeal={responsavelEmail || null}
               />
-              <DealTimeline dealId={deal.id} />
+              <ComunicacaoRapida
+                dealId={deal.id}
+                onRegistrado={() => setTimelineReload((v) => v + 1)}
+              />
+              <DealTimeline dealId={deal.id} reloadKey={timelineReload} />
             </>
           )}
         </form>
