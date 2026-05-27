@@ -265,6 +265,18 @@ export interface DealServico {
 export type DealServicoInput = Omit<DealServico, "id" | "criadoEm">;
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Tipo de serviço (catálogo configurável de sugestões para DealServicos)
+// ─────────────────────────────────────────────────────────────────────────────
+export interface TipoServico {
+  id: string;
+  nome: string;
+  ordem: number;
+  ativo: boolean;
+  criadoEm: string;
+}
+export type TipoServicoInput = Omit<TipoServico, "id" | "criadoEm">;
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Meta mensal de vendas (valor fechado em R$)
 // ─────────────────────────────────────────────────────────────────────────────
 export interface Meta {

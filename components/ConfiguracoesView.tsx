@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import type { Etapa, Origem } from "@/lib/types";
-import { useOrigins, useStages } from "@/lib/crm-store";
+import type { Etapa, Origem, TipoServico } from "@/lib/types";
+import { useOrigins, useStages, useTiposServico } from "@/lib/crm-store";
 import { ordenarEtapas, corDaEtapa } from "@/lib/stages";
 import { btnPrimary, inputCls } from "@/lib/ui";
 import { EditableText } from "./EditableText";
@@ -159,13 +159,84 @@ function EtapaRow({
   );
 }
 
+// ── Tipo de serviço ──────────────────────────────────────────────────────────
+function TipoServicoRow({
+  tipo,
+  posicao,
+  total,
+  onRename,
+  onMover,
+  onDesativar,
+}: {
+  tipo: TipoServico;
+  posicao: number;
+  total: number;
+  onRename: (nome: string) => void;
+  onMover: (dir: -1 | 1) => void;
+  onDesativar: () => void;
+}) {
+  return (
+    <li className="flex items-center gap-2 rounded-lg border border-navy-100 bg-white p-2">
+      <EditableText
+        value={tipo.nome}
+        onCommit={onRename}
+        ariaLabel={`Nome do tipo de serviço ${tipo.nome}`}
+        className={nomeInlineCls}
+      />
+      <div className="flex">
+        <button
+          type="button"
+          onClick={() => onMover(-1)}
+          disabled={posicao === 0}
+          aria-label={`Mover ${tipo.nome} para cima`}
+          className="rounded-md p-1 text-navy-400 transition-colors hover:bg-navy-50 hover:text-navy-700 disabled:opacity-30"
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+            <path d="M8 11V5M5 8l3-3 3 3" stroke="currentColor" strokeWidth="1.4" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          onClick={() => onMover(1)}
+          disabled={posicao === total - 1}
+          aria-label={`Mover ${tipo.nome} para baixo`}
+          className="rounded-md p-1 text-navy-400 transition-colors hover:bg-navy-50 hover:text-navy-700 disabled:opacity-30"
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+            <path d="M8 5v6M5 8l3 3 3-3" stroke="currentColor" strokeWidth="1.4" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+      </div>
+      <button
+        type="button"
+        onClick={onDesativar}
+        aria-label={`Excluir tipo de serviço ${tipo.nome}`}
+        className="shrink-0 rounded-md p-1.5 text-navy-400 transition-colors hover:bg-red-50 hover:text-red-600"
+      >
+        <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+          <path
+            d="M2.5 4h11M6 4V2.5h4V4M5 4l.5 9h5l.5-9"
+            stroke="currentColor"
+            strokeWidth="1.3"
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </button>
+    </li>
+  );
+}
+
 export function ConfiguracoesView() {
   const origens = useOrigins();
   const stages = useStages();
+  const tipos = useTiposServico();
 
   const [novaOrigem, setNovaOrigem] = useState("");
   const [novaEtapa, setNovaEtapa] = useState("");
   const [novaProb, setNovaProb] = useState(50);
+  const [novoTipo, setNovoTipo] = useState("");
 
   const etapasOrd = ordenarEtapas(stages.etapas);
   const ativas = etapasOrd.filter((e) => !e.final);
@@ -206,6 +277,19 @@ export function ConfiguracoesView() {
     if (!window.confirm(`Excluir a etapa "${nome}"?`)) return;
     const r = await stages.remover(id);
     if (!r.ok) window.alert(r.erro);
+  }
+
+  async function addTipoServico() {
+    const t = novoTipo.trim();
+    if (!t) return;
+    const maxOrdem = tipos.ativos.reduce((m, x) => Math.max(m, x.ordem), -1);
+    await tipos.criar({ nome: t, ordem: maxOrdem + 1, ativo: true });
+    setNovoTipo("");
+  }
+
+  async function delTipoServico(id: string, nome: string) {
+    if (!window.confirm(`Excluir o tipo "${nome}"?`)) return;
+    await tipos.desativar(id);
   }
 
   return (
@@ -298,6 +382,46 @@ export function ConfiguracoesView() {
             <span className="text-xs text-navy-400">%</span>
           </div>
           <button type="button" onClick={addEtapa} className={btnPrimary}>
+            Adicionar
+          </button>
+        </div>
+      </section>
+
+      {/* Tipos de serviço */}
+      <section
+        aria-label="Tipos de serviço"
+        className="rounded-2xl border border-navy-100 bg-navy-50/40 p-4 sm:p-5"
+      >
+        <h2 className="text-sm font-semibold text-navy-900">Tipos de serviço</h2>
+        <p className="mt-0.5 text-xs text-navy-400">
+          Sugestões oferecidas ao adicionar um serviço dentro de um deal. Excluir
+          não apaga histórico, só remove da lista de sugestões.
+        </p>
+
+        <ul className="mt-4 space-y-2">
+          {tipos.ativos.map((t, i) => (
+            <TipoServicoRow
+              key={t.id}
+              tipo={t}
+              posicao={i}
+              total={tipos.ativos.length}
+              onRename={(nome) => tipos.atualizar(t.id, { nome })}
+              onMover={(dir) => tipos.mover(t.id, dir)}
+              onDesativar={() => delTipoServico(t.id, t.nome)}
+            />
+          ))}
+        </ul>
+
+        <div className="mt-3 flex gap-2">
+          <input
+            value={novoTipo}
+            onChange={(e) => setNovoTipo(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && addTipoServico()}
+            placeholder="Novo tipo de serviço…"
+            aria-label="Nome do novo tipo de serviço"
+            className={`${inputCls} mt-0 flex-1`}
+          />
+          <button type="button" onClick={addTipoServico} className={btnPrimary}>
             Adicionar
           </button>
         </div>

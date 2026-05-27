@@ -32,6 +32,8 @@ import type {
   PerfilInput,
   Tarefa,
   TarefaInput,
+  TipoServico,
+  TipoServicoInput,
 } from "./types";
 import {
   automacaoRepository,
@@ -45,6 +47,7 @@ import {
   servicoRepository,
   stageRepository,
   tarefaRepository,
+  tipoServicoRepository,
 } from "./repository";
 import { etapaFinal, etapasAtivas } from "./stages";
 import { supabase } from "./supabase";
@@ -108,6 +111,15 @@ interface CrmContextValue {
     patch: Partial<DealServicoInput>,
   ) => Promise<DealServico>;
   removerServico: (id: string) => Promise<void>;
+  // tipos de servico (catálogo de sugestões configurável)
+  tiposServico: TipoServico[];
+  criarTipoServico: (input: TipoServicoInput) => Promise<TipoServico>;
+  atualizarTipoServico: (
+    id: string,
+    patch: Partial<TipoServicoInput>,
+  ) => Promise<TipoServico>;
+  desativarTipoServico: (id: string) => Promise<TipoServico>;
+  moverTipoServico: (id: string, dir: -1 | 1) => Promise<void>;
   // lookups
   clienteNome: (id: string) => string;
   origemNome: (id: string) => string;
@@ -127,7 +139,11 @@ export function CrmProvider({ children }: { children: React.ReactNode }) {
   const [perfis, setPerfis] = useState<Perfil[]>([]);
   const [metas, setMetas] = useState<Meta[]>([]);
   const [servicos, setServicos] = useState<DealServico[]>([]);
+  const [tiposServico, setTiposServico] = useState<TipoServico[]>([]);
   const [carregando, setCarregando] = useState(true);
+
+  const refTiposServico = useRef(tiposServico);
+  refTiposServico.current = tiposServico;
 
   // Ref sempre com o estado mais recente, para checagens de integridade.
   const ref = useRef(state);
@@ -145,6 +161,7 @@ export function CrmProvider({ children }: { children: React.ReactNode }) {
         listaPerfis,
         listaMetas,
         listaServicos,
+        listaTiposServico,
       ] = await Promise.all([
         loadCrmSnapshot(),
         tarefaRepository.listAll().catch(() => []),
@@ -152,6 +169,7 @@ export function CrmProvider({ children }: { children: React.ReactNode }) {
         perfilRepository.listAll().catch(() => []),
         metaRepository.listAll().catch(() => []),
         servicoRepository.listAll().catch(() => []),
+        tipoServicoRepository.listAll().catch(() => []),
       ]);
       if (ativo) {
         setState(snapshot);
@@ -160,6 +178,7 @@ export function CrmProvider({ children }: { children: React.ReactNode }) {
         setPerfis(listaPerfis);
         setMetas(listaMetas);
         setServicos(listaServicos);
+        setTiposServico(listaTiposServico);
         setCarregando(false);
       }
     })();
@@ -465,6 +484,49 @@ export function CrmProvider({ children }: { children: React.ReactNode }) {
     setServicos((prev) => prev.filter((x) => x.id !== id));
   }, []);
 
+  // ── Tipos de serviço (catálogo configurável) ───────────────────────────
+  const criarTipoServico = useCallback(async (input: TipoServicoInput) => {
+    const t = await tipoServicoRepository.create(input);
+    setTiposServico((prev) => [...prev, t]);
+    return t;
+  }, []);
+
+  const atualizarTipoServico = useCallback(
+    async (id: string, patch: Partial<TipoServicoInput>) => {
+      const t = await tipoServicoRepository.update(id, patch);
+      setTiposServico((prev) => prev.map((x) => (x.id === id ? t : x)));
+      return t;
+    },
+    [],
+  );
+
+  const desativarTipoServico = useCallback(async (id: string) => {
+    const t = await tipoServicoRepository.desativar(id);
+    setTiposServico((prev) => prev.map((x) => (x.id === id ? t : x)));
+    return t;
+  }, []);
+
+  // Reordena entre itens ativos trocando a posição com o vizinho.
+  const moverTipoServico = useCallback(async (id: string, dir: -1 | 1) => {
+    const ativos = refTiposServico.current
+      .filter((t) => t.ativo)
+      .sort((a, b) => a.ordem - b.ordem);
+    const idx = ativos.findIndex((t) => t.id === id);
+    const alvoIdx = idx + dir;
+    if (idx === -1 || alvoIdx < 0 || alvoIdx >= ativos.length) return;
+    const a = ativos[idx];
+    const b = ativos[alvoIdx];
+    const [ua, ub] = await Promise.all([
+      tipoServicoRepository.update(a.id, { ordem: b.ordem }),
+      tipoServicoRepository.update(b.id, { ordem: a.ordem }),
+    ]);
+    const trocados = new Map([
+      [ua.id, ua],
+      [ub.id, ub],
+    ]);
+    setTiposServico((prev) => prev.map((x) => trocados.get(x.id) ?? x));
+  }, []);
+
   // ── Lookups ────────────────────────────────────────────────────────────
   const clienteNome = useCallback(
     (id: string) =>
@@ -511,6 +573,11 @@ export function CrmProvider({ children }: { children: React.ReactNode }) {
     criarServico,
     atualizarServico,
     removerServico,
+    tiposServico,
+    criarTipoServico,
+    atualizarTipoServico,
+    desativarTipoServico,
+    moverTipoServico,
     clienteNome,
     origemNome,
   };
@@ -628,5 +695,24 @@ export function useServicos() {
     criar: c.criarServico,
     atualizar: c.atualizarServico,
     remover: c.removerServico,
+  };
+}
+
+export function useTiposServico() {
+  const c = useCrm();
+  const ativos = useMemo(
+    () =>
+      c.tiposServico
+        .filter((t) => t.ativo)
+        .sort((a, b) => a.ordem - b.ordem),
+    [c.tiposServico],
+  );
+  return {
+    todos: c.tiposServico,
+    ativos,
+    criar: c.criarTipoServico,
+    atualizar: c.atualizarTipoServico,
+    desativar: c.desativarTipoServico,
+    mover: c.moverTipoServico,
   };
 }
