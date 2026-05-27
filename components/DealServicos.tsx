@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { DealServico } from "@/lib/types";
+import type { DealServico, TipoServico } from "@/lib/types";
 import { useServicos, useTiposServico } from "@/lib/crm-store";
 import { formatBRL, parseValorBRL } from "@/lib/format";
 import { inputCls, labelCls } from "@/lib/ui";
@@ -13,56 +13,77 @@ interface DealServicosProps {
   onTotalChange: (total: number, qtd: number) => void;
 }
 
-const SUGESTOES_LIST_ID = "deal-servicos-sugestoes";
+const OUTRO = "__outro__";
+
+/** Decide o estado inicial do select para uma descrição persistida:
+ *  - se bate com algum tipo ativo → seleciona esse tipo
+ *  - vazio → select vazio
+ *  - texto livre → modo "Outro" + input revelado */
+function modoInicial(
+  descricao: string,
+  tipos: TipoServico[],
+): { selectValue: string; texto: string } {
+  if (!descricao) return { selectValue: "", texto: "" };
+  const hit = tipos.find((t) => t.nome === descricao);
+  if (hit) return { selectValue: hit.id, texto: "" };
+  return { selectValue: OUTRO, texto: descricao };
+}
 
 // ── Linha (cada serviço gerencia seu próprio estado de edição) ──────────────
 //
-// O componente foi extraído porque o padrão antigo (rascunho compartilhado +
-// salvar no onBlur) causava dois bugs:
-//   1. Tabular para o campo de valor disparava save com a descrição apenas
-//      parcialmente editada, podendo apagar valor que ainda não tinha sido
-//      tocado no buffer.
-//   2. Tentativas de salvar a cada blur conflitavam com o re-render do store e
-//      derrubavam o input antes do usuário confirmar.
-//
-// Agora cada linha mantém estado local; só persiste quando o usuário confirma
-// explicitamente (botão ✓ ou Enter). Quando o item upstream muda (após salvar),
-// o estado local re-sincroniza.
+// Refactor anterior já isolou estado por linha e introduziu o ✓ explícito;
+// agora a descrição é um <select> com as opções de tipos_servico + uma opção
+// "Outro" que revela um input livre. Isso elimina o problema do datalist que
+// não reabria após selecionar — selects são nativamente reabertos pelo browser.
 function ServicoRow({
   servico,
+  tipos,
   onAtualizar,
   onRemover,
 }: {
   servico: DealServico;
+  tipos: TipoServico[];
   onAtualizar: (
     id: string,
     patch: Partial<{ descricao: string; valor: number }>,
   ) => Promise<unknown>;
   onRemover: (id: string) => Promise<void>;
 }) {
-  const [descricao, setDescricao] = useState(servico.descricao);
+  const inicial = useMemo(() => modoInicial(servico.descricao, tipos), [
+    servico.descricao,
+    tipos,
+  ]);
+  const [selectValue, setSelectValue] = useState(inicial.selectValue);
+  const [texto, setTexto] = useState(inicial.texto);
   const [valor, setValor] = useState(servico.valor);
   const [salvando, setSalvando] = useState(false);
 
-  // Sincroniza com mudanças vindas do store (ex.: outro usuário salvou, ou
-  // após confirmação) — preserva edição em andamento se o upstream coincide
-  // com o que já está no buffer.
+  // Re-sincroniza quando o item upstream muda (após confirmar ou edição externa).
   useEffect(() => {
-    setDescricao(servico.descricao);
-  }, [servico.descricao]);
+    setSelectValue(inicial.selectValue);
+    setTexto(inicial.texto);
+  }, [inicial.selectValue, inicial.texto]);
   useEffect(() => {
     setValor(servico.valor);
   }, [servico.valor]);
 
+  const descricaoFinal = (() => {
+    if (selectValue === OUTRO) return texto.trim();
+    if (!selectValue) return "";
+    return tipos.find((t) => t.id === selectValue)?.nome ?? "";
+  })();
+
   const dirty =
-    descricao.trim() !== servico.descricao.trim() || valor !== servico.valor;
+    descricaoFinal !== servico.descricao.trim() || valor !== servico.valor;
 
   async function salvar() {
     if (!dirty || salvando) return;
+    // Quando o usuário escolheu "Outro" mas não digitou nada, não persiste vazio.
+    const descParaPersistir = descricaoFinal || servico.descricao;
     setSalvando(true);
     try {
       await onAtualizar(servico.id, {
-        descricao: descricao.trim() || servico.descricao,
+        descricao: descParaPersistir,
         valor: Number.isFinite(valor) ? valor : 0,
       });
     } finally {
@@ -70,7 +91,7 @@ function ServicoRow({
     }
   }
 
-  function onKeyDownSalvar(e: React.KeyboardEvent<HTMLInputElement>) {
+  function onKeyDownSalvar(e: React.KeyboardEvent<HTMLElement>) {
     if (e.key === "Enter") {
       e.preventDefault();
       salvar();
@@ -83,18 +104,40 @@ function ServicoRow({
         <label htmlFor={`srv-desc-${servico.id}`} className={`${labelCls} sr-only`}>
           Descrição do serviço
         </label>
-        <input
+        <select
           id={`srv-desc-${servico.id}`}
-          type="text"
-          list={SUGESTOES_LIST_ID}
-          value={descricao}
-          onChange={(e) => setDescricao(e.target.value)}
+          value={selectValue}
+          onChange={(e) => {
+            const v = e.target.value;
+            setSelectValue(v);
+            if (v !== OUTRO) setTexto("");
+          }}
           onKeyDown={onKeyDownSalvar}
-          placeholder="Descrição do serviço"
           className={inputCls}
-          aria-label="Descrição do serviço"
+          aria-label="Tipo de serviço"
           disabled={salvando}
-        />
+        >
+          <option value="">Selecione um tipo…</option>
+          {tipos.map((t) => (
+            <option key={t.id} value={t.id}>
+              {t.nome}
+            </option>
+          ))}
+          <option value={OUTRO}>✏️ Outro (digitar manualmente)</option>
+        </select>
+        {selectValue === OUTRO && (
+          <input
+            type="text"
+            value={texto}
+            onChange={(e) => setTexto(e.target.value)}
+            onKeyDown={onKeyDownSalvar}
+            placeholder="Descreva o serviço"
+            className={`${inputCls} mt-2`}
+            aria-label="Descrição livre do serviço"
+            disabled={salvando}
+            autoFocus={!texto}
+          />
+        )}
       </div>
       <div>
         <label htmlFor={`srv-val-${servico.id}`} className={`${labelCls} sr-only`}>
@@ -182,12 +225,6 @@ export function DealServicos({ dealId, onTotalChange }: DealServicosProps) {
         Serviços
       </legend>
 
-      <datalist id={SUGESTOES_LIST_ID}>
-        {tiposAtivos.map((t) => (
-          <option key={t.id} value={t.nome} />
-        ))}
-      </datalist>
-
       {itens.length === 0 ? (
         <p className="text-xs text-navy-400">
           Sem itens. Adicione serviços para detalhar o escopo do negócio. O valor
@@ -199,6 +236,7 @@ export function DealServicos({ dealId, onTotalChange }: DealServicosProps) {
             <ServicoRow
               key={s.id}
               servico={s}
+              tipos={tiposAtivos}
               onAtualizar={(id, patch) => atualizar(id, patch)}
               onRemover={remover}
             />

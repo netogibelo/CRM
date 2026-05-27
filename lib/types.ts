@@ -25,6 +25,8 @@ export type ClienteInput = Omit<Cliente, "id" | "criadoEm" | "atualizadoEm">;
 export interface Origem {
   id: string;
   nome: string;
+  /** Ordem manual (DnD ou A→Z). Default 0. */
+  ordem: number;
 }
 export type OrigemInput = Omit<Origem, "id">;
 
@@ -229,6 +231,7 @@ export interface Automacao {
   /** Configuração tipada por ação. */
   configuracao: ConfigCriarTarefa | ConfigRegistrarNota | Record<string, unknown>;
   ativa: boolean;
+  ordem: number;
   criadoEm: string;
 }
 export type AutomacaoInput = Omit<Automacao, "id" | "criadoEm">;

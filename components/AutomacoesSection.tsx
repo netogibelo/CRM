@@ -11,6 +11,7 @@ import type {
   ConfigCriarTarefa,
   ConfigRegistrarNota,
 } from "@/lib/types";
+import { DragHandle, SortableConfigList } from "./SortableConfigList";
 
 interface NovaAutomacao {
   nome: string;
@@ -58,7 +59,7 @@ function descrever(
 }
 
 export function AutomacoesSection() {
-  const { automacoes, criar, atualizar, remover } = useAutomacoes();
+  const { automacoes, criar, atualizar, remover, reordenar } = useAutomacoes();
   const { etapas } = useStages();
   const { perfis } = usePerfis();
   const [novo, setNovo] = useState<NovaAutomacao>(VAZIA);
@@ -141,12 +142,15 @@ export function AutomacoesSection() {
               texto: novo.textoNota.trim(),
             } satisfies ConfigRegistrarNota);
 
+      const proxOrdem =
+        automacoes.reduce((m, a) => Math.max(m, a.ordem), -1) + 1;
       await criar({
         nome: novo.nome.trim(),
         gatilho: novo.gatilho,
         acao: novo.acao,
         configuracao,
         ativa: true,
+        ordem: proxOrdem,
       });
       setNovo(VAZIA);
     } finally {
@@ -166,18 +170,19 @@ export function AutomacoesSection() {
       </p>
 
       {/* Lista existentes */}
-      <ul className="mt-4 space-y-2">
-        {automacoes.length === 0 ? (
-          <li className="py-3 text-center text-xs text-navy-400">
-            Nenhuma automação cadastrada.
-          </li>
-        ) : (
-          automacoes.map((a) => (
-            <li
-              key={a.id}
-              className="rounded-lg border border-navy-100 bg-white p-3"
-            >
+      <div className="mt-4">
+        <SortableConfigList
+          ariaLabel="Lista de automações"
+          items={automacoes}
+          getId={(a) => a.id}
+          getNome={(a) => a.nome}
+          onReorder={reordenar}
+          tituloAlfabetizar="Ordenar automações A→Z"
+          emptyLabel="Nenhuma automação cadastrada."
+          renderRow={(a, handle) => (
+            <div className="rounded-lg border border-navy-100 bg-white p-3">
               <div className="flex items-center gap-3">
+                <DragHandle handle={handle} />
                 <div className="flex-1">
                   <p className="text-sm font-medium text-navy-900">{a.nome}</p>
                   <p className="mt-0.5 text-xs text-navy-500">
@@ -321,10 +326,10 @@ export function AutomacoesSection() {
                   </div>
                 </div>
               )}
-            </li>
-          ))
-        )}
-      </ul>
+            </div>
+          )}
+        />
+      </div>
 
       {/* Form nova automação */}
       <div className="mt-4 rounded-lg border border-dashed border-navy-200 bg-white p-3">

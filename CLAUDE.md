@@ -87,6 +87,18 @@ Etapas são dados editáveis (`Etapa { nome, probabilidade, ordem, final? }`). E
 
 Ciclo de vida do deal é por `status` (`"aberto" | "ganho" | "perdido"`), não pela coluna onde está. Ganhos/perdidos saem do board, aparecem em Histórico, podem ser reabertos.
 
+### Cards de Configurações — padrão obrigatório
+
+Todo card de configuração em `ConfiguracoesView` (Origens, Etapas, Tipos de serviço, Automações, **e qualquer novo card adicionado no futuro**) deve:
+
+1. Ter coluna `ordem int` na tabela do Supabase. Adicione via MCP migration se faltar; backfill com `ROW_NUMBER() OVER (ORDER BY ...)`.
+2. Listar via `<SortableConfigList>` (`components/SortableConfigList.tsx`), passando `items`, `getId`, `getNome`, `onReorder`, e um `renderRow(item, dragHandle)` que injeta `<DragHandle handle={dragHandle} />` no início da linha.
+3. Suportar reordenação por DnD (já entregue pelo componente) **e** o botão **A→Z** no header (idem — o componente já renderiza).
+4. Expor `reordenar(idsOrdenados: string[])` no repositório (impl. com `Promise.all(ids.map((id, i) => update(id, { ordem: i })))`) e no hook do `crm-store.tsx`.
+5. Quando o tipo do item tiver constraint que impeça ordenação livre (ex.: `etapas.final` precisa ficar no fim), renderize esses itens **fora** do `<SortableConfigList>` e, ao reordenar, anexe-os ao array final antes de chamar `reordenar`.
+
+A constraint `UNIQUE` em colunas `ordem` deve ser evitada — quebra a estratégia paralela de atualização. Para `etapas.ordem` o UNIQUE foi removido em `prepare_config_reorder` justamente por isso.
+
 ### Boards & drag-and-drop
 
 Funil usa **HTML5 drag-and-drop nativo** via helpers em `lib/dnd.ts` (`useDropTarget`, `dragProps`, `activationProps`), com fallback mobile (dropdown de etapa no form do deal). Atividades (Kanban) usa **`@dnd-kit/core` + `@dnd-kit/sortable`** — suporta touch nativo, listas arrastáveis, cards arrastáveis entre listas. Reordenação controlada por campo `ordem` em listas e cards.

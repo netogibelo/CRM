@@ -25,11 +25,11 @@ const dataFutura = (offsetDias: number) =>
 // ─────────────────────────────────────────────────────────────────────────────
 export function defaultOrigens(): Origem[] {
   return [
-    { id: "og-indicacao", nome: "Indicação de cliente" },
-    { id: "og-arquiteto", nome: "Arquiteto parceiro" },
-    { id: "og-vizinho", nome: "Vizinho / condomínio" },
-    { id: "og-site", nome: "Site / Instagram" },
-    { id: "og-outro", nome: "Outro" },
+    { id: "og-indicacao", nome: "Indicação de cliente", ordem: 0 },
+    { id: "og-arquiteto", nome: "Arquiteto parceiro", ordem: 1 },
+    { id: "og-vizinho", nome: "Vizinho / condomínio", ordem: 2 },
+    { id: "og-site", nome: "Site / Instagram", ordem: 3 },
+    { id: "og-outro", nome: "Outro", ordem: 4 },
   ];
 }
 
@@ -249,10 +249,11 @@ export function migrarCrm(parsed: unknown): {
           (x) => x.nome.toLowerCase() === nomeOrigem.toLowerCase(),
         );
         if (!o) {
-          o = { id: novoId("og"), nome: nomeOrigem };
+          const maxOrd = origens.reduce((m, x) => Math.max(m, x.ordem), -1);
+          o = { id: novoId("og"), nome: nomeOrigem, ordem: maxOrd + 1 };
           origens.push(o);
         }
-        nd.origemId = o.id;
+        nd.origemId = o!.id;
       } else {
         nd.origemId = origens[origens.length - 1]?.id ?? "og-outro";
       }

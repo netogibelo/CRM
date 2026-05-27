@@ -75,12 +75,14 @@ interface CrmContextValue {
   criarOrigem: (input: OrigemInput) => Promise<Origem>;
   atualizarOrigem: (id: string, patch: Partial<OrigemInput>) => Promise<Origem>;
   removerOrigem: (id: string) => Promise<OpResult>;
+  reordenarOrigens: (idsOrdenados: string[]) => Promise<void>;
   origemEmUso: (id: string) => number;
   // etapas
   criarEtapa: (input: EtapaInput) => Promise<Etapa>;
   atualizarEtapa: (id: string, patch: Partial<EtapaInput>) => Promise<Etapa>;
   removerEtapa: (id: string) => Promise<OpResult>;
   moverEtapa: (id: string, dir: -1 | 1) => Promise<void>;
+  reordenarEtapas: (idsOrdenados: string[]) => Promise<void>;
   etapaEmUso: (id: string) => number;
   // tarefas
   tarefas: Tarefa[];
@@ -97,6 +99,7 @@ interface CrmContextValue {
     patch: Partial<import("./types").AutomacaoInput>,
   ) => Promise<Automacao>;
   removerAutomacao: (id: string) => Promise<void>;
+  reordenarAutomacoes: (idsOrdenados: string[]) => Promise<void>;
   // perfis
   perfis: Perfil[];
   salvarPerfil: (input: PerfilInput) => Promise<Perfil>;
@@ -120,6 +123,7 @@ interface CrmContextValue {
   ) => Promise<TipoServico>;
   desativarTipoServico: (id: string) => Promise<TipoServico>;
   moverTipoServico: (id: string, dir: -1 | 1) => Promise<void>;
+  reordenarTiposServico: (idsOrdenados: string[]) => Promise<void>;
   // lookups
   clienteNome: (id: string) => string;
   origemNome: (id: string) => string;
@@ -329,6 +333,20 @@ export function CrmProvider({ children }: { children: React.ReactNode }) {
     return { ok: true };
   }, []);
 
+  const reordenarOrigens = useCallback(async (idsOrdenados: string[]) => {
+    // Update otimista local + persist em paralelo.
+    setState((s) => ({
+      ...s,
+      origens: s.origens
+        .map((o) => {
+          const idx = idsOrdenados.indexOf(o.id);
+          return idx === -1 ? o : { ...o, ordem: idx };
+        })
+        .sort((a, b) => a.ordem - b.ordem),
+    }));
+    await originRepository.reorder(idsOrdenados);
+  }, []);
+
   // ── Etapas ─────────────────────────────────────────────────────────────
   const criarEtapa = useCallback(async (input: EtapaInput) => {
     const e = await stageRepository.create(input);
@@ -374,6 +392,17 @@ export function CrmProvider({ children }: { children: React.ReactNode }) {
     await stageRepository.remove(id);
     setState((s) => ({ ...s, etapas: s.etapas.filter((x) => x.id !== id) }));
     return { ok: true };
+  }, []);
+
+  const reordenarEtapas = useCallback(async (idsOrdenados: string[]) => {
+    setState((s) => ({
+      ...s,
+      etapas: s.etapas.map((e) => {
+        const idx = idsOrdenados.indexOf(e.id);
+        return idx === -1 ? e : { ...e, ordem: idx };
+      }),
+    }));
+    await stageRepository.reorder(idsOrdenados);
   }, []);
 
   // Reordena trocando a posição `ordem` com a etapa vizinha (entre as ativas).
@@ -443,6 +472,18 @@ export function CrmProvider({ children }: { children: React.ReactNode }) {
     setAutomacoes((prev) => prev.filter((x) => x.id !== id));
   }, []);
 
+  const reordenarAutomacoes = useCallback(async (idsOrdenados: string[]) => {
+    setAutomacoes((prev) =>
+      prev
+        .map((a) => {
+          const idx = idsOrdenados.indexOf(a.id);
+          return idx === -1 ? a : { ...a, ordem: idx };
+        })
+        .sort((a, b) => a.ordem - b.ordem),
+    );
+    await automacaoRepository.reorder(idsOrdenados);
+  }, []);
+
   // ── Perfis ─────────────────────────────────────────────────────────────
   const salvarPerfil = useCallback(async (input: PerfilInput) => {
     const p = await perfilRepository.upsert(input);
@@ -506,6 +547,18 @@ export function CrmProvider({ children }: { children: React.ReactNode }) {
     return t;
   }, []);
 
+  const reordenarTiposServico = useCallback(async (idsOrdenados: string[]) => {
+    setTiposServico((prev) =>
+      prev
+        .map((t) => {
+          const idx = idsOrdenados.indexOf(t.id);
+          return idx === -1 ? t : { ...t, ordem: idx };
+        })
+        .sort((a, b) => a.ordem - b.ordem),
+    );
+    await tipoServicoRepository.reorder(idsOrdenados);
+  }, []);
+
   // Reordena entre itens ativos trocando a posição com o vizinho.
   const moverTipoServico = useCallback(async (id: string, dir: -1 | 1) => {
     const ativos = refTiposServico.current
@@ -551,11 +604,13 @@ export function CrmProvider({ children }: { children: React.ReactNode }) {
     criarOrigem,
     atualizarOrigem,
     removerOrigem,
+    reordenarOrigens,
     origemEmUso,
     criarEtapa,
     atualizarEtapa,
     removerEtapa,
     moverEtapa,
+    reordenarEtapas,
     etapaEmUso,
     tarefas,
     criarTarefa,
@@ -565,6 +620,7 @@ export function CrmProvider({ children }: { children: React.ReactNode }) {
     criarAutomacao,
     atualizarAutomacao,
     removerAutomacao,
+    reordenarAutomacoes,
     perfis,
     salvarPerfil,
     metas,
@@ -578,6 +634,7 @@ export function CrmProvider({ children }: { children: React.ReactNode }) {
     atualizarTipoServico,
     desativarTipoServico,
     moverTipoServico,
+    reordenarTiposServico,
     clienteNome,
     origemNome,
   };
@@ -617,12 +674,17 @@ export function useClients() {
 
 export function useOrigins() {
   const c = useCrm();
+  const ordenadas = useMemo(
+    () => [...c.state.origens].sort((a, b) => a.ordem - b.ordem),
+    [c.state.origens],
+  );
   return {
-    origens: c.state.origens,
+    origens: ordenadas,
     carregando: c.carregando,
     criar: c.criarOrigem,
     atualizar: c.atualizarOrigem,
     remover: c.removerOrigem,
+    reordenar: c.reordenarOrigens,
     emUso: c.origemEmUso,
   };
 }
@@ -640,6 +702,7 @@ export function useStages() {
     atualizar: c.atualizarEtapa,
     remover: c.removerEtapa,
     mover: c.moverEtapa,
+    reordenar: c.reordenarEtapas,
     emUso: c.etapaEmUso,
   };
 }
@@ -669,6 +732,7 @@ export function useAutomacoes() {
     criar: c.criarAutomacao,
     atualizar: c.atualizarAutomacao,
     remover: c.removerAutomacao,
+    reordenar: c.reordenarAutomacoes,
   };
 }
 
@@ -714,5 +778,6 @@ export function useTiposServico() {
     atualizar: c.atualizarTipoServico,
     desativar: c.desativarTipoServico,
     mover: c.moverTipoServico,
+    reordenar: c.reordenarTiposServico,
   };
 }

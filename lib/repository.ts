@@ -122,6 +122,8 @@ export interface OriginRepository {
   create(input: OrigemInput): Promise<Origem>;
   update(id: string, patch: Partial<OrigemInput>): Promise<Origem>;
   remove(id: string): Promise<void>;
+  /** Persiste a ordem para um array de ids — índice no array = nova ordem. */
+  reorder(idsOrdenados: string[]): Promise<void>;
 }
 
 export interface StageRepository {
@@ -129,6 +131,7 @@ export interface StageRepository {
   create(input: EtapaInput): Promise<Etapa>;
   update(id: string, patch: Partial<EtapaInput>): Promise<Etapa>;
   remove(id: string): Promise<void>;
+  reorder(idsOrdenados: string[]): Promise<void>;
 }
 
 export interface ActivityRepository {
@@ -231,6 +234,14 @@ class LocalStorageOriginRepository implements OriginRepository {
     s.origens = s.origens.filter((o) => o.id !== id);
     writeCrm(s);
   }
+  async reorder(idsOrdenados: string[]): Promise<void> {
+    const s = readCrm();
+    s.origens = s.origens.map((o) => {
+      const i = idsOrdenados.indexOf(o.id);
+      return i === -1 ? o : { ...o, ordem: i };
+    });
+    writeCrm(s);
+  }
 }
 
 class LocalStorageStageRepository implements StageRepository {
@@ -256,6 +267,14 @@ class LocalStorageStageRepository implements StageRepository {
   async remove(id: string): Promise<void> {
     const s = readCrm();
     s.etapas = s.etapas.filter((e) => e.id !== id);
+    writeCrm(s);
+  }
+  async reorder(idsOrdenados: string[]): Promise<void> {
+    const s = readCrm();
+    s.etapas = s.etapas.map((e) => {
+      const i = idsOrdenados.indexOf(e.id);
+      return i === -1 ? e : { ...e, ordem: i };
+    });
     writeCrm(s);
   }
 }
@@ -523,25 +542,41 @@ class SupabaseClientRepository implements ClientRepository {
 
 // ── Origem ───────────────────────────────────────────────────────────────────
 function origemFromRow(row: Row): Origem {
-  return { id: row.id, nome: row.nome };
+  return {
+    id: row.id,
+    nome: row.nome,
+    ordem: Number(row.ordem ?? 0),
+  };
+}
+
+function origemPatchToRow(p: Partial<OrigemInput>): Row {
+  const r: Row = {};
+  if (p.nome !== undefined) r.nome = p.nome;
+  if (p.ordem !== undefined) r.ordem = p.ordem;
+  return r;
 }
 
 class SupabaseOriginRepository implements OriginRepository {
   async listAll(): Promise<Origem[]> {
-    const { data, error } = await supabase.from("origens").select("*");
+    const { data, error } = await supabase
+      .from("origens")
+      .select("*")
+      .order("ordem", { ascending: true });
     if (error) throw error;
     return (data ?? []).map(origemFromRow);
   }
   async create(input: OrigemInput): Promise<Origem> {
     const o: Origem = { ...input, id: novoId("og") };
-    const { error } = await supabase.from("origens").insert({ id: o.id, nome: o.nome });
+    const { error } = await supabase
+      .from("origens")
+      .insert({ id: o.id, nome: o.nome, ordem: o.ordem });
     if (error) throw error;
     return o;
   }
   async update(id: string, patch: Partial<OrigemInput>): Promise<Origem> {
     const { data, error } = await supabase
       .from("origens")
-      .update(patch)
+      .update(origemPatchToRow(patch))
       .eq("id", id)
       .select()
       .single();
@@ -551,6 +586,13 @@ class SupabaseOriginRepository implements OriginRepository {
   async remove(id: string): Promise<void> {
     const { error } = await supabase.from("origens").delete().eq("id", id);
     if (error) throw error;
+  }
+  async reorder(idsOrdenados: string[]): Promise<void> {
+    await Promise.all(
+      idsOrdenados.map((id, i) =>
+        supabase.from("origens").update({ ordem: i }).eq("id", id),
+      ),
+    );
   }
 }
 
@@ -604,6 +646,15 @@ class SupabaseStageRepository implements StageRepository {
   async remove(id: string): Promise<void> {
     const { error } = await supabase.from("etapas").delete().eq("id", id);
     if (error) throw error;
+  }
+  async reorder(idsOrdenados: string[]): Promise<void> {
+    // Aplica novos índices em paralelo. O UNIQUE da coluna ordem foi removido
+    // na migration prepare_config_reorder para permitir essa estratégia.
+    await Promise.all(
+      idsOrdenados.map((id, i) =>
+        supabase.from("etapas").update({ ordem: i }).eq("id", id),
+      ),
+    );
   }
 }
 
@@ -876,6 +927,7 @@ export interface AutomacaoRepository {
   create(input: AutomacaoInput): Promise<Automacao>;
   update(id: string, patch: Partial<AutomacaoInput>): Promise<Automacao>;
   remove(id: string): Promise<void>;
+  reorder(idsOrdenados: string[]): Promise<void>;
 }
 
 function automacaoFromRow(row: Row): Automacao {
@@ -886,6 +938,7 @@ function automacaoFromRow(row: Row): Automacao {
     acao: row.acao as AutomacaoAcao,
     configuracao: row.configuracao ?? {},
     ativa: Boolean(row.ativa),
+    ordem: Number(row.ordem ?? 0),
     criadoEm: row.criado_em,
   };
 }
@@ -897,6 +950,7 @@ function automacaoPatchToRow(p: Partial<AutomacaoInput>): Row {
   if (p.acao !== undefined) r.acao = p.acao;
   if (p.configuracao !== undefined) r.configuracao = p.configuracao;
   if (p.ativa !== undefined) r.ativa = p.ativa;
+  if (p.ordem !== undefined) r.ordem = p.ordem;
   return r;
 }
 
@@ -905,6 +959,7 @@ class SupabaseAutomacaoRepository implements AutomacaoRepository {
     const { data, error } = await supabase
       .from("automacoes")
       .select("*")
+      .order("ordem", { ascending: true })
       .order("criado_em", { ascending: true });
     if (error) throw error;
     return (data ?? []).map(automacaoFromRow);
@@ -928,6 +983,7 @@ class SupabaseAutomacaoRepository implements AutomacaoRepository {
         acao: input.acao,
         configuracao: input.configuracao,
         ativa: input.ativa,
+        ordem: input.ordem ?? 0,
       })
       .select()
       .single();
@@ -947,6 +1003,13 @@ class SupabaseAutomacaoRepository implements AutomacaoRepository {
   async remove(id: string): Promise<void> {
     const { error } = await supabase.from("automacoes").delete().eq("id", id);
     if (error) throw error;
+  }
+  async reorder(idsOrdenados: string[]): Promise<void> {
+    await Promise.all(
+      idsOrdenados.map((id, i) =>
+        supabase.from("automacoes").update({ ordem: i }).eq("id", id),
+      ),
+    );
   }
 }
 
@@ -1194,6 +1257,7 @@ export interface TipoServicoRepository {
   update(id: string, patch: Partial<TipoServicoInput>): Promise<TipoServico>;
   /** Soft delete: marca ativo=false; preserva histórico para auditoria. */
   desativar(id: string): Promise<TipoServico>;
+  reorder(idsOrdenados: string[]): Promise<void>;
 }
 
 function tipoServicoFromRow(row: Row): TipoServico {
@@ -1250,6 +1314,13 @@ class SupabaseTipoServicoRepository implements TipoServicoRepository {
   }
   async desativar(id: string): Promise<TipoServico> {
     return this.update(id, { ativo: false });
+  }
+  async reorder(idsOrdenados: string[]): Promise<void> {
+    await Promise.all(
+      idsOrdenados.map((id, i) =>
+        supabase.from("tipos_servico").update({ ordem: i }).eq("id", id),
+      ),
+    );
   }
 }
 

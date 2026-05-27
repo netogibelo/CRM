@@ -8,6 +8,11 @@ import { btnPrimary, inputCls } from "@/lib/ui";
 import { EditableText } from "./EditableText";
 import { AutomacoesSection } from "./AutomacoesSection";
 import { AlertasSection } from "./AlertasSection";
+import {
+  DragHandle,
+  SortableConfigList,
+  type DragHandleProps,
+} from "./SortableConfigList";
 
 const nomeInlineCls =
   "min-w-0 flex-1 rounded-md border border-transparent bg-transparent px-2 py-1 text-sm text-navy-900 hover:border-navy-200 focus:border-navy-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-navy-500/30";
@@ -16,16 +21,19 @@ const nomeInlineCls =
 function OrigemRow({
   origem,
   usos,
+  handle,
   onRename,
   onDelete,
 }: {
   origem: Origem;
   usos: number;
+  handle: DragHandleProps;
   onRename: (nome: string) => void;
   onDelete: () => void;
 }) {
   return (
     <li className="flex items-center gap-2 rounded-lg border border-navy-100 bg-white p-2">
+      <DragHandle handle={handle} />
       <EditableText
         value={origem.nome}
         onCommit={onRename}
@@ -57,29 +65,34 @@ function OrigemRow({
 }
 
 // ── Etapa ────────────────────────────────────────────────────────────────────
+//
+// As etapas têm uma regra particular: a etapa "final" (ganho, 100%) fica
+// renderizada FORA do bloco arrastável, mantendo a posição final fixa. Só as
+// ativas entram no DnD. Ao reordenar, o store recebe ids_ativas + final.id.
 function EtapaRow({
   etapa,
   usos,
-  posicao,
-  total,
+  handle,
   onRename,
   onProb,
-  onMover,
   onDelete,
 }: {
   etapa: Etapa;
   usos: number;
-  posicao: number;
-  total: number;
+  handle?: DragHandleProps;
   onRename: (nome: string) => void;
   onProb: (prob: number) => void;
-  onMover: (dir: -1 | 1) => void;
-  onDelete: () => void;
+  onDelete?: () => void;
 }) {
   const [prob, setProb] = useState(Math.round(etapa.probabilidade * 100));
 
   return (
     <li className="flex flex-wrap items-center gap-2 rounded-lg border border-navy-100 bg-white p-2">
+      {handle ? (
+        <DragHandle handle={handle} />
+      ) : (
+        <span className="w-6 shrink-0" aria-hidden="true" />
+      )}
       <span
         className="h-3 w-3 shrink-0 rounded-full"
         style={{ backgroundColor: corDaEtapa(etapa.ordem) }}
@@ -116,43 +129,21 @@ function EtapaRow({
         </span>
       ) : (
         <>
-          <div className="flex">
-            <button
-              type="button"
-              onClick={() => onMover(-1)}
-              disabled={posicao === 0}
-              aria-label={`Mover etapa ${etapa.nome} para cima`}
-              className="rounded-md p-1 text-navy-400 transition-colors hover:bg-navy-50 hover:text-navy-700 disabled:opacity-30"
-            >
-              <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
-                <path d="M8 11V5M5 8l3-3 3 3" stroke="currentColor" strokeWidth="1.4" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </button>
-            <button
-              type="button"
-              onClick={() => onMover(1)}
-              disabled={posicao === total - 1}
-              aria-label={`Mover etapa ${etapa.nome} para baixo`}
-              className="rounded-md p-1 text-navy-400 transition-colors hover:bg-navy-50 hover:text-navy-700 disabled:opacity-30"
-            >
-              <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
-                <path d="M8 5v6M5 8l3 3 3-3" stroke="currentColor" strokeWidth="1.4" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </button>
-          </div>
           <span className="shrink-0 rounded-full bg-navy-50 px-2 py-0.5 text-[11px] text-navy-500">
             {usos} no funil
           </span>
-          <button
-            type="button"
-            onClick={onDelete}
-            aria-label={`Excluir etapa ${etapa.nome}`}
-            className="shrink-0 rounded-md p-1.5 text-navy-400 transition-colors hover:bg-red-50 hover:text-red-600"
-          >
-            <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
-              <path d="M2.5 4h11M6 4V2.5h4V4M5 4l.5 9h5l.5-9" stroke="currentColor" strokeWidth="1.3" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </button>
+          {onDelete && (
+            <button
+              type="button"
+              onClick={onDelete}
+              aria-label={`Excluir etapa ${etapa.nome}`}
+              className="shrink-0 rounded-md p-1.5 text-navy-400 transition-colors hover:bg-red-50 hover:text-red-600"
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M2.5 4h11M6 4V2.5h4V4M5 4l.5 9h5l.5-9" stroke="currentColor" strokeWidth="1.3" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+          )}
         </>
       )}
     </li>
@@ -162,51 +153,24 @@ function EtapaRow({
 // ── Tipo de serviço ──────────────────────────────────────────────────────────
 function TipoServicoRow({
   tipo,
-  posicao,
-  total,
+  handle,
   onRename,
-  onMover,
   onDesativar,
 }: {
   tipo: TipoServico;
-  posicao: number;
-  total: number;
+  handle: DragHandleProps;
   onRename: (nome: string) => void;
-  onMover: (dir: -1 | 1) => void;
   onDesativar: () => void;
 }) {
   return (
     <li className="flex items-center gap-2 rounded-lg border border-navy-100 bg-white p-2">
+      <DragHandle handle={handle} />
       <EditableText
         value={tipo.nome}
         onCommit={onRename}
         ariaLabel={`Nome do tipo de serviço ${tipo.nome}`}
         className={nomeInlineCls}
       />
-      <div className="flex">
-        <button
-          type="button"
-          onClick={() => onMover(-1)}
-          disabled={posicao === 0}
-          aria-label={`Mover ${tipo.nome} para cima`}
-          className="rounded-md p-1 text-navy-400 transition-colors hover:bg-navy-50 hover:text-navy-700 disabled:opacity-30"
-        >
-          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
-            <path d="M8 11V5M5 8l3-3 3 3" stroke="currentColor" strokeWidth="1.4" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </button>
-        <button
-          type="button"
-          onClick={() => onMover(1)}
-          disabled={posicao === total - 1}
-          aria-label={`Mover ${tipo.nome} para baixo`}
-          className="rounded-md p-1 text-navy-400 transition-colors hover:bg-navy-50 hover:text-navy-700 disabled:opacity-30"
-        >
-          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
-            <path d="M8 5v6M5 8l3 3 3-3" stroke="currentColor" strokeWidth="1.4" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </button>
-      </div>
       <button
         type="button"
         onClick={onDesativar}
@@ -240,11 +204,14 @@ export function ConfiguracoesView() {
 
   const etapasOrd = ordenarEtapas(stages.etapas);
   const ativas = etapasOrd.filter((e) => !e.final);
+  const final = etapasOrd.find((e) => e.final);
 
   async function addOrigem() {
     const t = novaOrigem.trim();
     if (!t) return;
-    await origens.criar({ nome: t });
+    const proxOrdem =
+      origens.origens.reduce((m, o) => Math.max(m, o.ordem), -1) + 1;
+    await origens.criar({ nome: t, ordem: proxOrdem });
     setNovaOrigem("");
   }
 
@@ -259,7 +226,6 @@ export function ConfiguracoesView() {
     if (!t) return;
     const maxAtiva = ativas.reduce((m, e) => Math.max(m, e.ordem), -1);
     const novaOrdem = maxAtiva + 1;
-    const final = etapasOrd.find((e) => e.final);
     if (final && final.ordem <= novaOrdem) {
       await stages.atualizar(final.id, { ordem: novaOrdem + 1 });
     }
@@ -292,6 +258,12 @@ export function ConfiguracoesView() {
     await tipos.desativar(id);
   }
 
+  // Para etapas: garante que a etapa final sempre fique no final da lista.
+  async function reordenarEtapasAtivas(idsAtivas: string[]) {
+    const todos = final ? [...idsAtivas, final.id] : idsAtivas;
+    await stages.reordenar(todos);
+  }
+
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
       {/* Origens */}
@@ -301,20 +273,29 @@ export function ConfiguracoesView() {
       >
         <h2 className="text-sm font-semibold text-navy-900">Origens</h2>
         <p className="mt-0.5 text-xs text-navy-400">
-          De onde vêm as oportunidades. Não é possível excluir uma origem em uso.
+          De onde vêm as oportunidades. Arraste para reordenar. Não é possível
+          excluir uma origem em uso.
         </p>
 
-        <ul className="mt-4 space-y-2">
-          {origens.origens.map((o) => (
-            <OrigemRow
-              key={o.id}
-              origem={o}
-              usos={origens.emUso(o.id)}
-              onRename={(nome) => origens.atualizar(o.id, { nome })}
-              onDelete={() => delOrigem(o.id, o.nome)}
-            />
-          ))}
-        </ul>
+        <div className="mt-4">
+          <SortableConfigList
+            ariaLabel="Lista de origens"
+            items={origens.origens}
+            getId={(o) => o.id}
+            getNome={(o) => o.nome}
+            onReorder={(ids) => origens.reordenar(ids)}
+            tituloAlfabetizar="Ordenar origens A→Z"
+            renderRow={(o, handle) => (
+              <OrigemRow
+                origem={o}
+                usos={origens.emUso(o.id)}
+                handle={handle}
+                onRename={(nome) => origens.atualizar(o.id, { nome })}
+                onDelete={() => delOrigem(o.id, o.nome)}
+              />
+            )}
+          />
+        </div>
 
         <div className="mt-3 flex gap-2">
           <input
@@ -339,26 +320,43 @@ export function ConfiguracoesView() {
         <h2 className="text-sm font-semibold text-navy-900">Etapas do funil</h2>
         <p className="mt-0.5 text-xs text-navy-400">
           Nome, probabilidade (alimenta o valor ponderado) e ordem das colunas.
+          Arraste para reordenar. A etapa de fechamento (ganho) fica fixa no fim.
         </p>
 
-        <ul className="mt-4 space-y-2">
-          {etapasOrd.map((e) => {
-            const posicao = ativas.findIndex((a) => a.id === e.id);
-            return (
+        <div className="mt-4">
+          <SortableConfigList
+            ariaLabel="Lista de etapas ativas"
+            items={ativas}
+            getId={(e) => e.id}
+            getNome={(e) => e.nome}
+            onReorder={reordenarEtapasAtivas}
+            tituloAlfabetizar="Ordenar etapas A→Z"
+            renderRow={(e, handle) => (
               <EtapaRow
-                key={e.id}
                 etapa={e}
                 usos={stages.emUso(e.id)}
-                posicao={posicao}
-                total={ativas.length}
+                handle={handle}
                 onRename={(nome) => stages.atualizar(e.id, { nome })}
-                onProb={(probabilidade) => stages.atualizar(e.id, { probabilidade })}
-                onMover={(dir) => stages.mover(e.id, dir)}
+                onProb={(probabilidade) =>
+                  stages.atualizar(e.id, { probabilidade })
+                }
                 onDelete={() => delEtapa(e.id, e.nome)}
               />
-            );
-          })}
-        </ul>
+            )}
+          />
+          {final && (
+            <ul className="mt-2">
+              <EtapaRow
+                etapa={final}
+                usos={stages.emUso(final.id)}
+                onRename={(nome) => stages.atualizar(final.id, { nome })}
+                onProb={(probabilidade) =>
+                  stages.atualizar(final.id, { probabilidade })
+                }
+              />
+            </ul>
+          )}
+        </div>
 
         <div className="mt-3 flex flex-wrap gap-2">
           <input
@@ -394,23 +392,29 @@ export function ConfiguracoesView() {
       >
         <h2 className="text-sm font-semibold text-navy-900">Tipos de serviço</h2>
         <p className="mt-0.5 text-xs text-navy-400">
-          Sugestões oferecidas ao adicionar um serviço dentro de um deal. Excluir
-          não apaga histórico, só remove da lista de sugestões.
+          Sugestões oferecidas ao adicionar um serviço dentro de um deal.
+          Arraste para reordenar. Excluir não apaga histórico, só remove da lista
+          de sugestões.
         </p>
 
-        <ul className="mt-4 space-y-2">
-          {tipos.ativos.map((t, i) => (
-            <TipoServicoRow
-              key={t.id}
-              tipo={t}
-              posicao={i}
-              total={tipos.ativos.length}
-              onRename={(nome) => tipos.atualizar(t.id, { nome })}
-              onMover={(dir) => tipos.mover(t.id, dir)}
-              onDesativar={() => delTipoServico(t.id, t.nome)}
-            />
-          ))}
-        </ul>
+        <div className="mt-4">
+          <SortableConfigList
+            ariaLabel="Lista de tipos de serviço"
+            items={tipos.ativos}
+            getId={(t) => t.id}
+            getNome={(t) => t.nome}
+            onReorder={(ids) => tipos.reordenar(ids)}
+            tituloAlfabetizar="Ordenar tipos A→Z"
+            renderRow={(t, handle) => (
+              <TipoServicoRow
+                tipo={t}
+                handle={handle}
+                onRename={(nome) => tipos.atualizar(t.id, { nome })}
+                onDesativar={() => delTipoServico(t.id, t.nome)}
+              />
+            )}
+          />
+        </div>
 
         <div className="mt-3 flex gap-2">
           <input
