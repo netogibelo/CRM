@@ -2,13 +2,14 @@
 
 import { useMemo, useState } from "react";
 import type { Cliente, ClienteInput } from "@/lib/types";
-import { useClients } from "@/lib/crm-store";
+import { useClients, useContatos } from "@/lib/crm-store";
 import { btnPrimary, inputCls } from "@/lib/ui";
 import { ClienteForm } from "./ClienteForm";
 import { ExemploBadge } from "./ExemploBadge";
 
 export function ClientesView() {
   const { clientes, criar, atualizar, remover, emUso } = useClients();
+  const { byCliente } = useContatos();
   const [busca, setBusca] = useState("");
   const [formAberto, setFormAberto] = useState(false);
   const [emEdicao, setEmEdicao] = useState<Cliente | null>(null);
@@ -74,6 +75,7 @@ export function ClientesView() {
         <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {filtrados.map((c) => {
             const usos = emUso(c.id);
+            const qtdContatos = byCliente(c.id).length;
             return (
               <li key={c.id}>
                 <button
@@ -98,9 +100,16 @@ export function ClientesView() {
                       <p className="text-navy-300">Sem contato cadastrado</p>
                     )}
                   </div>
-                  <span className="mt-3 inline-flex w-fit items-center rounded-full bg-navy-50 px-2 py-0.5 text-[11px] font-medium text-navy-500">
-                    {usos} {usos === 1 ? "oportunidade" : "oportunidades"}
-                  </span>
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    <span className="inline-flex w-fit items-center rounded-full bg-navy-50 px-2 py-0.5 text-[11px] font-medium text-navy-500">
+                      {usos} {usos === 1 ? "oportunidade" : "oportunidades"}
+                    </span>
+                    {qtdContatos > 0 && (
+                      <span className="inline-flex w-fit items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700">
+                        {qtdContatos} {qtdContatos === 1 ? "contato" : "contatos"}
+                      </span>
+                    )}
+                  </div>
                 </button>
               </li>
             );

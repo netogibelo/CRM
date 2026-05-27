@@ -16,10 +16,19 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { useDeals, useOrigins, useStages } from "@/lib/crm-store";
+import {
+  useClients,
+  useContatos,
+  useDeals,
+  useOrigins,
+  usePerfis,
+  useServicos,
+  useStages,
+} from "@/lib/crm-store";
 import { formatBRL, formatBRLCompact } from "@/lib/format";
 import { ordenarEtapas } from "@/lib/stages";
 import type { Deal } from "@/lib/types";
+import { exportarExcel, exportarPDF } from "@/lib/export";
 import { MetaMesCard } from "./MetaMesCard";
 
 type Periodo = "7d" | "30d" | "90d" | "ano";
@@ -171,6 +180,10 @@ export function DashboardView() {
   const { deals } = useDeals();
   const { etapas } = useStages();
   const { origens } = useOrigins();
+  const { clientes } = useClients();
+  const { contatos } = useContatos();
+  const { servicos } = useServicos();
+  const { perfis } = usePerfis();
   const [periodoId, setPeriodoId] = useState<Periodo>("30d");
 
   const periodo =
@@ -287,28 +300,109 @@ export function DashboardView() {
             Visão consolidada do funil — período: {periodo.label}
           </p>
         </div>
-        <div
-          role="tablist"
-          aria-label="Período de análise"
-          className="inline-flex shrink-0 rounded-lg border border-navy-100 bg-white p-0.5"
-        >
-          {PERIODOS.map((p) => (
+        <div className="flex flex-wrap items-center gap-2">
+          <div
+            role="tablist"
+            aria-label="Período de análise"
+            className="inline-flex shrink-0 rounded-lg border border-navy-100 bg-white p-0.5"
+          >
+            {PERIODOS.map((p) => (
+              <button
+                key={p.id}
+                role="tab"
+                type="button"
+                aria-selected={periodoId === p.id}
+                aria-label={`Período ${p.label}`}
+                onClick={() => setPeriodoId(p.id)}
+                className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
+                  periodoId === p.id
+                    ? "bg-navy-900 text-white"
+                    : "text-navy-500 hover:text-navy-900"
+                }`}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+          <div className="inline-flex shrink-0 gap-1.5">
             <button
-              key={p.id}
-              role="tab"
               type="button"
-              aria-selected={periodoId === p.id}
-              aria-label={`Período ${p.label}`}
-              onClick={() => setPeriodoId(p.id)}
-              className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
-                periodoId === p.id
-                  ? "bg-navy-900 text-white"
-                  : "text-navy-500 hover:text-navy-900"
-              }`}
+              onClick={() =>
+                exportarExcel({
+                  deals,
+                  clientes,
+                  contatos,
+                  origens,
+                  etapas,
+                  servicos,
+                  perfis,
+                  periodoLabel: periodo.label,
+                  periodoDias: periodo.dias,
+                })
+              }
+              className="inline-flex items-center gap-1.5 rounded-lg border border-navy-200 bg-white px-2.5 py-1 text-xs font-semibold text-navy-700 transition-colors hover:bg-navy-50"
+              aria-label="Exportar relatório em Excel"
+              title="Baixar planilha XLSX com pipeline, fechados, perdidos e serviços"
             >
-              {p.label}
+              <svg
+                width="13"
+                height="13"
+                viewBox="0 0 16 16"
+                aria-hidden="true"
+                fill="none"
+              >
+                <path
+                  d="M8 1v9m0 0L5 7m3 3l3-3M2 13h12"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              Excel
             </button>
-          ))}
+            <button
+              type="button"
+              onClick={() =>
+                exportarPDF({
+                  deals,
+                  clientes,
+                  contatos,
+                  origens,
+                  etapas,
+                  servicos,
+                  perfis,
+                  periodoLabel: periodo.label,
+                  periodoDias: periodo.dias,
+                })
+              }
+              className="inline-flex items-center gap-1.5 rounded-lg border border-navy-200 bg-white px-2.5 py-1 text-xs font-semibold text-navy-700 transition-colors hover:bg-navy-50"
+              aria-label="Exportar relatório em PDF"
+              title="Gerar relatório imprimível em PDF"
+            >
+              <svg
+                width="13"
+                height="13"
+                viewBox="0 0 16 16"
+                aria-hidden="true"
+                fill="none"
+              >
+                <path
+                  d="M4 2h6l3 3v9H4V2z"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M10 2v3h3"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              PDF
+            </button>
+          </div>
         </div>
       </div>
 

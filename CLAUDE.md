@@ -34,7 +34,7 @@ Quality bar from the project brief, expected to hold: typecheck clean, zero new 
 - **Únicas rotas públicas**: `/login`.
 - `lib/supabase.ts` — browser client (`createBrowserClient`). Usado por todo código `"use client"`.
 - `lib/supabase-server.ts` — server client (`createServerClient` + `await cookies()`). Usar em Server Components e Route Handlers. **Nunca importe esse arquivo em código client** — quebra o build (depende de `next/headers`).
-- `components/LogoutButton.tsx` — header mostra email do usuário + botão Sair, escuta `onAuthStateChange`.
+- `components/PerfilButton.tsx` — header mostra avatar/nome do usuário + menu (editar nome de exibição via tabela `perfis`, logout). Escuta `onAuthStateChange`.
 
 ### Layout structure (route groups)
 
@@ -59,11 +59,11 @@ A camada de repositório expõe interfaces (`DealRepository`, `ClientRepository`
 
 O **bloco de export no final** instancia as variantes Supabase. Componentes **nunca** importam essas classes diretamente — sempre consomem via hooks dos providers (`useDeals`, `useClients`, etc.). Nunca chame `supabase.from(...)` fora de `lib/repository.ts`.
 
-**Schema** em `supabase/schema.sql`. 6 tabelas: `clientes`, `origens`, `etapas`, `deals`, `atividades_listas`, `atividades_cards`. Ids são `text` (não uuid) com prefixos (`deal-...`, `cli-...`, etc.) gerados por `lib/id.ts`.
+**Schema** em `supabase/schema.sql`. Tabelas atuais: `clientes`, `contatos`, `origens`, `etapas`, `deals`, `deal_servicos`, `tipos_servico`, `deal_historico`, `tarefas`, `automacoes`, `perfis`, `metas`, `alertas_config`, `atividades_listas`, `atividades_cards`. Ids são `text` (não uuid) com prefixos (`deal-...`, `cli-...`, `ctt-...`, etc.) gerados por `lib/id.ts`.
 
 ### Row-Level Security (RLS)
 
-RLS está **habilitada** nas 6 tabelas. Modelo empresarial: qualquer usuário autenticado tem acesso total (sem segregação por usuário). 4 policies por tabela: SELECT/INSERT/UPDATE/DELETE para o role `authenticated`, todas `USING (true)` / `WITH CHECK (true)`. O `anon` (não autenticado) é bloqueado.
+RLS está **habilitada** em todas as tabelas. Modelo empresarial: qualquer usuário autenticado tem acesso total (sem segregação por usuário). 4 policies por tabela: SELECT/INSERT/UPDATE/DELETE para o role `authenticated`, todas `USING (true)` / `WITH CHECK (true)`. O `anon` (não autenticado) é bloqueado.
 
 **Consequência operacional**: scripts que usam o `anon key` sem sessão JWT (ex: `scripts/migrate-to-supabase.ts`) **não conseguem mais** ler/escrever. Se precisar rodar migração novamente, adapte pra usar `SUPABASE_SERVICE_ROLE_KEY` (que bypassa RLS) — essa key deve ficar em `.env.local`, nunca commitada.
 
@@ -71,12 +71,20 @@ RLS está **habilitada** nas 6 tabelas. Modelo empresarial: qualquer usuário au
 
 `components/Providers.tsx` (montado em `app/(app)/layout.tsx`) compõe `CrmProvider` (`lib/crm-store.tsx`) + `ActivitiesProvider` (`lib/activities-store.tsx`). Cada provider mantém a **fonte única em memória** do seu domínio e expõe hooks:
 
-- `useDeals`, `useClients`, `useOrigins`, `useStages`, `useResolvers` (id→nome lookups) — de `crm-store`
+- `useDeals`, `useClients`, `useContatos`, `useOrigins`, `useStages`, `useResolvers` (id→nome lookups), `useTarefas`, `useAutomacoes`, `usePerfis`, `useMetas`, `useServicos`, `useTiposServico` — de `crm-store`
 - `useBoard` — de `activities-store`
 
 Padrão de mutação: chama o repositório (que persiste no Supabase), espelha o resultado no state. Callbacks são `useCallback([])` lendo estado atual via `useRef` mirror (`ref.current`) — identidade estável sem dados velhos. Preservar esse padrão ao adicionar mutações.
 
-**Integridade referencial** vive no provider, não no repositório: `removerCliente`/`removerOrigem`/`removerEtapa` retornam `{ ok, erro }` e recusam exclusão quando a entidade está em uso. UI mostra `erro` via `window.alert`. Helpers `*EmUso(id)` expõem contagem de uso.
+**Integridade referencial** vive no provider, não no repositório: `removerCliente`/`removerOrigem`/`removerEtapa`/`removerContato` retornam `{ ok, erro }` e recusam exclusão quando a entidade está em uso. UI mostra `erro` via `window.alert`. Helpers `*EmUso(id)` expõem contagem de uso.
+
+**Contatos**: cliente é a empresa/pessoa; `contatos` são pessoas físicas vinculadas (cargo, telefone, email, principal?). Deal pode opcionalmente apontar para um `contato_id`. Apenas um contato por cliente pode ser `principal` (provider garante: ao marcar um, desmarca os demais).
+
+### Exportação de relatórios
+
+Botões "Excel" e "PDF" no `DashboardView`. Lógica em `lib/export.ts`:
+- **Excel** (`xlsx` / SheetJS): 4 abas — Pipeline (abertos), Fechados, Perdidos, Serviços. Filtrado pelo período selecionado.
+- **PDF**: abre uma janela nova com HTML estilizado (identidade Gibelo) e chama `window.print()` — sem dependência externa.
 
 ### Funnel stage model
 

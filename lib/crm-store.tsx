@@ -17,6 +17,8 @@ import type {
   Automacao,
   Cliente,
   ClienteInput,
+  Contato,
+  ContatoInput,
   CrmState,
   Deal,
   DealInput,
@@ -38,6 +40,7 @@ import type {
 import {
   automacaoRepository,
   clientRepository,
+  contatoRepository,
   dealRepository,
   historicoRepository,
   loadCrmSnapshot,
@@ -114,6 +117,12 @@ interface CrmContextValue {
     patch: Partial<DealServicoInput>,
   ) => Promise<DealServico>;
   removerServico: (id: string) => Promise<void>;
+  // contatos
+  contatos: Contato[];
+  criarContato: (input: ContatoInput) => Promise<Contato>;
+  atualizarContato: (id: string, patch: Partial<ContatoInput>) => Promise<Contato>;
+  removerContato: (id: string) => Promise<OpResult>;
+  contatoEmUso: (id: string) => number;
   // tipos de servico (catálogo de sugestões configurável)
   tiposServico: TipoServico[];
   criarTipoServico: (input: TipoServicoInput) => Promise<TipoServico>;
@@ -144,10 +153,13 @@ export function CrmProvider({ children }: { children: React.ReactNode }) {
   const [metas, setMetas] = useState<Meta[]>([]);
   const [servicos, setServicos] = useState<DealServico[]>([]);
   const [tiposServico, setTiposServico] = useState<TipoServico[]>([]);
+  const [contatos, setContatos] = useState<Contato[]>([]);
   const [carregando, setCarregando] = useState(true);
 
   const refTiposServico = useRef(tiposServico);
   refTiposServico.current = tiposServico;
+  const refContatos = useRef(contatos);
+  refContatos.current = contatos;
 
   // Ref sempre com o estado mais recente, para checagens de integridade.
   const ref = useRef(state);
@@ -166,6 +178,7 @@ export function CrmProvider({ children }: { children: React.ReactNode }) {
         listaMetas,
         listaServicos,
         listaTiposServico,
+        listaContatos,
       ] = await Promise.all([
         loadCrmSnapshot(),
         tarefaRepository.listAll().catch(() => []),
@@ -174,6 +187,7 @@ export function CrmProvider({ children }: { children: React.ReactNode }) {
         metaRepository.listAll().catch(() => []),
         servicoRepository.listAll().catch(() => []),
         tipoServicoRepository.listAll().catch(() => []),
+        contatoRepository.listAll().catch(() => []),
       ]);
       if (ativo) {
         setState(snapshot);
@@ -183,6 +197,7 @@ export function CrmProvider({ children }: { children: React.ReactNode }) {
         setMetas(listaMetas);
         setServicos(listaServicos);
         setTiposServico(listaTiposServico);
+        setContatos(listaContatos);
         setCarregando(false);
       }
     })();
@@ -580,6 +595,82 @@ export function CrmProvider({ children }: { children: React.ReactNode }) {
     setTiposServico((prev) => prev.map((x) => trocados.get(x.id) ?? x));
   }, []);
 
+  // ── Contatos ───────────────────────────────────────────────────────────
+  const criarContato = useCallback(async (input: ContatoInput) => {
+    // Se este contato é marcado como principal, desmarcar os outros do mesmo cliente.
+    if (input.principal) {
+      const outros = refContatos.current.filter(
+        (c) => c.clienteId === input.clienteId && c.principal,
+      );
+      await Promise.all(
+        outros.map((o) =>
+          contatoRepository.update(o.id, { principal: false }),
+        ),
+      );
+      if (outros.length > 0) {
+        setContatos((prev) =>
+          prev.map((c) =>
+            outros.some((o) => o.id === c.id) ? { ...c, principal: false } : c,
+          ),
+        );
+      }
+    }
+    const c = await contatoRepository.create(input);
+    setContatos((prev) => [...prev, c]);
+    return c;
+  }, []);
+
+  const atualizarContato = useCallback(
+    async (id: string, patch: Partial<ContatoInput>) => {
+      const atual = refContatos.current.find((c) => c.id === id);
+      // Se vai marcar como principal, desmarcar outros do mesmo cliente.
+      if (patch.principal === true && atual) {
+        const outros = refContatos.current.filter(
+          (c) => c.clienteId === atual.clienteId && c.id !== id && c.principal,
+        );
+        await Promise.all(
+          outros.map((o) =>
+            contatoRepository.update(o.id, { principal: false }),
+          ),
+        );
+        if (outros.length > 0) {
+          setContatos((prev) =>
+            prev.map((c) =>
+              outros.some((o) => o.id === c.id)
+                ? { ...c, principal: false }
+                : c,
+            ),
+          );
+        }
+      }
+      const c = await contatoRepository.update(id, patch);
+      setContatos((prev) => prev.map((x) => (x.id === id ? c : x)));
+      return c;
+    },
+    [],
+  );
+
+  const contatoEmUso = useCallback(
+    (id: string) => ref.current.deals.filter((d) => d.contatoId === id).length,
+    [],
+  );
+
+  const removerContato = useCallback(
+    async (id: string): Promise<OpResult> => {
+      const usos = ref.current.deals.filter((d) => d.contatoId === id).length;
+      if (usos > 0) {
+        return {
+          ok: false,
+          erro: `Não é possível excluir: ${usos} ${usos === 1 ? "oportunidade usa" : "oportunidades usam"} este contato. Reatribua antes de excluir.`,
+        };
+      }
+      await contatoRepository.remove(id);
+      setContatos((prev) => prev.filter((c) => c.id !== id));
+      return { ok: true };
+    },
+    [],
+  );
+
   // ── Lookups ────────────────────────────────────────────────────────────
   const clienteNome = useCallback(
     (id: string) =>
@@ -629,6 +720,11 @@ export function CrmProvider({ children }: { children: React.ReactNode }) {
     criarServico,
     atualizarServico,
     removerServico,
+    contatos,
+    criarContato,
+    atualizarContato,
+    removerContato,
+    contatoEmUso,
     tiposServico,
     criarTipoServico,
     atualizarTipoServico,
@@ -759,6 +855,41 @@ export function useServicos() {
     criar: c.criarServico,
     atualizar: c.atualizarServico,
     remover: c.removerServico,
+  };
+}
+
+export function useContatos() {
+  const c = useCrm();
+  const byCliente = useCallback(
+    (clienteId: string) =>
+      c.contatos
+        .filter((ct) => ct.clienteId === clienteId)
+        .sort((a, b) => {
+          if (a.principal !== b.principal) return a.principal ? -1 : 1;
+          return a.nome.localeCompare(b.nome);
+        }),
+    [c.contatos],
+  );
+  const principal = useCallback(
+    (clienteId: string) =>
+      c.contatos.find((ct) => ct.clienteId === clienteId && ct.principal) ??
+      null,
+    [c.contatos],
+  );
+  const porId = useCallback(
+    (id: string | null | undefined) =>
+      id ? c.contatos.find((ct) => ct.id === id) ?? null : null,
+    [c.contatos],
+  );
+  return {
+    contatos: c.contatos,
+    byCliente,
+    principal,
+    porId,
+    criar: c.criarContato,
+    atualizar: c.atualizarContato,
+    remover: c.removerContato,
+    emUso: c.contatoEmUso,
   };
 }
 

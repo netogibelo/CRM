@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { Cliente, ClienteInput } from "@/lib/types";
 import { Modal } from "./Modal";
 import { btnGhost, btnPrimary, inputCls, labelCls } from "@/lib/ui";
+import { ClienteContatos } from "./ClienteContatos";
 
 interface ClienteFormProps {
   cliente: Cliente | null;
@@ -52,7 +53,7 @@ export function ClienteForm({
           : undefined
       }
       onClose={onClose}
-      maxWidth="max-w-md"
+      maxWidth={editando && !rapido ? "max-w-2xl" : "max-w-md"}
     >
       <form onSubmit={handleSubmit} noValidate>
         <div className="space-y-4">
@@ -145,6 +146,10 @@ export function ClienteForm({
           </div>
         </div>
       </form>
+
+      {editando && !rapido && cliente && (
+        <ClienteContatos clienteId={cliente.id} />
+      )}
     </Modal>
   );
 }

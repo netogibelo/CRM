@@ -20,6 +20,21 @@ export interface Cliente {
 export type ClienteInput = Omit<Cliente, "id" | "criadoEm" | "atualizadoEm">;
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Contato (pessoa física vinculada a um cliente)
+// ─────────────────────────────────────────────────────────────────────────────
+export interface Contato {
+  id: string;
+  clienteId: string;
+  nome: string;
+  cargo: string;
+  telefone: string;
+  email: string;
+  principal: boolean;
+  criadoEm: string;
+}
+export type ContatoInput = Omit<Contato, "id" | "criadoEm">;
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Origem (cadastrável)
 // ─────────────────────────────────────────────────────────────────────────────
 export interface Origem {
@@ -65,6 +80,8 @@ export interface Deal {
   projeto: string;
   /** Referência ao cliente cadastrado. */
   clienteId: string;
+  /** Referência opcional a um contato (pessoa) do cliente. */
+  contatoId?: string | null;
   /** Valor do negócio em reais (BRL). */
   valor: number;
   /** Referência à origem cadastrada. */

@@ -2,7 +2,13 @@
 
 import { useState } from "react";
 import type { Deal, DealInput, TipoObra } from "@/lib/types";
-import { useClients, useOrigins, usePerfis, useStages } from "@/lib/crm-store";
+import {
+  useClients,
+  useContatos,
+  useOrigins,
+  usePerfis,
+  useStages,
+} from "@/lib/crm-store";
 import { formatBRL, parseValorBRL } from "@/lib/format";
 import { btnGhost, btnPrimary, inputCls, labelCls } from "@/lib/ui";
 import { EQUIPE, nomeOuEmail } from "@/lib/equipe";
@@ -34,6 +40,7 @@ export function DealForm({
   onReabrir,
 }: DealFormProps) {
   const { clientes, criar: criarCliente } = useClients();
+  const { byCliente: contatosDoCliente } = useContatos();
   const { origens } = useOrigins();
   const { ativas: etapasAtivas } = useStages();
   const { perfis } = usePerfis();
@@ -43,6 +50,7 @@ export function DealForm({
 
   const [projeto, setProjeto] = useState(deal?.projeto ?? "");
   const [clienteId, setClienteId] = useState(deal?.clienteId ?? "");
+  const [contatoId, setContatoId] = useState<string>(deal?.contatoId ?? "");
   const [valor, setValor] = useState<number>(deal?.valor ?? 0);
   const [origemId, setOrigemId] = useState(
     deal?.origemId ?? origens[0]?.id ?? "",
@@ -105,6 +113,7 @@ export function DealForm({
     const input: DealInput = {
       projeto: projeto.trim(),
       clienteId,
+      contatoId: contatoId || null,
       valor: valorEfetivo,
       origemId: origemId || origens[0]?.id || "",
       previsaoFechamento: previsao,
@@ -217,7 +226,10 @@ export function DealForm({
                 <select
                   id="cliente"
                   value={clienteId}
-                  onChange={(e) => setClienteId(e.target.value)}
+                  onChange={(e) => {
+                    setClienteId(e.target.value);
+                    setContatoId("");
+                  }}
                   className={`${inputCls} mt-0 flex-1`}
                   aria-invalid={Boolean(erros.cliente)}
                   aria-describedby={erros.cliente ? "erro-cliente" : undefined}
@@ -244,6 +256,29 @@ export function DealForm({
                 </p>
               )}
             </div>
+
+            {clienteId && contatosDoCliente(clienteId).length > 0 && (
+              <div className="sm:col-span-2">
+                <label htmlFor="contato" className={labelCls}>
+                  Contato <span className="text-navy-300">(opcional)</span>
+                </label>
+                <select
+                  id="contato"
+                  value={contatoId}
+                  onChange={(e) => setContatoId(e.target.value)}
+                  className={inputCls}
+                >
+                  <option value="">Sem contato vinculado</option>
+                  {contatosDoCliente(clienteId).map((ct) => (
+                    <option key={ct.id} value={ct.id}>
+                      {ct.nome}
+                      {ct.cargo ? ` — ${ct.cargo}` : ""}
+                      {ct.principal ? " (principal)" : ""}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             <div>
               <label htmlFor="valor" className={labelCls}>

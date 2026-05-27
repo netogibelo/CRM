@@ -1,7 +1,13 @@
 "use client";
 
 import type { Deal } from "@/lib/types";
-import { usePerfis, useResolvers, useServicos, useTarefas } from "@/lib/crm-store";
+import {
+  useContatos,
+  usePerfis,
+  useResolvers,
+  useServicos,
+  useTarefas,
+} from "@/lib/crm-store";
 import { activationProps, dragProps } from "@/lib/dnd";
 import { formatBRL, formatDateBR, diasDesde, estaParado } from "@/lib/format";
 import { iniciaisOuFallback, nomeOuEmail } from "@/lib/equipe";
@@ -56,7 +62,11 @@ export function DealCard({
   const { tarefas } = useTarefas();
   const { perfis } = usePerfis();
   const { servicos } = useServicos();
+  const { porId: contatoPorId, principal: contatoPrincipal } = useContatos();
   const qtdServicos = servicos.filter((s) => s.dealId === deal.id).length;
+  // Mostra o contato vinculado ao deal; cai pro principal do cliente se não houver.
+  const contato =
+    contatoPorId(deal.contatoId) ?? contatoPrincipal(deal.clienteId);
   const parado = deal.status === "aberto" && estaParado(deal.atualizadoEm);
   const diasParado = diasDesde(deal.atualizadoEm);
   const nomeOrigem = origemNome(deal.origemId);
@@ -89,6 +99,12 @@ export function DealCard({
       </div>
 
       <p className="mt-0.5 text-xs text-navy-500">{clienteNome(deal.clienteId)}</p>
+      {contato && (
+        <p className="mt-0.5 text-[11px] text-navy-400">
+          {contato.nome}
+          {contato.cargo ? ` · ${contato.cargo}` : ""}
+        </p>
+      )}
 
       <p className="mt-2 text-base font-semibold text-navy-900">
         {formatBRL(deal.valor)}
