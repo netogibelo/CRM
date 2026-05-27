@@ -22,6 +22,8 @@ import type {
   DealInput,
   Etapa,
   EtapaInput,
+  Meta,
+  MetaInput,
   Origem,
   OrigemInput,
   Perfil,
@@ -35,6 +37,7 @@ import {
   dealRepository,
   historicoRepository,
   loadCrmSnapshot,
+  metaRepository,
   originRepository,
   perfilRepository,
   stageRepository,
@@ -91,6 +94,9 @@ interface CrmContextValue {
   // perfis
   perfis: Perfil[];
   salvarPerfil: (input: PerfilInput) => Promise<Perfil>;
+  // metas
+  metas: Meta[];
+  salvarMeta: (input: MetaInput) => Promise<Meta>;
   // lookups
   clienteNome: (id: string) => string;
   origemNome: (id: string) => string;
@@ -108,6 +114,7 @@ export function CrmProvider({ children }: { children: React.ReactNode }) {
   const [tarefas, setTarefas] = useState<Tarefa[]>([]);
   const [automacoes, setAutomacoes] = useState<Automacao[]>([]);
   const [perfis, setPerfis] = useState<Perfil[]>([]);
+  const [metas, setMetas] = useState<Meta[]>([]);
   const [carregando, setCarregando] = useState(true);
 
   // Ref sempre com o estado mais recente, para checagens de integridade.
@@ -119,18 +126,20 @@ export function CrmProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let ativo = true;
     (async () => {
-      const [snapshot, listaTarefas, listaAutomacoes, listaPerfis] =
+      const [snapshot, listaTarefas, listaAutomacoes, listaPerfis, listaMetas] =
         await Promise.all([
           loadCrmSnapshot(),
           tarefaRepository.listAll().catch(() => []),
           automacaoRepository.listAll().catch(() => []),
           perfilRepository.listAll().catch(() => []),
+          metaRepository.listAll().catch(() => []),
         ]);
       if (ativo) {
         setState(snapshot);
         setTarefas(listaTarefas);
         setAutomacoes(listaAutomacoes);
         setPerfis(listaPerfis);
+        setMetas(listaMetas);
         setCarregando(false);
       }
     })();
@@ -405,6 +414,16 @@ export function CrmProvider({ children }: { children: React.ReactNode }) {
     return p;
   }, []);
 
+  // ── Metas ──────────────────────────────────────────────────────────────
+  const salvarMeta = useCallback(async (input: MetaInput) => {
+    const m = await metaRepository.upsert(input);
+    setMetas((prev) => {
+      const semEle = prev.filter((x) => x.mes !== m.mes);
+      return [m, ...semEle];
+    });
+    return m;
+  }, []);
+
   // ── Lookups ────────────────────────────────────────────────────────────
   const clienteNome = useCallback(
     (id: string) =>
@@ -445,6 +464,8 @@ export function CrmProvider({ children }: { children: React.ReactNode }) {
     removerAutomacao,
     perfis,
     salvarPerfil,
+    metas,
+    salvarMeta,
     clienteNome,
     origemNome,
   };
@@ -544,5 +565,13 @@ export function usePerfis() {
   return {
     perfis: c.perfis,
     salvar: c.salvarPerfil,
+  };
+}
+
+export function useMetas() {
+  const c = useCrm();
+  return {
+    metas: c.metas,
+    salvar: c.salvarMeta,
   };
 }

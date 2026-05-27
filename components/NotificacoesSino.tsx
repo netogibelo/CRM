@@ -1,7 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useDeals, usePerfis, useStages, useTarefas } from "@/lib/crm-store";
+import {
+  useDeals,
+  useMetas,
+  usePerfis,
+  useStages,
+  useTarefas,
+} from "@/lib/crm-store";
 import {
   calcularNotificacoes,
   filtrarNaoVistas,
@@ -13,19 +19,25 @@ import type { HistoricoItem } from "@/lib/types";
 
 interface NotificacoesSinoProps {
   onIrParaDeal?: (dealId: string) => void;
+  onIrParaDashboard?: () => void;
 }
 
 const ROTULO_TIPO: Record<Notificacao["tipo"], string> = {
   parado: "Deal parado",
   retorno_vencido: "Retorno vencido",
   tarefa_vencida: "Tarefa vencida",
+  meta_risco: "Meta em risco",
 };
 
-export function NotificacoesSino({ onIrParaDeal }: NotificacoesSinoProps) {
+export function NotificacoesSino({
+  onIrParaDeal,
+  onIrParaDashboard,
+}: NotificacoesSinoProps) {
   const { deals } = useDeals();
   const { etapas } = useStages();
   const { tarefas } = useTarefas();
   const { perfis } = usePerfis();
+  const { metas } = useMetas();
   const [aberto, setAberto] = useState(false);
   const [vistas, setVistas] = useState<Record<string, string>>({});
   const refContainer = useRef<HTMLDivElement>(null);
@@ -66,8 +78,9 @@ export function NotificacoesSino({ onIrParaDeal }: NotificacoesSinoProps) {
         historicoPorDeal: new Map<string, HistoricoItem[]>(),
         tarefas,
         perfis,
+        metas,
       }),
-    [deals, etapas, tarefas, perfis],
+    [deals, etapas, tarefas, perfis, metas],
   );
   const ativas = useMemo(
     () => filtrarNaoVistas(todas, vistas),
@@ -82,6 +95,10 @@ export function NotificacoesSino({ onIrParaDeal }: NotificacoesSinoProps) {
   function handleClicarDeal(n: Notificacao) {
     handleMarcar(n);
     setAberto(false);
+    if (n.tipo === "meta_risco") {
+      onIrParaDashboard?.();
+      return;
+    }
     onIrParaDeal?.(n.dealId);
   }
 

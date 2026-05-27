@@ -249,3 +249,19 @@ export type PerfilInput = {
   nomeExibicao: string;
   email: string;
 };
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Meta mensal de vendas (valor fechado em R$)
+// ─────────────────────────────────────────────────────────────────────────────
+export interface Meta {
+  id: string;
+  /** Mês no formato YYYY-MM. Único na tabela. */
+  mes: string;
+  valorMeta: number;
+  criadoEm: string;
+  atualizadoEm: string;
+}
+export type MetaInput = {
+  mes: string;
+  valorMeta: number;
+};

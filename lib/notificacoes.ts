@@ -6,13 +6,18 @@
 // "Última atividade" prefere o evento mais recente no histórico (incluindo a
 // auto-registrada mudança de etapa); fallback para deal.atualizadoEm.
 
-import type { Deal, Etapa, HistoricoItem, Perfil, Tarefa } from "./types";
+import type { Deal, Etapa, HistoricoItem, Meta, Perfil, Tarefa } from "./types";
 import { diasDesde } from "./format";
 import { nomeOuEmail } from "./equipe";
+import { mesAtual, metaEmRisco, resumoMetaMes } from "./metas";
 
 const VISTAS_KEY = "gibelo-crm-notificacoes-vistas";
 
-export type TipoNotificacao = "parado" | "retorno_vencido" | "tarefa_vencida";
+export type TipoNotificacao =
+  | "parado"
+  | "retorno_vencido"
+  | "tarefa_vencida"
+  | "meta_risco";
 
 export interface Notificacao {
   /** id estável: tipo + dealId/tarefaId, pra persistir "visto" sem colidir. */
@@ -65,10 +70,13 @@ export interface CalcularInput {
   tarefas: Tarefa[];
   /** Para resolver nome de exibição do responsável. */
   perfis?: Perfil[];
+  /** Metas mensais — usado para o alerta "Meta em risco". */
+  metas?: Meta[];
 }
 
 export function calcularNotificacoes(input: CalcularInput): Notificacao[] {
-  const { deals, etapas, historicoPorDeal, tarefas, perfis = [] } = input;
+  const { deals, etapas, historicoPorDeal, tarefas, perfis = [], metas = [] } =
+    input;
   const mapaEtapa = new Map(etapas.map((e) => [e.id, e]));
   const hoje = hojeISO();
   const out: Notificacao[] = [];
@@ -130,6 +138,21 @@ export function calcularNotificacoes(input: CalcularInput): Notificacao[] {
       }`,
       severidade: "vencido",
       marcadorTempo: t.dataVencimento,
+    });
+  }
+
+  // 4. Meta do mês em risco (segunda quinzena + <50% atingido)
+  const mes = mesAtual();
+  const resumo = resumoMetaMes(metas, deals, mes);
+  if (metaEmRisco(resumo)) {
+    out.push({
+      id: `meta-risco:${mes}`,
+      tipo: "meta_risco",
+      dealId: "",
+      projeto: "Meta do mês",
+      detalhe: `${Math.round(resumo.percentual)}% atingido na segunda quinzena`,
+      severidade: "alerta",
+      marcadorTempo: mes,
     });
   }
 

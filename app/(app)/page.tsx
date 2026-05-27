@@ -60,7 +60,10 @@ export default function HomePage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <NotificacoesSino onIrParaDeal={() => setAba("funil")} />
+          <NotificacoesSino
+            onIrParaDeal={() => setAba("funil")}
+            onIrParaDashboard={() => setAba("dashboard")}
+          />
           <PerfilButton />
         </div>
       </header>

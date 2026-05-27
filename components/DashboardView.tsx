@@ -20,6 +20,7 @@ import { useDeals, useOrigins, useStages } from "@/lib/crm-store";
 import { formatBRL, formatBRLCompact } from "@/lib/format";
 import { ordenarEtapas } from "@/lib/stages";
 import type { Deal } from "@/lib/types";
+import { MetaMesCard } from "./MetaMesCard";
 
 type Periodo = "7d" | "30d" | "90d" | "ano";
 
@@ -335,6 +336,9 @@ export function DashboardView() {
           detalhe="do lead ao fechamento"
         />
       </div>
+
+      {/* Meta mensal */}
+      <MetaMesCard />
 
       {/* Gráficos linha 1 */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
