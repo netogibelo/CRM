@@ -14,6 +14,7 @@ import {
   useState,
 } from "react";
 import type {
+  Automacao,
   Cliente,
   ClienteInput,
   CrmState,
@@ -23,17 +24,22 @@ import type {
   EtapaInput,
   Origem,
   OrigemInput,
+  Tarefa,
+  TarefaInput,
 } from "./types";
 import {
+  automacaoRepository,
   clientRepository,
   dealRepository,
   historicoRepository,
   loadCrmSnapshot,
   originRepository,
   stageRepository,
+  tarefaRepository,
 } from "./repository";
 import { etapaFinal, etapasAtivas } from "./stages";
 import { supabase } from "./supabase";
+import { executarAutomacao, selecionarAutomacoes } from "./automacoes-engine";
 
 /** Resultado de operações que podem ser bloqueadas por integridade referencial. */
 export interface OpResult {
@@ -64,6 +70,21 @@ interface CrmContextValue {
   removerEtapa: (id: string) => Promise<OpResult>;
   moverEtapa: (id: string, dir: -1 | 1) => Promise<void>;
   etapaEmUso: (id: string) => number;
+  // tarefas
+  tarefas: Tarefa[];
+  criarTarefa: (input: TarefaInput) => Promise<Tarefa>;
+  atualizarTarefa: (id: string, patch: Partial<TarefaInput>) => Promise<Tarefa>;
+  removerTarefa: (id: string) => Promise<void>;
+  // automacoes
+  automacoes: Automacao[];
+  criarAutomacao: (
+    input: import("./types").AutomacaoInput,
+  ) => Promise<Automacao>;
+  atualizarAutomacao: (
+    id: string,
+    patch: Partial<import("./types").AutomacaoInput>,
+  ) => Promise<Automacao>;
+  removerAutomacao: (id: string) => Promise<void>;
   // lookups
   clienteNome: (id: string) => string;
   origemNome: (id: string) => string;
@@ -78,18 +99,28 @@ export function CrmProvider({ children }: { children: React.ReactNode }) {
     origens: [],
     etapas: [],
   });
+  const [tarefas, setTarefas] = useState<Tarefa[]>([]);
+  const [automacoes, setAutomacoes] = useState<Automacao[]>([]);
   const [carregando, setCarregando] = useState(true);
 
   // Ref sempre com o estado mais recente, para checagens de integridade.
   const ref = useRef(state);
   ref.current = state;
+  const refAutomacoes = useRef(automacoes);
+  refAutomacoes.current = automacoes;
 
   useEffect(() => {
     let ativo = true;
     (async () => {
-      const snapshot = await loadCrmSnapshot();
+      const [snapshot, listaTarefas, listaAutomacoes] = await Promise.all([
+        loadCrmSnapshot(),
+        tarefaRepository.listAll().catch(() => []),
+        automacaoRepository.listAll().catch(() => []),
+      ]);
       if (ativo) {
         setState(snapshot);
+        setTarefas(listaTarefas);
+        setAutomacoes(listaAutomacoes);
         setCarregando(false);
       }
     })();
@@ -102,6 +133,18 @@ export function CrmProvider({ children }: { children: React.ReactNode }) {
   const criarDeal = useCallback(async (input: DealInput) => {
     const d = await dealRepository.create(input);
     setState((s) => ({ ...s, deals: [...s.deals, d] }));
+
+    // Automações: gatilho "deal_criado"
+    const aDisparar = selecionarAutomacoes(refAutomacoes.current, {
+      tipo: "deal_criado",
+    });
+    for (const a of aDisparar) await executarAutomacao(a, d);
+    // Tarefas criadas por automação precisam ser refletidas no estado.
+    if (aDisparar.some((a) => a.acao === "criar_tarefa")) {
+      const novas = await tarefaRepository.listByDeal(d.id).catch(() => []);
+      setTarefas((prev) => [...prev.filter((t) => t.dealId !== d.id), ...novas]);
+    }
+
     return d;
   }, []);
 
@@ -111,7 +154,7 @@ export function CrmProvider({ children }: { children: React.ReactNode }) {
       const d = await dealRepository.update(id, patch);
       setState((s) => ({ ...s, deals: s.deals.map((x) => (x.id === id ? d : x)) }));
 
-      // Auto-registro: mudança de etapa vira evento na timeline.
+      // Auto-registro: mudança de etapa vira evento na timeline + dispara automações.
       if (anterior && anterior.etapaId !== d.etapaId) {
         const eAnt = ref.current.etapas.find((e) => e.id === anterior.etapaId);
         const eNew = ref.current.etapas.find((e) => e.id === d.etapaId);
@@ -125,6 +168,19 @@ export function CrmProvider({ children }: { children: React.ReactNode }) {
               autorEmail: userData.user?.email ?? null,
             })
             .catch(() => null);
+        }
+
+        const aDisparar = selecionarAutomacoes(refAutomacoes.current, {
+          tipo: "deal_entra_etapa",
+          etapaId: d.etapaId,
+        });
+        for (const a of aDisparar) await executarAutomacao(a, d);
+        if (aDisparar.some((a) => a.acao === "criar_tarefa")) {
+          const novas = await tarefaRepository.listByDeal(d.id).catch(() => []);
+          setTarefas((prev) => [
+            ...prev.filter((t) => t.dealId !== d.id),
+            ...novas,
+          ]);
         }
       }
 
@@ -284,6 +340,51 @@ export function CrmProvider({ children }: { children: React.ReactNode }) {
     }));
   }, []);
 
+  // ── Tarefas ────────────────────────────────────────────────────────────
+  const criarTarefa = useCallback(async (input: TarefaInput) => {
+    const t = await tarefaRepository.create(input);
+    setTarefas((prev) => [...prev, t]);
+    return t;
+  }, []);
+
+  const atualizarTarefa = useCallback(
+    async (id: string, patch: Partial<TarefaInput>) => {
+      const t = await tarefaRepository.update(id, patch);
+      setTarefas((prev) => prev.map((x) => (x.id === id ? t : x)));
+      return t;
+    },
+    [],
+  );
+
+  const removerTarefa = useCallback(async (id: string) => {
+    await tarefaRepository.remove(id);
+    setTarefas((prev) => prev.filter((x) => x.id !== id));
+  }, []);
+
+  // ── Automações ─────────────────────────────────────────────────────────
+  const criarAutomacao = useCallback(
+    async (input: import("./types").AutomacaoInput) => {
+      const a = await automacaoRepository.create(input);
+      setAutomacoes((prev) => [...prev, a]);
+      return a;
+    },
+    [],
+  );
+
+  const atualizarAutomacao = useCallback(
+    async (id: string, patch: Partial<import("./types").AutomacaoInput>) => {
+      const a = await automacaoRepository.update(id, patch);
+      setAutomacoes((prev) => prev.map((x) => (x.id === id ? a : x)));
+      return a;
+    },
+    [],
+  );
+
+  const removerAutomacao = useCallback(async (id: string) => {
+    await automacaoRepository.remove(id);
+    setAutomacoes((prev) => prev.filter((x) => x.id !== id));
+  }, []);
+
   // ── Lookups ────────────────────────────────────────────────────────────
   const clienteNome = useCallback(
     (id: string) =>
@@ -314,6 +415,14 @@ export function CrmProvider({ children }: { children: React.ReactNode }) {
     removerEtapa,
     moverEtapa,
     etapaEmUso,
+    tarefas,
+    criarTarefa,
+    atualizarTarefa,
+    removerTarefa,
+    automacoes,
+    criarAutomacao,
+    atualizarAutomacao,
+    removerAutomacao,
     clienteNome,
     origemNome,
   };
@@ -384,4 +493,26 @@ export function useStages() {
 export function useResolvers() {
   const c = useCrm();
   return { clienteNome: c.clienteNome, origemNome: c.origemNome };
+}
+
+export function useTarefas() {
+  const c = useCrm();
+  return {
+    tarefas: c.tarefas,
+    carregando: c.carregando,
+    criar: c.criarTarefa,
+    atualizar: c.atualizarTarefa,
+    remover: c.removerTarefa,
+  };
+}
+
+export function useAutomacoes() {
+  const c = useCrm();
+  return {
+    automacoes: c.automacoes,
+    carregando: c.carregando,
+    criar: c.criarAutomacao,
+    atualizar: c.atualizarAutomacao,
+    remover: c.removerAutomacao,
+  };
 }

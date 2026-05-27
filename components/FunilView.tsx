@@ -7,16 +7,26 @@ import { btnPrimary } from "@/lib/ui";
 import { Dashboard } from "./Dashboard";
 import { Board } from "./Board";
 import { useDealForm } from "./useDealForm";
+import {
+  FiltrosFunil,
+  aplicarFiltros,
+  useFiltrosFunil,
+} from "./FiltrosFunil";
 
 export function FunilView() {
   const { deals, atualizar } = useDeals();
   const { etapas } = useStages();
   const { origens } = useOrigins();
   const { abrir, abrirNovo, elemento } = useDealForm();
+  const [filtros, setFiltros] = useFiltrosFunil();
 
   const abertos = useMemo(
     () => deals.filter((d) => d.status === "aberto"),
     [deals],
+  );
+  const abertosFiltrados = useMemo(
+    () => aplicarFiltros(abertos, filtros),
+    [abertos, filtros],
   );
   const metrics = useMemo(
     () => calcularMetrics(deals, etapas, origens),
@@ -42,24 +52,38 @@ export function FunilView() {
 
       <Dashboard m={metrics} />
 
-      {abertos.length === 0 ? (
+      <FiltrosFunil
+        filtros={filtros}
+        onChange={setFiltros}
+        origens={origens}
+        totalDeals={abertos.length}
+        filtradosCount={abertosFiltrados.length}
+      />
+
+      {abertosFiltrados.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-navy-200 bg-white px-6 py-14 text-center">
           <p className="text-sm font-medium text-navy-700">
-            Nenhuma oportunidade aberta no funil.
+            {abertos.length === 0
+              ? "Nenhuma oportunidade aberta no funil."
+              : "Nenhuma oportunidade corresponde aos filtros."}
           </p>
           <p className="mt-1 text-sm text-navy-400">
-            Crie a primeira oportunidade para começar a acompanhar.
+            {abertos.length === 0
+              ? "Crie a primeira oportunidade para começar a acompanhar."
+              : "Ajuste ou limpe os filtros para ver as oportunidades."}
           </p>
-          <button
-            type="button"
-            onClick={abrirNovo}
-            className={`${btnPrimary} mt-4`}
-          >
-            Nova oportunidade
-          </button>
+          {abertos.length === 0 && (
+            <button
+              type="button"
+              onClick={abrirNovo}
+              className={`${btnPrimary} mt-4`}
+            >
+              Nova oportunidade
+            </button>
+          )}
         </div>
       ) : (
-        <Board deals={abertos} onAbrir={abrir} onMover={mover} />
+        <Board deals={abertosFiltrados} onAbrir={abrir} onMover={mover} />
       )}
 
       {elemento}

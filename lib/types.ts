@@ -48,6 +48,15 @@ export type EtapaInput = Omit<Etapa, "id">;
 // ─────────────────────────────────────────────────────────────────────────────
 export type DealStatus = "aberto" | "ganho" | "perdido";
 
+/** Tipos de obra padrão para projetos de engenharia civil da Gibelo. */
+export type TipoObra =
+  | "residencial_unifamiliar"
+  | "residencial_multifamiliar"
+  | "comercial"
+  | "industrial"
+  | "reforma"
+  | "outro";
+
 export interface Deal {
   id: string;
   /** Nome do projeto ou serviço. */
@@ -58,13 +67,25 @@ export interface Deal {
   valor: number;
   /** Referência à origem cadastrada. */
   origemId: string;
-  /** Previsão de fechamento, data ISO (yyyy-mm-dd). */
+  /**
+   * Data do próximo retorno ao cliente (yyyy-mm-dd).
+   *
+   * NOTA: a coluna no banco continua `previsao_fechamento` por minimizar impacto
+   * da migração — só o label visível mudou para "Próximo retorno".
+   */
   previsaoFechamento: string;
   /** Etapa do funil em que a oportunidade está. */
   etapaId: string;
   status: DealStatus;
   motivoPerda: string | null;
   notas: string;
+  /** Email do membro da equipe responsável por esse deal. */
+  responsavelEmail?: string | null;
+  /** Dados específicos do projeto de engenharia (Gibelo). */
+  areaProjeto?: number | null;
+  tipoObra?: TipoObra | null;
+  cidadeObra?: string;
+  condominio?: string;
   criadoEm: string;
   atualizadoEm: string;
   exemplo?: boolean;
@@ -162,3 +183,52 @@ export interface HistoricoItem {
   criadoEm: string;
 }
 export type HistoricoInput = Omit<HistoricoItem, "id" | "criadoEm">;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Tarefa agendada (com prazo, por deal, atribuível a um responsável)
+// ─────────────────────────────────────────────────────────────────────────────
+export interface Tarefa {
+  id: string;
+  dealId: string;
+  titulo: string;
+  descricao: string;
+  responsavelEmail: string | null;
+  /** Data de vencimento (yyyy-mm-dd). */
+  dataVencimento: string;
+  concluida: boolean;
+  concluidaEm: string | null;
+  criadoEm: string;
+}
+export type TarefaInput = Omit<Tarefa, "id" | "criadoEm">;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Automação (gatilho → ação)
+// ─────────────────────────────────────────────────────────────────────────────
+export type AutomacaoGatilho = "deal_entra_etapa" | "deal_criado";
+export type AutomacaoAcao = "criar_tarefa" | "registrar_nota";
+
+export interface ConfigCriarTarefa {
+  /** id da etapa que dispara — só usado quando gatilho é deal_entra_etapa. */
+  etapaId?: string;
+  tituloTarefa: string;
+  prazoEmDias: number;
+  /** "mesmo_do_deal" copia o responsável do deal; ou email específico. */
+  responsavel: string;
+}
+
+export interface ConfigRegistrarNota {
+  etapaId?: string;
+  texto: string;
+}
+
+export interface Automacao {
+  id: string;
+  nome: string;
+  gatilho: AutomacaoGatilho;
+  acao: AutomacaoAcao;
+  /** Configuração tipada por ação. */
+  configuracao: ConfigCriarTarefa | ConfigRegistrarNota | Record<string, unknown>;
+  ativa: boolean;
+  criadoEm: string;
+}
+export type AutomacaoInput = Omit<Automacao, "id" | "criadoEm">;

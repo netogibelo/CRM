@@ -6,6 +6,7 @@ import { useOrigins, useStages } from "@/lib/crm-store";
 import { ordenarEtapas, corDaEtapa } from "@/lib/stages";
 import { btnPrimary, inputCls } from "@/lib/ui";
 import { EditableText } from "./EditableText";
+import { AutomacoesSection } from "./AutomacoesSection";
 
 const nomeInlineCls =
   "min-w-0 flex-1 rounded-md border border-transparent bg-transparent px-2 py-1 text-sm text-navy-900 hover:border-navy-200 focus:border-navy-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-navy-500/30";
@@ -300,6 +301,8 @@ export function ConfiguracoesView() {
           </button>
         </div>
       </section>
+
+      <AutomacoesSection />
     </div>
   );
 }

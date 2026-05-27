@@ -1,9 +1,11 @@
 "use client";
 
 import type { Deal } from "@/lib/types";
-import { useResolvers } from "@/lib/crm-store";
+import { useResolvers, useTarefas } from "@/lib/crm-store";
 import { activationProps, dragProps } from "@/lib/dnd";
 import { formatBRL, formatDateBR, diasDesde, estaParado } from "@/lib/format";
+import { iniciaisOuFallback, nomeOuEmail } from "@/lib/equipe";
+import { abrevTipoObra } from "@/lib/tipo-obra";
 import { ExemploBadge } from "./ExemploBadge";
 
 interface DealCardProps {
@@ -39,6 +41,10 @@ function origemClasse(nome: string, id: string): string {
   return origemCorPorNome[nome] ?? origemPaleta[hash(id) % origemPaleta.length];
 }
 
+function hojeISO(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
 export function DealCard({
   deal,
   onAbrir,
@@ -47,9 +53,19 @@ export function DealCard({
   arrastando,
 }: DealCardProps) {
   const { clienteNome, origemNome } = useResolvers();
+  const { tarefas } = useTarefas();
   const parado = deal.status === "aberto" && estaParado(deal.atualizadoEm);
   const diasParado = diasDesde(deal.atualizadoEm);
   const nomeOrigem = origemNome(deal.origemId);
+
+  const tarefasDoDeal = tarefas.filter((t) => t.dealId === deal.id);
+  const tarefasVencidas = tarefasDoDeal.filter(
+    (t) => !t.concluida && t.dataVencimento < hojeISO(),
+  ).length;
+  const tarefasAbertas = tarefasDoDeal.filter((t) => !t.concluida).length;
+
+  const tipoObraAbrev = abrevTipoObra(deal.tipoObra);
+  const localExibir = deal.cidadeObra || deal.condominio || "";
 
   return (
     <div
@@ -84,6 +100,16 @@ export function DealCard({
         >
           {nomeOrigem}
         </span>
+        {tipoObraAbrev && (
+          <span className="inline-flex items-center rounded-full bg-navy-50 px-2 py-0.5 text-[11px] font-medium text-navy-600 ring-1 ring-inset ring-navy-200">
+            {tipoObraAbrev}
+          </span>
+        )}
+        {localExibir && (
+          <span className="text-[11px] text-navy-400" title={localExibir}>
+            · {localExibir}
+          </span>
+        )}
       </div>
 
       <div className="mt-3 flex items-center justify-between border-t border-navy-50 pt-2.5">
@@ -100,15 +126,47 @@ export function DealCard({
           {formatDateBR(deal.previsaoFechamento)}
         </span>
 
-        {parado && (
-          <span
-            className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700"
-            title={`Sem atualização há ${diasParado} dias`}
-          >
-            <span className="h-1.5 w-1.5 rounded-full bg-amber-500" aria-hidden="true" />
-            Parado {diasParado}d
-          </span>
-        )}
+        <div className="flex items-center gap-1.5">
+          {tarefasVencidas > 0 && (
+            <span
+              className="inline-flex items-center gap-1 rounded-full bg-red-50 px-1.5 py-0.5 text-[10px] font-semibold text-red-700"
+              title={`${tarefasVencidas} tarefa(s) vencida(s)`}
+              aria-label={`${tarefasVencidas} tarefas vencidas`}
+            >
+              ⚠ {tarefasVencidas}
+            </span>
+          )}
+          {tarefasVencidas === 0 && tarefasAbertas > 0 && (
+            <span
+              className="inline-flex items-center gap-1 rounded-full bg-sky-50 px-1.5 py-0.5 text-[10px] font-medium text-sky-700"
+              title={`${tarefasAbertas} tarefa(s) aberta(s)`}
+              aria-label={`${tarefasAbertas} tarefas abertas`}
+            >
+              ☐ {tarefasAbertas}
+            </span>
+          )}
+          {parado && (
+            <span
+              className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700"
+              title={`Sem atualização há ${diasParado} dias`}
+            >
+              <span
+                className="h-1.5 w-1.5 rounded-full bg-amber-500"
+                aria-hidden="true"
+              />
+              Parado {diasParado}d
+            </span>
+          )}
+          {deal.responsavelEmail && (
+            <span
+              className="flex h-5 w-5 items-center justify-center rounded-full bg-navy-900 text-[9px] font-bold text-white"
+              title={nomeOuEmail(deal.responsavelEmail)}
+              aria-label={`Responsável: ${nomeOuEmail(deal.responsavelEmail)}`}
+            >
+              {iniciaisOuFallback(deal.responsavelEmail)}
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );

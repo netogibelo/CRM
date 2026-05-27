@@ -1,26 +1,31 @@
-// Regras de notificação de deals parados.
+// Regras de notificação:
+//   1. Deals parados (sem atividade por mais que o limite da etapa)
+//   2. Próximo retorno vencido (data passou e deal continua aberto)
+//   3. Tarefas vencidas (data_vencimento < hoje e ainda não concluída)
 //
-// Modelo: cada etapa tem um threshold (em dias) derivado da sua probabilidade.
-// Etapas com alta probabilidade (negociação) precisam de atenção mais rápida
-// que etapas iniciais; etapas medianas (qualificação, proposta) toleram mais.
-//
-// Mapeamento (alinhado ao briefing):
-//   probabilidade ≥ 0.6  → 7 dias  (ex.: negociação)
-//   probabilidade < 0.2  → 7 dias  (ex.: lead frio precisa ser puxado)
-//   0.2 ≤ prob < 0.6     → 14 dias (proposta, qualificação)
+// "Última atividade" prefere o evento mais recente no histórico (incluindo a
+// auto-registrada mudança de etapa); fallback para deal.atualizadoEm.
 
-import type { Deal, Etapa } from "./types";
+import type { Deal, Etapa, HistoricoItem, Tarefa } from "./types";
 import { diasDesde } from "./format";
+import { nomeOuEmail } from "./equipe";
 
 const VISTAS_KEY = "gibelo-crm-notificacoes-vistas";
 
+export type TipoNotificacao = "parado" | "retorno_vencido" | "tarefa_vencida";
+
 export interface Notificacao {
+  /** id estável: tipo + dealId/tarefaId, pra persistir "visto" sem colidir. */
+  id: string;
+  tipo: TipoNotificacao;
   dealId: string;
   projeto: string;
-  etapaNome: string;
-  diasParado: number;
-  limite: number;
-  atualizadoEm: string;
+  /** Texto detalhe (etapa, vencimento). */
+  detalhe: string;
+  /** Severidade — "alerta" (atenção) ou "vencido" (urgente). */
+  severidade: "alerta" | "vencido";
+  /** Carimbo de tempo usado para "expirar" a marcação de visto. */
+  marcadorTempo: string;
 }
 
 export function limitePorEtapa(etapa: Etapa | undefined): number {
@@ -30,33 +35,112 @@ export function limitePorEtapa(etapa: Etapa | undefined): number {
   return 14;
 }
 
-export function calcularNotificacoes(
-  deals: Deal[],
-  etapas: Etapa[],
-): Notificacao[] {
+/**
+ * Calcula a "última atividade" de um deal:
+ * - se houver entrada no histórico (incluindo auto-mudança de etapa), pega a
+ *   mais recente
+ * - fallback: deal.atualizadoEm
+ * - fallback do fallback: deal.criadoEm (evita NaN se atualizadoEm vier ruim)
+ */
+function ultimaAtividade(
+  deal: Deal,
+  historicoPorDeal: Map<string, HistoricoItem[]>,
+): string {
+  const hist = historicoPorDeal.get(deal.id);
+  if (hist && hist.length > 0) {
+    return hist[0].criadoEm;
+  }
+  return deal.atualizadoEm || deal.criadoEm;
+}
+
+function hojeISO(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+export interface CalcularInput {
+  deals: Deal[];
+  etapas: Etapa[];
+  /** Mapa dealId → histórico ordenado por criadoEm desc (já filtrado). */
+  historicoPorDeal: Map<string, HistoricoItem[]>;
+  tarefas: Tarefa[];
+}
+
+export function calcularNotificacoes(input: CalcularInput): Notificacao[] {
+  const { deals, etapas, historicoPorDeal, tarefas } = input;
   const mapaEtapa = new Map(etapas.map((e) => [e.id, e]));
-  const lista: Notificacao[] = [];
+  const hoje = hojeISO();
+  const out: Notificacao[] = [];
+
+  // 1. Deals parados
   for (const d of deals) {
     if (d.status !== "aberto") continue;
     const etapa = mapaEtapa.get(d.etapaId);
     if (etapa?.final) continue;
     const limite = limitePorEtapa(etapa);
-    const dias = diasDesde(d.atualizadoEm);
+    const ultima = ultimaAtividade(d, historicoPorDeal);
+    const dias = diasDesde(ultima);
     if (dias > limite) {
-      lista.push({
+      out.push({
+        id: `parado:${d.id}`,
+        tipo: "parado",
         dealId: d.id,
         projeto: d.projeto,
-        etapaNome: etapa?.nome ?? "—",
-        diasParado: dias,
-        limite,
-        atualizadoEm: d.atualizadoEm,
+        detalhe: `${etapa?.nome ?? "—"} · parado há ${dias}d (limite ${limite}d)`,
+        severidade: "alerta",
+        marcadorTempo: ultima,
       });
     }
   }
-  return lista.sort((a, b) => b.diasParado - a.diasParado);
+
+  // 2. Próximo retorno vencido
+  for (const d of deals) {
+    if (d.status !== "aberto") continue;
+    if (!d.previsaoFechamento) continue;
+    if (d.previsaoFechamento < hoje) {
+      const dias = diasDesde(`${d.previsaoFechamento}T00:00:00`);
+      out.push({
+        id: `retorno:${d.id}`,
+        tipo: "retorno_vencido",
+        dealId: d.id,
+        projeto: d.projeto,
+        detalhe: `Retorno previsto venceu há ${dias}d`,
+        severidade: "vencido",
+        marcadorTempo: d.previsaoFechamento,
+      });
+    }
+  }
+
+  // 3. Tarefas vencidas (não concluídas)
+  for (const t of tarefas) {
+    if (t.concluida) continue;
+    if (t.dataVencimento >= hoje) continue;
+    const dias = diasDesde(`${t.dataVencimento}T00:00:00`);
+    const deal = deals.find((d) => d.id === t.dealId);
+    if (!deal) continue;
+    const resp = nomeOuEmail(t.responsavelEmail);
+    out.push({
+      id: `tarefa:${t.id}`,
+      tipo: "tarefa_vencida",
+      dealId: t.dealId,
+      projeto: deal.projeto,
+      detalhe: `Tarefa "${t.titulo}" venceu há ${dias}d${
+        t.responsavelEmail ? ` · ${resp}` : ""
+      }`,
+      severidade: "vencido",
+      marcadorTempo: t.dataVencimento,
+    });
+  }
+
+  // Ordenação: vencidos antes, depois mais antigos primeiro.
+  return out.sort((a, b) => {
+    if (a.severidade !== b.severidade) {
+      return a.severidade === "vencido" ? -1 : 1;
+    }
+    return a.marcadorTempo.localeCompare(b.marcadorTempo);
+  });
 }
 
-/** Lê o mapa de notificações já vistas: { dealId: timestamp_atualizadoEm_quando_visto }. */
+/** Lê o mapa de notificações já vistas: { notificacaoId: marcadorTempo_quando_visto }. */
 export function lerVistas(): Record<string, string> {
   if (typeof window === "undefined") return {};
   try {
@@ -67,22 +151,24 @@ export function lerVistas(): Record<string, string> {
   }
 }
 
-/** Marca uma notificação como vista — fica oculta até o deal ser tocado de novo. */
-export function marcarComoVisto(dealId: string, atualizadoEm: string): void {
+/** Marca uma notificação como vista — expira se o marcadorTempo for renovado. */
+export function marcarComoVisto(
+  notificacaoId: string,
+  marcadorTempo: string,
+): void {
   if (typeof window === "undefined") return;
   const atual = lerVistas();
-  atual[dealId] = atualizadoEm;
+  atual[notificacaoId] = marcadorTempo;
   window.localStorage.setItem(VISTAS_KEY, JSON.stringify(atual));
 }
 
-/** Filtra notificações já vistas. Uma vista expira se o deal foi atualizado depois. */
 export function filtrarNaoVistas(
   todas: Notificacao[],
   vistas: Record<string, string>,
 ): Notificacao[] {
   return todas.filter((n) => {
-    const tsVisto = vistas[n.dealId];
+    const tsVisto = vistas[n.id];
     if (!tsVisto) return true;
-    return new Date(n.atualizadoEm).getTime() > new Date(tsVisto).getTime();
+    return n.marcadorTempo > tsVisto;
   });
 }

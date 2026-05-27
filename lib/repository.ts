@@ -13,6 +13,10 @@ import type {
   AtividadeLista,
   AtividadeListaInput,
   AtividadesState,
+  Automacao,
+  AutomacaoAcao,
+  AutomacaoGatilho,
+  AutomacaoInput,
   Cliente,
   ClienteInput,
   CrmState,
@@ -26,6 +30,9 @@ import type {
   HistoricoTipo,
   Origem,
   OrigemInput,
+  Tarefa,
+  TarefaInput,
+  TipoObra,
 } from "./types";
 import {
   gerarSeedAtividades,
@@ -359,6 +366,13 @@ function dealFromRow(row: Row): Deal {
     status: row.status as DealStatus,
     motivoPerda: row.motivo_perda,
     notas: row.notas ?? "",
+    responsavelEmail: row.responsavel_email ?? null,
+    areaProjeto: row.area_projeto !== null && row.area_projeto !== undefined
+      ? Number(row.area_projeto)
+      : null,
+    tipoObra: (row.tipo_obra as TipoObra) ?? null,
+    cidadeObra: row.cidade_obra ?? "",
+    condominio: row.condominio ?? "",
     criadoEm: row.criado_em,
     atualizadoEm: row.atualizado_em,
     exemplo: row.exemplo ?? false,
@@ -376,6 +390,11 @@ function dealToRow(d: Deal): Row {
     status: d.status,
     motivo_perda: d.motivoPerda,
     notas: d.notas,
+    responsavel_email: d.responsavelEmail ?? null,
+    area_projeto: d.areaProjeto ?? null,
+    tipo_obra: d.tipoObra ?? null,
+    cidade_obra: d.cidadeObra || null,
+    condominio: d.condominio || null,
     exemplo: d.exemplo ?? false,
     criado_em: d.criadoEm,
     atualizado_em: d.atualizadoEm,
@@ -392,6 +411,11 @@ function dealPatchToRow(p: Partial<DealInput>): Row {
   if (p.status !== undefined) r.status = p.status;
   if (p.motivoPerda !== undefined) r.motivo_perda = p.motivoPerda;
   if (p.notas !== undefined) r.notas = p.notas;
+  if (p.responsavelEmail !== undefined) r.responsavel_email = p.responsavelEmail ?? null;
+  if (p.areaProjeto !== undefined) r.area_projeto = p.areaProjeto ?? null;
+  if (p.tipoObra !== undefined) r.tipo_obra = p.tipoObra ?? null;
+  if (p.cidadeObra !== undefined) r.cidade_obra = p.cidadeObra || null;
+  if (p.condominio !== undefined) r.condominio = p.condominio || null;
   if (p.exemplo !== undefined) r.exemplo = p.exemplo;
   return r;
 }
@@ -744,6 +768,181 @@ class SupabaseHistoricoRepository implements HistoricoRepository {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Repositório de tarefas (F2)
+// ─────────────────────────────────────────────────────────────────────────────
+export interface TarefaRepository {
+  listAll(): Promise<Tarefa[]>;
+  listByDeal(dealId: string): Promise<Tarefa[]>;
+  create(input: TarefaInput): Promise<Tarefa>;
+  update(id: string, patch: Partial<TarefaInput>): Promise<Tarefa>;
+  remove(id: string): Promise<void>;
+}
+
+function tarefaFromRow(row: Row): Tarefa {
+  return {
+    id: row.id,
+    dealId: row.deal_id,
+    titulo: row.titulo,
+    descricao: row.descricao ?? "",
+    responsavelEmail: row.responsavel_email ?? null,
+    dataVencimento: row.data_vencimento,
+    concluida: Boolean(row.concluida),
+    concluidaEm: row.concluida_em ?? null,
+    criadoEm: row.criado_em,
+  };
+}
+
+function tarefaPatchToRow(p: Partial<TarefaInput>): Row {
+  const r: Row = {};
+  if (p.titulo !== undefined) r.titulo = p.titulo;
+  if (p.descricao !== undefined) r.descricao = p.descricao;
+  if (p.responsavelEmail !== undefined) r.responsavel_email = p.responsavelEmail;
+  if (p.dataVencimento !== undefined) r.data_vencimento = p.dataVencimento;
+  if (p.concluida !== undefined) {
+    r.concluida = p.concluida;
+    r.concluida_em = p.concluida ? agoraISO() : null;
+  }
+  if (p.concluidaEm !== undefined) r.concluida_em = p.concluidaEm;
+  return r;
+}
+
+class SupabaseTarefaRepository implements TarefaRepository {
+  async listAll(): Promise<Tarefa[]> {
+    const { data, error } = await supabase
+      .from("tarefas")
+      .select("*")
+      .order("data_vencimento", { ascending: true });
+    if (error) throw error;
+    return (data ?? []).map(tarefaFromRow);
+  }
+  async listByDeal(dealId: string): Promise<Tarefa[]> {
+    const { data, error } = await supabase
+      .from("tarefas")
+      .select("*")
+      .eq("deal_id", dealId)
+      .order("data_vencimento", { ascending: true });
+    if (error) throw error;
+    return (data ?? []).map(tarefaFromRow);
+  }
+  async create(input: TarefaInput): Promise<Tarefa> {
+    const id = novoId("tarefa");
+    const { data, error } = await supabase
+      .from("tarefas")
+      .insert({
+        id,
+        deal_id: input.dealId,
+        titulo: input.titulo,
+        descricao: input.descricao || null,
+        responsavel_email: input.responsavelEmail,
+        data_vencimento: input.dataVencimento,
+        concluida: input.concluida,
+        concluida_em: input.concluidaEm,
+      })
+      .select()
+      .single();
+    if (error) throw error;
+    return tarefaFromRow(data);
+  }
+  async update(id: string, patch: Partial<TarefaInput>): Promise<Tarefa> {
+    const { data, error } = await supabase
+      .from("tarefas")
+      .update(tarefaPatchToRow(patch))
+      .eq("id", id)
+      .select()
+      .single();
+    if (error) throw error;
+    return tarefaFromRow(data);
+  }
+  async remove(id: string): Promise<void> {
+    const { error } = await supabase.from("tarefas").delete().eq("id", id);
+    if (error) throw error;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Repositório de automações (F5)
+// ─────────────────────────────────────────────────────────────────────────────
+export interface AutomacaoRepository {
+  listAll(): Promise<Automacao[]>;
+  listActive(): Promise<Automacao[]>;
+  create(input: AutomacaoInput): Promise<Automacao>;
+  update(id: string, patch: Partial<AutomacaoInput>): Promise<Automacao>;
+  remove(id: string): Promise<void>;
+}
+
+function automacaoFromRow(row: Row): Automacao {
+  return {
+    id: row.id,
+    nome: row.nome,
+    gatilho: row.gatilho as AutomacaoGatilho,
+    acao: row.acao as AutomacaoAcao,
+    configuracao: row.configuracao ?? {},
+    ativa: Boolean(row.ativa),
+    criadoEm: row.criado_em,
+  };
+}
+
+function automacaoPatchToRow(p: Partial<AutomacaoInput>): Row {
+  const r: Row = {};
+  if (p.nome !== undefined) r.nome = p.nome;
+  if (p.gatilho !== undefined) r.gatilho = p.gatilho;
+  if (p.acao !== undefined) r.acao = p.acao;
+  if (p.configuracao !== undefined) r.configuracao = p.configuracao;
+  if (p.ativa !== undefined) r.ativa = p.ativa;
+  return r;
+}
+
+class SupabaseAutomacaoRepository implements AutomacaoRepository {
+  async listAll(): Promise<Automacao[]> {
+    const { data, error } = await supabase
+      .from("automacoes")
+      .select("*")
+      .order("criado_em", { ascending: true });
+    if (error) throw error;
+    return (data ?? []).map(automacaoFromRow);
+  }
+  async listActive(): Promise<Automacao[]> {
+    const { data, error } = await supabase
+      .from("automacoes")
+      .select("*")
+      .eq("ativa", true);
+    if (error) throw error;
+    return (data ?? []).map(automacaoFromRow);
+  }
+  async create(input: AutomacaoInput): Promise<Automacao> {
+    const id = novoId("auto");
+    const { data, error } = await supabase
+      .from("automacoes")
+      .insert({
+        id,
+        nome: input.nome,
+        gatilho: input.gatilho,
+        acao: input.acao,
+        configuracao: input.configuracao,
+        ativa: input.ativa,
+      })
+      .select()
+      .single();
+    if (error) throw error;
+    return automacaoFromRow(data);
+  }
+  async update(id: string, patch: Partial<AutomacaoInput>): Promise<Automacao> {
+    const { data, error } = await supabase
+      .from("automacoes")
+      .update(automacaoPatchToRow(patch))
+      .eq("id", id)
+      .select()
+      .single();
+    if (error) throw error;
+    return automacaoFromRow(data);
+  }
+  async remove(id: string): Promise<void> {
+    const { error } = await supabase.from("automacoes").delete().eq("id", id);
+    if (error) throw error;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // PONTO ÚNICO DE TROCA DE IMPLEMENTAÇÃO — agora apontando para o Supabase.
 //
 // As classes LocalStorage* acima permanecem no arquivo como referência/fallback;
@@ -760,3 +959,7 @@ export const activityRepository: ActivityRepository =
   new SupabaseActivityRepository();
 export const historicoRepository: HistoricoRepository =
   new SupabaseHistoricoRepository();
+export const tarefaRepository: TarefaRepository =
+  new SupabaseTarefaRepository();
+export const automacaoRepository: AutomacaoRepository =
+  new SupabaseAutomacaoRepository();

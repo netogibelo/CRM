@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useDeals, useStages } from "@/lib/crm-store";
+import { useDeals, useStages, useTarefas } from "@/lib/crm-store";
 import {
   calcularNotificacoes,
   filtrarNaoVistas,
@@ -9,15 +9,22 @@ import {
   marcarComoVisto,
   type Notificacao,
 } from "@/lib/notificacoes";
+import type { HistoricoItem } from "@/lib/types";
 
 interface NotificacoesSinoProps {
-  /** Chamado quando o usuário clica numa notificação (ex.: troca de aba pro Funil). */
   onIrParaDeal?: (dealId: string) => void;
 }
+
+const ROTULO_TIPO: Record<Notificacao["tipo"], string> = {
+  parado: "Deal parado",
+  retorno_vencido: "Retorno vencido",
+  tarefa_vencida: "Tarefa vencida",
+};
 
 export function NotificacoesSino({ onIrParaDeal }: NotificacoesSinoProps) {
   const { deals } = useDeals();
   const { etapas } = useStages();
+  const { tarefas } = useTarefas();
   const [aberto, setAberto] = useState(false);
   const [vistas, setVistas] = useState<Record<string, string>>({});
   const refContainer = useRef<HTMLDivElement>(null);
@@ -47,9 +54,18 @@ export function NotificacoesSino({ onIrParaDeal }: NotificacoesSinoProps) {
     };
   }, [aberto]);
 
+  // O histórico global não é carregado no store (seria 1 query por deal); usar
+  // map vazio faz calcularNotificacoes cair no fallback deal.atualizadoEm, que
+  // já reflete mudanças automáticas de etapa.
   const todas = useMemo(
-    () => calcularNotificacoes(deals, etapas),
-    [deals, etapas],
+    () =>
+      calcularNotificacoes({
+        deals,
+        etapas,
+        historicoPorDeal: new Map<string, HistoricoItem[]>(),
+        tarefas,
+      }),
+    [deals, etapas, tarefas],
   );
   const ativas = useMemo(
     () => filtrarNaoVistas(todas, vistas),
@@ -57,8 +73,8 @@ export function NotificacoesSino({ onIrParaDeal }: NotificacoesSinoProps) {
   );
 
   function handleMarcar(n: Notificacao) {
-    marcarComoVisto(n.dealId, n.atualizadoEm);
-    setVistas((prev) => ({ ...prev, [n.dealId]: n.atualizadoEm }));
+    marcarComoVisto(n.id, n.marcadorTempo);
+    setVistas((prev) => ({ ...prev, [n.id]: n.marcadorTempo }));
   }
 
   function handleClicarDeal(n: Notificacao) {
@@ -116,11 +132,11 @@ export function NotificacoesSino({ onIrParaDeal }: NotificacoesSinoProps) {
         <div
           role="dialog"
           aria-label="Centro de notificações"
-          className="absolute right-0 top-full z-50 mt-2 w-[min(360px,calc(100vw-2rem))] overflow-hidden rounded-xl border border-navy-100 bg-white shadow-card-hover"
+          className="absolute right-0 top-full z-50 mt-2 w-[min(380px,calc(100vw-2rem))] overflow-hidden rounded-xl border border-navy-100 bg-white shadow-card-hover"
         >
           <div className="flex items-baseline justify-between border-b border-navy-100 px-4 py-3">
             <h2 className="text-sm font-semibold text-navy-900">
-              Deals parados
+              Notificações
             </h2>
             <span className="text-xs text-navy-400">
               {ativas.length} pendente{ativas.length === 1 ? "" : "s"}
@@ -130,13 +146,13 @@ export function NotificacoesSino({ onIrParaDeal }: NotificacoesSinoProps) {
           <div className="max-h-[60vh] overflow-y-auto">
             {ativas.length === 0 ? (
               <p className="px-4 py-6 text-center text-xs text-navy-400">
-                Nenhum deal parado no momento. Bom trabalho.
+                Nenhuma pendência. Bom trabalho.
               </p>
             ) : (
               <ul className="divide-y divide-navy-100">
                 {ativas.map((n) => (
                   <li
-                    key={n.dealId}
+                    key={n.id}
                     className="flex items-start gap-2 px-4 py-3"
                   >
                     <button
@@ -145,19 +161,37 @@ export function NotificacoesSino({ onIrParaDeal }: NotificacoesSinoProps) {
                       className="flex-1 text-left"
                       aria-label={`Abrir oportunidade ${n.projeto}`}
                     >
-                      <p className="text-sm font-medium text-navy-900">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`inline-block h-1.5 w-1.5 rounded-full ${
+                            n.severidade === "vencido"
+                              ? "bg-red-500"
+                              : "bg-amber-500"
+                          }`}
+                          aria-hidden="true"
+                        />
+                        <span
+                          className={`text-[10px] font-semibold uppercase tracking-wide ${
+                            n.severidade === "vencido"
+                              ? "text-red-600"
+                              : "text-amber-700"
+                          }`}
+                        >
+                          {ROTULO_TIPO[n.tipo]}
+                        </span>
+                      </div>
+                      <p className="mt-1 text-sm font-medium text-navy-900">
                         {n.projeto}
                       </p>
                       <p className="mt-0.5 text-xs text-navy-500">
-                        {n.etapaNome} · parado há {n.diasParado}d
-                        <span className="text-navy-300"> (limite {n.limite}d)</span>
+                        {n.detalhe}
                       </p>
                     </button>
                     <button
                       type="button"
                       onClick={() => handleMarcar(n)}
                       className="shrink-0 rounded p-1 text-navy-400 transition-colors hover:bg-navy-50 hover:text-navy-700"
-                      aria-label={`Marcar notificação de ${n.projeto} como vista`}
+                      aria-label={`Marcar notificação como vista`}
                       title="Marcar como vista"
                     >
                       <svg

@@ -43,7 +43,7 @@ export default function HomePage() {
   ];
 
   return (
-    <div className="mx-auto max-w-[1400px] px-4 py-5 sm:px-6 sm:py-7">
+    <main className="mx-auto max-w-[1400px] px-4 py-5 sm:px-6 sm:py-7">
       <header className="flex items-center gap-3">
         <div
           className="flex h-11 w-11 items-center justify-center rounded-xl bg-navy-900 text-sm font-bold text-white"
@@ -117,6 +117,6 @@ export default function HomePage() {
           </div>
         )}
       </div>
-    </div>
+    </main>
   );
 }

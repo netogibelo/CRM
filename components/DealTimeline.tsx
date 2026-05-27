@@ -61,8 +61,7 @@ export function DealTimeline({ dealId }: DealTimelineProps) {
     carregar();
   }, [carregar]);
 
-  async function adicionar(e: React.FormEvent) {
-    e.preventDefault();
+  async function adicionar() {
     const desc = descricao.trim();
     if (!desc || salvando) return;
     setSalvando(true);
@@ -94,7 +93,10 @@ export function DealTimeline({ dealId }: DealTimelineProps) {
         </span>
       </header>
 
-      <form onSubmit={adicionar} className="mt-3 space-y-2">
+      {/* Importante: NÃO usar <form> aqui — esse componente é renderizado
+          dentro do <form> do DealForm. Form aninhado é HTML inválido e o
+          submit propaga, fechando o modal sem salvar o histórico. */}
+      <div className="mt-3 space-y-2">
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-[140px_1fr]">
           <div>
             <label htmlFor="hist-tipo" className={`${labelCls} sr-only`}>
@@ -123,6 +125,12 @@ export function DealTimeline({ dealId }: DealTimelineProps) {
               type="text"
               value={descricao}
               onChange={(e) => setDescricao(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  adicionar();
+                }
+              }}
               placeholder="O que aconteceu?"
               className={inputCls}
               aria-label="Descrição do registro"
@@ -132,7 +140,8 @@ export function DealTimeline({ dealId }: DealTimelineProps) {
         </div>
         <div className="flex justify-end">
           <button
-            type="submit"
+            type="button"
+            onClick={adicionar}
             disabled={!descricao.trim() || salvando}
             className={`${btnGhost} disabled:opacity-50`}
             aria-label="Adicionar registro ao histórico"
@@ -140,7 +149,7 @@ export function DealTimeline({ dealId }: DealTimelineProps) {
             {salvando ? "Adicionando…" : "Adicionar"}
           </button>
         </div>
-      </form>
+      </div>
 
       <div className="mt-4">
         {carregando ? (

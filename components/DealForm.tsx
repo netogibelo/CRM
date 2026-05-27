@@ -1,13 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import type { Deal, DealInput } from "@/lib/types";
+import type { Deal, DealInput, TipoObra } from "@/lib/types";
 import { useClients, useOrigins, useStages } from "@/lib/crm-store";
 import { formatBRL, parseValorBRL } from "@/lib/format";
 import { btnGhost, btnPrimary, inputCls, labelCls } from "@/lib/ui";
+import { EQUIPE } from "@/lib/equipe";
+import { TIPOS_OBRA } from "@/lib/tipo-obra";
 import { Modal } from "./Modal";
 import { ClienteForm } from "./ClienteForm";
 import { DealTimeline } from "./DealTimeline";
+import { DealTarefas } from "./DealTarefas";
 
 interface DealFormProps {
   deal: Deal | null;
@@ -48,6 +51,17 @@ export function DealForm({
     deal?.etapaId ?? etapasAtivas[0]?.id ?? "",
   );
   const [notas, setNotas] = useState(deal?.notas ?? "");
+  const [responsavelEmail, setResponsavelEmail] = useState(
+    deal?.responsavelEmail ?? "",
+  );
+  const [tipoObra, setTipoObra] = useState<TipoObra | "">(
+    deal?.tipoObra ?? "",
+  );
+  const [areaProjeto, setAreaProjeto] = useState<string>(
+    deal?.areaProjeto?.toString() ?? "",
+  );
+  const [cidadeObra, setCidadeObra] = useState(deal?.cidadeObra ?? "");
+  const [condominio, setCondominio] = useState(deal?.condominio ?? "");
 
   const [modoPerda, setModoPerda] = useState(false);
   const [motivoPerda, setMotivoPerda] = useState("");
@@ -63,7 +77,7 @@ export function DealForm({
     if (!projeto.trim()) e.projeto = "Informe o projeto/serviço.";
     if (!clienteId) e.cliente = "Selecione um cliente.";
     if (!valor || valor <= 0) e.valor = "Informe um valor maior que zero.";
-    if (!previsao) e.previsao = "Informe a previsão de fechamento.";
+    if (!previsao) e.previsao = "Informe a data do próximo retorno.";
     setErros(e);
     return Object.keys(e).length === 0;
   }
@@ -71,6 +85,7 @@ export function DealForm({
   async function handleSubmit(ev: React.FormEvent) {
     ev.preventDefault();
     if (!validar()) return;
+    const areaNum = areaProjeto.trim() ? Number(areaProjeto) : null;
     const input: DealInput = {
       projeto: projeto.trim(),
       clienteId,
@@ -81,6 +96,11 @@ export function DealForm({
       status: deal?.status ?? "aberto",
       motivoPerda: deal?.motivoPerda ?? null,
       notas: notas.trim(),
+      responsavelEmail: responsavelEmail || null,
+      areaProjeto: areaNum && !Number.isNaN(areaNum) ? areaNum : null,
+      tipoObra: tipoObra || null,
+      cidadeObra: cidadeObra.trim(),
+      condominio: condominio.trim(),
       exemplo: deal?.exemplo,
     };
     await onSalvar(input);
@@ -250,7 +270,7 @@ export function DealForm({
 
             <div>
               <label htmlFor="previsao" className={labelCls}>
-                Previsão de fechamento
+                Próximo retorno
               </label>
               <input
                 id="previsao"
@@ -292,6 +312,25 @@ export function DealForm({
               )}
             </div>
 
+            <div>
+              <label htmlFor="responsavel" className={labelCls}>
+                Responsável
+              </label>
+              <select
+                id="responsavel"
+                value={responsavelEmail}
+                onChange={(e) => setResponsavelEmail(e.target.value)}
+                className={inputCls}
+              >
+                <option value="">Sem responsável atribuído</option>
+                {EQUIPE.map((m) => (
+                  <option key={m.email} value={m.email}>
+                    {m.nome}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             <div className="sm:col-span-2">
               <label htmlFor="notas" className={labelCls}>
                 Notas
@@ -306,6 +345,77 @@ export function DealForm({
               />
             </div>
           </div>
+
+          {/* Dados do projeto — específico engenharia civil (Gibelo) */}
+          <fieldset className="mt-5 rounded-xl border border-navy-100 p-4">
+            <legend className="px-2 text-xs font-semibold uppercase tracking-wide text-navy-500">
+              Dados do projeto
+            </legend>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <label htmlFor="tipoObra" className={labelCls}>
+                  Tipo de obra
+                </label>
+                <select
+                  id="tipoObra"
+                  value={tipoObra}
+                  onChange={(e) =>
+                    setTipoObra(e.target.value as TipoObra | "")
+                  }
+                  className={inputCls}
+                >
+                  <option value="">Não especificado</option>
+                  {TIPOS_OBRA.map((t) => (
+                    <option key={t.value} value={t.value}>
+                      {t.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label htmlFor="areaProjeto" className={labelCls}>
+                  Área do projeto (m²)
+                </label>
+                <input
+                  id="areaProjeto"
+                  type="number"
+                  inputMode="decimal"
+                  min="0"
+                  step="0.01"
+                  value={areaProjeto}
+                  onChange={(e) => setAreaProjeto(e.target.value)}
+                  className={inputCls}
+                  placeholder="Ex.: 250"
+                />
+              </div>
+              <div>
+                <label htmlFor="cidadeObra" className={labelCls}>
+                  Cidade da obra
+                </label>
+                <input
+                  id="cidadeObra"
+                  type="text"
+                  value={cidadeObra}
+                  onChange={(e) => setCidadeObra(e.target.value)}
+                  className={inputCls}
+                  placeholder="Ex.: São Paulo - SP"
+                />
+              </div>
+              <div>
+                <label htmlFor="condominio" className={labelCls}>
+                  Condomínio / Loteamento
+                </label>
+                <input
+                  id="condominio"
+                  type="text"
+                  value={condominio}
+                  onChange={(e) => setCondominio(e.target.value)}
+                  className={inputCls}
+                  placeholder="Opcional"
+                />
+              </div>
+            </div>
+          </fieldset>
 
           {editando && aberto && (
             <div className="mt-5 flex flex-wrap gap-2 rounded-lg bg-navy-50 p-3">
@@ -381,7 +491,15 @@ export function DealForm({
             </div>
           </div>
 
-          {editando && deal && <DealTimeline dealId={deal.id} />}
+          {editando && deal && (
+            <>
+              <DealTarefas
+                dealId={deal.id}
+                responsavelDoDeal={responsavelEmail || null}
+              />
+              <DealTimeline dealId={deal.id} />
+            </>
+          )}
         </form>
       )}
 
