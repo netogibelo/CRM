@@ -9,6 +9,7 @@ import { EditableText } from "./EditableText";
 import { AutomacoesSection } from "./AutomacoesSection";
 import { AlertasSection } from "./AlertasSection";
 import { AtividadeEtiquetasConfig } from "./AtividadeEtiquetasConfig";
+import { AtividadeTemplatesConfig } from "./AtividadeTemplatesConfig";
 import {
   DragHandle,
   SortableConfigList,
@@ -433,6 +434,8 @@ export function ConfiguracoesView() {
       </section>
 
       <AtividadeEtiquetasConfig />
+
+      <AtividadeTemplatesConfig />
 
       <AutomacoesSection />
 

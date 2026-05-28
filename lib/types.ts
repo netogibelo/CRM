@@ -198,6 +198,32 @@ export type AtividadeCardInput = Omit<
 >;
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Templates de atividade (F8) — pré-modelos de card
+// ─────────────────────────────────────────────────────────────────────────────
+export interface AtividadeTemplate {
+  id: string;
+  nome: string;
+  descricao: string;
+  /** Ids de etiquetas a aplicar ao criar. */
+  etiquetasIds: string[];
+  /** Subtarefas iniciais (apenas títulos). */
+  checklistItems: string[];
+  /** Defaults para campos personalizados. */
+  camposDefaults: Partial<{
+    fornecedor: string;
+    numeroNF: string;
+    valorEstimado: number | null;
+    metragem: number | null;
+  }>;
+  ordem: number;
+  criadoEm: string;
+}
+export type AtividadeTemplateInput = Omit<
+  AtividadeTemplate,
+  "id" | "criadoEm"
+>;
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Histórico (feed de auditoria) de cards de atividade (F6) — append-only
 // ─────────────────────────────────────────────────────────────────────────────
 export type AtividadeHistoricoTipo =

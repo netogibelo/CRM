@@ -6,6 +6,7 @@ import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities";
 import type { AtividadeCard as TCard, AtividadeLista, ListaCor } from "@/lib/types";
 import { LISTA_CORES, listaDot, listaHeader } from "@/lib/atividade-cores";
+import { useBoard } from "@/lib/activities-store";
 import { AtividadeCard } from "./AtividadeCard";
 import { EditableText } from "./EditableText";
 
@@ -219,14 +220,79 @@ export function AtividadeColuna({
       </div>
 
       <div className="p-2.5 pt-1.5">
+        <AdicionarCardComTemplate listaId={lista.id} onNovo={onNovoCard} />
+      </div>
+    </section>
+  );
+}
+
+function AdicionarCardComTemplate({
+  listaId,
+  onNovo,
+}: {
+  listaId: string;
+  onNovo: (listaId: string) => void;
+}) {
+  const { templates, criarCardPorTemplate } = useBoard();
+  const [menu, setMenu] = useState(false);
+
+  return (
+    <div className="relative">
+      <div className="flex gap-1">
         <button
           type="button"
-          onClick={() => onNovoCard(lista.id)}
-          className="w-full rounded-lg border border-dashed border-navy-200 dark:border-dark-border dark:border-dark-border px-3 py-2 text-sm font-medium text-navy-700 dark:text-gibelo-areia transition-colors hover:border-navy-300 hover:bg-white dark:bg-dark-surface hover:text-navy-700 dark:text-gibelo-offwhite"
+          onClick={() => onNovo(listaId)}
+          className="flex-1 rounded-lg border border-dashed border-navy-200 px-3 py-2 text-sm font-medium text-navy-700 transition-colors hover:border-navy-300 hover:bg-white hover:text-navy-700 dark:border-dark-border dark:bg-dark-surface/0 dark:text-gibelo-areia dark:hover:bg-dark-surface dark:hover:text-gibelo-offwhite"
         >
           + Adicionar card
         </button>
+        {templates.length > 0 && (
+          <button
+            type="button"
+            onClick={() => setMenu((v) => !v)}
+            aria-label="Usar template"
+            aria-haspopup="menu"
+            aria-expanded={menu}
+            className="shrink-0 rounded-lg border border-dashed border-navy-200 px-2 py-2 text-sm text-navy-700 transition-colors hover:border-navy-300 hover:bg-white hover:text-navy-700 dark:border-dark-border dark:text-gibelo-areia dark:hover:bg-dark-surface dark:hover:text-gibelo-offwhite"
+            title="Usar template"
+          >
+            ▾
+          </button>
+        )}
       </div>
-    </section>
+      {menu && (
+        <>
+          <button
+            type="button"
+            aria-hidden="true"
+            tabIndex={-1}
+            onClick={() => setMenu(false)}
+            className="fixed inset-0 z-10 cursor-default"
+          />
+          <div
+            role="menu"
+            className="absolute bottom-full right-0 z-20 mb-1 w-56 overflow-hidden rounded-lg border border-navy-100 bg-white py-1 shadow-card-hover dark:border-dark-border dark:bg-dark-surface"
+          >
+            <p className="px-3 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-wide text-navy-500 dark:text-gibelo-areia">
+              Templates
+            </p>
+            {templates.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                role="menuitem"
+                onClick={async () => {
+                  setMenu(false);
+                  await criarCardPorTemplate(t.id, listaId);
+                }}
+                className="block w-full px-3 py-1.5 text-left text-sm text-navy-700 transition-colors hover:bg-navy-50 dark:text-gibelo-offwhite dark:hover:bg-dark-elevated"
+              >
+                {t.nome}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
   );
 }

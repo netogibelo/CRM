@@ -21,11 +21,14 @@ import type {
   AtividadeEtiquetaInput,
   AtividadeLista,
   AtividadesState,
+  AtividadeTemplate,
+  AtividadeTemplateInput,
   ListaCor,
 } from "./types";
 import {
   activityRepository,
   atividadeHistoricoRepository,
+  atividadeTemplateRepository,
   checklistRepository,
   etiquetaRepository,
 } from "./repository";
@@ -83,6 +86,20 @@ interface ActivitiesContextValue {
   toggleEtiquetaNoCard: (cardId: string, etiquetaId: string) => Promise<void>;
   // Concluir/Reabrir card (F4); se recorrente, clona com próxima data
   concluirCard: (id: string, concluir: boolean) => Promise<void>;
+  // Templates (F8)
+  templates: AtividadeTemplate[];
+  criarTemplate: (input: AtividadeTemplateInput) => Promise<AtividadeTemplate>;
+  atualizarTemplate: (
+    id: string,
+    patch: Partial<AtividadeTemplateInput>,
+  ) => Promise<void>;
+  removerTemplate: (id: string) => Promise<void>;
+  reordenarTemplates: (idsOrdenados: string[]) => Promise<void>;
+  /** Cria um card a partir de um template, retornando o card criado. */
+  criarCardPorTemplate: (
+    templateId: string,
+    listaId: string,
+  ) => Promise<AtividadeCard | null>;
 }
 
 const ActivitiesContext = createContext<ActivitiesContextValue | null>(null);
@@ -95,6 +112,7 @@ export function ActivitiesProvider({ children }: { children: React.ReactNode }) 
     etiquetas: [],
     cardEtiquetas: [],
   });
+  const [templates, setTemplates] = useState<AtividadeTemplate[]>([]);
   const [carregando, setCarregando] = useState(true);
   const ref = useRef(state);
   ref.current = state;
@@ -102,9 +120,13 @@ export function ActivitiesProvider({ children }: { children: React.ReactNode }) 
   useEffect(() => {
     let ativo = true;
     (async () => {
-      const s = await activityRepository.load();
+      const [s, tpls] = await Promise.all([
+        activityRepository.load(),
+        atividadeTemplateRepository.listAll().catch(() => []),
+      ]);
       if (ativo) {
         setState(s);
+        setTemplates(tpls);
         setCarregando(false);
       }
     })();
@@ -384,6 +406,109 @@ export function ActivitiesProvider({ children }: { children: React.ReactNode }) 
     await etiquetaRepository.reorder(idsOrdenados);
   }, []);
 
+  // ── Templates (F8) ────────────────────────────────────────────────────────
+  const criarTemplate = useCallback(async (input: AtividadeTemplateInput) => {
+    const t = await atividadeTemplateRepository.create(input);
+    setTemplates((prev) => [...prev, t]);
+    return t;
+  }, []);
+  const atualizarTemplate = useCallback(
+    async (id: string, patch: Partial<AtividadeTemplateInput>) => {
+      const upd = await atividadeTemplateRepository.update(id, patch);
+      setTemplates((prev) => prev.map((t) => (t.id === id ? upd : t)));
+    },
+    [],
+  );
+  const removerTemplate = useCallback(async (id: string) => {
+    await atividadeTemplateRepository.remove(id);
+    setTemplates((prev) => prev.filter((t) => t.id !== id));
+  }, []);
+  const reordenarTemplates = useCallback(async (idsOrdenados: string[]) => {
+    setTemplates((prev) =>
+      prev
+        .map((t) => {
+          const i = idsOrdenados.indexOf(t.id);
+          return i === -1 ? t : { ...t, ordem: i };
+        })
+        .sort((a, b) => a.ordem - b.ordem),
+    );
+    await atividadeTemplateRepository.reorder(idsOrdenados);
+  }, []);
+
+  const criarCardPorTemplate = useCallback(
+    async (templateId: string, listaId: string) => {
+      // Lê do state ref para garantir freshness sem deps.
+      const tpls = await atividadeTemplateRepository
+        .listAll()
+        .catch(() => [] as AtividadeTemplate[]);
+      const tpl = tpls.find((t) => t.id === templateId);
+      if (!tpl) return null;
+
+      const card = await activityRepository.createCard({
+        listaId,
+        titulo: tpl.nome,
+        descricao: tpl.descricao,
+        cor: null,
+        data: null,
+        ordem: Date.now(),
+        valorEstimado: tpl.camposDefaults.valorEstimado ?? null,
+        fornecedor: tpl.camposDefaults.fornecedor ?? "",
+        numeroNF: tpl.camposDefaults.numeroNF ?? "",
+        metragem: tpl.camposDefaults.metragem ?? null,
+        dataInicio: null,
+        dataVencimento: null,
+        horaVencimento: "",
+        recorrencia: "nunca",
+        concluidaEm: null,
+        responsavelEmail: null,
+      });
+      setState((s) => ({ ...s, cards: [...s.cards, card] }));
+
+      // Aplica etiquetas
+      const etqAplicadas: AtividadeCardEtiqueta[] = [];
+      for (const eid of tpl.etiquetasIds) {
+        await etiquetaRepository.link(card.id, eid).catch(() => null);
+        etqAplicadas.push({ cardId: card.id, etiquetaId: eid });
+      }
+      if (etqAplicadas.length > 0) {
+        setState((s) => ({
+          ...s,
+          cardEtiquetas: [...s.cardEtiquetas, ...etqAplicadas],
+        }));
+      }
+
+      // Cria subtarefas
+      const novosChk: AtividadeChecklistItem[] = [];
+      let i = 0;
+      for (const titulo of tpl.checklistItems) {
+        const item = await checklistRepository
+          .create({
+            cardId: card.id,
+            titulo,
+            concluida: false,
+            ordem: i++,
+          })
+          .catch(() => null);
+        if (item) novosChk.push(item);
+      }
+      if (novosChk.length > 0) {
+        setState((s) => ({ ...s, checklist: [...s.checklist, ...novosChk] }));
+      }
+
+      // Log
+      const lista = ref.current.listas.find((l) => l.id === listaId);
+      atividadeHistoricoRepository.log({
+        cardId: card.id,
+        autorEmail: await autorEmail(),
+        tipo: "criacao",
+        descricao: `Card criado a partir do template "${tpl.nome}" na lista "${lista?.nome ?? "—"}"`,
+      });
+
+      return card;
+    },
+    [],
+  );
+
   const concluirCard = useCallback(async (id: string, concluir: boolean) => {
     const card = ref.current.cards.find((c) => c.id === id);
     if (!card) return;
@@ -508,6 +633,12 @@ export function ActivitiesProvider({ children }: { children: React.ReactNode }) 
     reordenarEtiquetas,
     toggleEtiquetaNoCard,
     concluirCard,
+    templates,
+    criarTemplate,
+    atualizarTemplate,
+    removerTemplate,
+    reordenarTemplates,
+    criarCardPorTemplate,
   };
 
   return (

@@ -17,6 +17,8 @@ import type {
   AtividadeComentarioInput,
   AtividadeHistoricoInput,
   AtividadeHistoricoItem,
+  AtividadeTemplate,
+  AtividadeTemplateInput,
   AtividadeEtiqueta,
   AtividadeEtiquetaInput,
   AtividadeLista,
@@ -1161,6 +1163,105 @@ class SupabaseAtividadeHistoricoRepository
 
 export const atividadeHistoricoRepository: AtividadeHistoricoRepository =
   new SupabaseAtividadeHistoricoRepository();
+
+// ── Templates de atividade (F8) ──────────────────────────────────────────────
+function atividadeTemplateFromRow(row: Row): AtividadeTemplate {
+  return {
+    id: row.id,
+    nome: row.nome,
+    descricao: row.descricao ?? "",
+    etiquetasIds: Array.isArray(row.etiquetas_ids) ? row.etiquetas_ids : [],
+    checklistItems: Array.isArray(row.checklist_items)
+      ? row.checklist_items
+      : [],
+    camposDefaults: row.campos_defaults ?? {},
+    ordem: Number(row.ordem ?? 0),
+    criadoEm: row.criado_em,
+  };
+}
+
+function templatePatchToRow(p: Partial<AtividadeTemplateInput>): Row {
+  const r: Row = {};
+  if (p.nome !== undefined) r.nome = p.nome;
+  if (p.descricao !== undefined) r.descricao = p.descricao;
+  if (p.etiquetasIds !== undefined) r.etiquetas_ids = p.etiquetasIds;
+  if (p.checklistItems !== undefined) r.checklist_items = p.checklistItems;
+  if (p.camposDefaults !== undefined) r.campos_defaults = p.camposDefaults;
+  if (p.ordem !== undefined) r.ordem = p.ordem;
+  return r;
+}
+
+export interface AtividadeTemplateRepository {
+  listAll(): Promise<AtividadeTemplate[]>;
+  create(input: AtividadeTemplateInput): Promise<AtividadeTemplate>;
+  update(
+    id: string,
+    patch: Partial<AtividadeTemplateInput>,
+  ): Promise<AtividadeTemplate>;
+  remove(id: string): Promise<void>;
+  reorder(idsOrdenados: string[]): Promise<void>;
+}
+
+class SupabaseAtividadeTemplateRepository
+  implements AtividadeTemplateRepository
+{
+  async listAll(): Promise<AtividadeTemplate[]> {
+    const { data, error } = await supabase
+      .from("atividades_templates")
+      .select("*")
+      .order("ordem", { ascending: true });
+    if (error) throw error;
+    return (data ?? []).map(atividadeTemplateFromRow);
+  }
+  async create(input: AtividadeTemplateInput): Promise<AtividadeTemplate> {
+    const id = novoId("atpl");
+    const { data, error } = await supabase
+      .from("atividades_templates")
+      .insert({
+        id,
+        nome: input.nome,
+        descricao: input.descricao || null,
+        etiquetas_ids: input.etiquetasIds,
+        checklist_items: input.checklistItems,
+        campos_defaults: input.camposDefaults,
+        ordem: input.ordem,
+      })
+      .select()
+      .single();
+    if (error) throw error;
+    return atividadeTemplateFromRow(data);
+  }
+  async update(
+    id: string,
+    patch: Partial<AtividadeTemplateInput>,
+  ): Promise<AtividadeTemplate> {
+    const { data, error } = await supabase
+      .from("atividades_templates")
+      .update(templatePatchToRow(patch))
+      .eq("id", id)
+      .select()
+      .single();
+    if (error) throw error;
+    return atividadeTemplateFromRow(data);
+  }
+  async remove(id: string): Promise<void> {
+    const { error } = await supabase
+      .from("atividades_templates")
+      .delete()
+      .eq("id", id);
+    if (error) throw error;
+  }
+  async reorder(idsOrdenados: string[]): Promise<void> {
+    await Promise.all(
+      idsOrdenados.map((id, i) =>
+        supabase.from("atividades_templates").update({ ordem: i }).eq("id", id),
+      ),
+    );
+  }
+}
+
+export const atividadeTemplateRepository: AtividadeTemplateRepository =
+  new SupabaseAtividadeTemplateRepository();
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Repositório do histórico/timeline dos deals (só Supabase — feature nova)
