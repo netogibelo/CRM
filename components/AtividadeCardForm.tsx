@@ -5,6 +5,7 @@ import type { AtividadeCard, CardCor, AtividadeLista } from "@/lib/types";
 import { CARD_CORES } from "@/lib/atividade-cores";
 import { btnGhost, btnPrimary, inputCls, labelCls } from "@/lib/ui";
 import { Modal } from "./Modal";
+import { AtividadeChecklistSection } from "./AtividadeChecklistSection";
 
 export interface CardFormData {
   listaId: string;
@@ -58,7 +59,7 @@ export function AtividadeCardForm({
     <Modal
       titulo={editando ? "Editar card" : "Novo card"}
       onClose={onClose}
-      maxWidth="max-w-md"
+      maxWidth="max-w-lg"
     >
       <form onSubmit={handleSubmit} noValidate>
         <div className="space-y-4">
@@ -128,6 +129,12 @@ export function AtividadeCardForm({
               </select>
             </div>
           </div>
+
+          {card && (
+            <div className="rounded-lg border border-navy-100 bg-navy-50/40 p-3 dark:border-dark-border dark:bg-dark-elevated/30">
+              <AtividadeChecklistSection cardId={card.id} />
+            </div>
+          )}
 
           <div>
             <span className={labelCls}>Etiqueta de cor</span>

@@ -177,10 +177,27 @@ export type AtividadeCardInput = Omit<
   "id" | "criadoEm" | "atualizadoEm"
 >;
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Checklist (subtarefas) de um card de atividade
+// ─────────────────────────────────────────────────────────────────────────────
+export interface AtividadeChecklistItem {
+  id: string;
+  cardId: string;
+  titulo: string;
+  concluida: boolean;
+  ordem: number;
+  criadoEm: string;
+}
+export type AtividadeChecklistInput = Omit<
+  AtividadeChecklistItem,
+  "id" | "criadoEm"
+>;
+
 /** Estrutura persistida no localStorage (chave `gibelo-atividades-state`). */
 export interface AtividadesState {
   listas: AtividadeLista[];
   cards: AtividadeCard[];
+  checklist: AtividadeChecklistItem[];
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

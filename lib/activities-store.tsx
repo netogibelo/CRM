@@ -15,17 +15,19 @@ import {
 import type {
   AtividadeCard,
   AtividadeCardInput,
+  AtividadeChecklistItem,
   AtividadeLista,
   AtividadesState,
   ListaCor,
 } from "./types";
-import { activityRepository } from "./repository";
+import { activityRepository, checklistRepository } from "./repository";
 import { LISTA_COR_IDS } from "./atividade-cores";
 
 interface ActivitiesContextValue {
   carregando: boolean;
   listas: AtividadeLista[];
   cards: AtividadeCard[];
+  checklist: AtividadeChecklistItem[];
   criarLista: (nome: string) => Promise<AtividadeLista>;
   renomearLista: (id: string, nome: string) => Promise<void>;
   pintarLista: (id: string, cor: ListaCor) => Promise<void>;
@@ -42,12 +44,24 @@ interface ActivitiesContextValue {
   ) => Promise<AtividadeCard>;
   removerCard: (id: string) => Promise<void>;
   moverCard: (id: string, listaId: string) => Promise<void>;
+  // Checklist (F1)
+  criarChecklistItem: (cardId: string, titulo: string) => Promise<void>;
+  atualizarChecklistItem: (
+    id: string,
+    patch: { titulo?: string; concluida?: boolean },
+  ) => Promise<void>;
+  removerChecklistItem: (id: string) => Promise<void>;
+  reordenarChecklist: (cardId: string, idsOrdenados: string[]) => Promise<void>;
 }
 
 const ActivitiesContext = createContext<ActivitiesContextValue | null>(null);
 
 export function ActivitiesProvider({ children }: { children: React.ReactNode }) {
-  const [state, setState] = useState<AtividadesState>({ listas: [], cards: [] });
+  const [state, setState] = useState<AtividadesState>({
+    listas: [],
+    cards: [],
+    checklist: [],
+  });
   const [carregando, setCarregando] = useState(true);
   const ref = useRef(state);
   ref.current = state;
@@ -93,10 +107,15 @@ export function ActivitiesProvider({ children }: { children: React.ReactNode }) 
 
   const removerLista = useCallback(async (id: string) => {
     await activityRepository.removeLista(id);
-    setState((s) => ({
-      listas: s.listas.filter((l) => l.id !== id),
-      cards: s.cards.filter((c) => c.listaId !== id),
-    }));
+    setState((s) => {
+      const cardsRestantes = s.cards.filter((c) => c.listaId !== id);
+      const cardIdsRestantes = new Set(cardsRestantes.map((c) => c.id));
+      return {
+        listas: s.listas.filter((l) => l.id !== id),
+        cards: cardsRestantes,
+        checklist: s.checklist.filter((c) => cardIdsRestantes.has(c.cardId)),
+      };
+    });
   }, []);
 
   const moverLista = useCallback(async (id: string, dir: -1 | 1) => {
@@ -157,7 +176,11 @@ export function ActivitiesProvider({ children }: { children: React.ReactNode }) 
 
   const removerCard = useCallback(async (id: string) => {
     await activityRepository.removeCard(id);
-    setState((s) => ({ ...s, cards: s.cards.filter((c) => c.id !== id) }));
+    setState((s) => ({
+      ...s,
+      cards: s.cards.filter((c) => c.id !== id),
+      checklist: s.checklist.filter((c) => c.cardId !== id),
+    }));
   }, []);
 
   const moverCard = useCallback(async (id: string, listaId: string) => {
@@ -173,10 +196,66 @@ export function ActivitiesProvider({ children }: { children: React.ReactNode }) 
     }));
   }, []);
 
+  // ── Checklist (F1) ────────────────────────────────────────────────────────
+  const criarChecklistItem = useCallback(
+    async (cardId: string, titulo: string) => {
+      const t = titulo.trim();
+      if (!t) return;
+      const ordem =
+        ref.current.checklist
+          .filter((c) => c.cardId === cardId)
+          .reduce((m, c) => Math.max(m, c.ordem), -1) + 1;
+      const item = await checklistRepository.create({
+        cardId,
+        titulo: t,
+        concluida: false,
+        ordem,
+      });
+      setState((s) => ({ ...s, checklist: [...s.checklist, item] }));
+    },
+    [],
+  );
+
+  const atualizarChecklistItem = useCallback(
+    async (id: string, patch: { titulo?: string; concluida?: boolean }) => {
+      const upd = await checklistRepository.update(id, patch);
+      setState((s) => ({
+        ...s,
+        checklist: s.checklist.map((c) => (c.id === id ? upd : c)),
+      }));
+    },
+    [],
+  );
+
+  const removerChecklistItem = useCallback(async (id: string) => {
+    await checklistRepository.remove(id);
+    setState((s) => ({
+      ...s,
+      checklist: s.checklist.filter((c) => c.id !== id),
+    }));
+  }, []);
+
+  const reordenarChecklist = useCallback(
+    async (cardId: string, idsOrdenados: string[]) => {
+      // update otimista + persist em paralelo
+      setState((s) => ({
+        ...s,
+        checklist: s.checklist.map((c) => {
+          if (c.cardId !== cardId) return c;
+          const i = idsOrdenados.indexOf(c.id);
+          return i === -1 ? c : { ...c, ordem: i };
+        }),
+      }));
+      await checklistRepository.reorder(idsOrdenados);
+    },
+    [],
+  );
+
   const value: ActivitiesContextValue = {
     carregando,
     listas: state.listas,
     cards: state.cards,
+    checklist: state.checklist,
     criarLista,
     renomearLista,
     pintarLista,
@@ -187,6 +266,10 @@ export function ActivitiesProvider({ children }: { children: React.ReactNode }) 
     atualizarCard,
     removerCard,
     moverCard,
+    criarChecklistItem,
+    atualizarChecklistItem,
+    removerChecklistItem,
+    reordenarChecklist,
   };
 
   return (
@@ -217,5 +300,17 @@ export function useBoard() {
   }, [ctx.cards]);
   const cardsDaLista = (listaId: string) => cardsPorLista.get(listaId) ?? [];
 
-  return { ...ctx, listas, cardsDaLista };
+  const checklistPorCard = useMemo(() => {
+    const map = new Map<string, AtividadeChecklistItem[]>();
+    for (const item of [...ctx.checklist].sort((a, b) => a.ordem - b.ordem)) {
+      const arr = map.get(item.cardId);
+      if (arr) arr.push(item);
+      else map.set(item.cardId, [item]);
+    }
+    return map;
+  }, [ctx.checklist]);
+  const checklistDoCard = (cardId: string) =>
+    checklistPorCard.get(cardId) ?? [];
+
+  return { ...ctx, listas, cardsDaLista, checklistDoCard };
 }

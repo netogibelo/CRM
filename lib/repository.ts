@@ -10,6 +10,8 @@
 import type {
   AtividadeCard,
   AtividadeCardInput,
+  AtividadeChecklistInput,
+  AtividadeChecklistItem,
   AtividadeLista,
   AtividadeListaInput,
   AtividadesState,
@@ -290,7 +292,7 @@ function writeAtiv(state: AtividadesState): void {
 }
 
 function readAtiv(): AtividadesState {
-  if (typeof window === "undefined") return { listas: [], cards: [] };
+  if (typeof window === "undefined") return { listas: [], cards: [], checklist: [] };
   const raw = window.localStorage.getItem(ATIVIDADES_STORAGE_KEY);
   if (!raw) {
     const seeded = gerarSeedAtividades();
@@ -310,7 +312,8 @@ function readAtiv(): AtividadesState {
 
 class LocalStorageActivityRepository implements ActivityRepository {
   async load(): Promise<AtividadesState> {
-    return readAtiv();
+    const s = readAtiv();
+    return { ...s, checklist: s.checklist ?? [] };
   }
   async createLista(input: AtividadeListaInput): Promise<AtividadeLista> {
     const s = readAtiv();
@@ -718,15 +721,18 @@ function cardPatchToRow(p: Partial<AtividadeCardInput>): Row {
 
 class SupabaseActivityRepository implements ActivityRepository {
   async load(): Promise<AtividadesState> {
-    const [listasRes, cardsRes] = await Promise.all([
+    const [listasRes, cardsRes, checklistRes] = await Promise.all([
       supabase.from("atividades_listas").select("*"),
       supabase.from("atividades_cards").select("*"),
+      supabase.from("atividades_checklist").select("*"),
     ]);
     if (listasRes.error) throw listasRes.error;
     if (cardsRes.error) throw cardsRes.error;
+    if (checklistRes.error) throw checklistRes.error;
     return {
       listas: (listasRes.data ?? []).map(listaFromRow),
       cards: (cardsRes.data ?? []).map(cardFromRow),
+      checklist: (checklistRes.data ?? []).map(checklistFromRow),
     };
   }
   async createLista(input: AtividadeListaInput): Promise<AtividadeLista> {
@@ -783,6 +789,96 @@ class SupabaseActivityRepository implements ActivityRepository {
     if (error) throw error;
   }
 }
+
+// ── Checklist (subtarefas de um card de atividade) ───────────────────────────
+function checklistFromRow(row: Row): AtividadeChecklistItem {
+  return {
+    id: row.id,
+    cardId: row.card_id,
+    titulo: row.titulo,
+    concluida: Boolean(row.concluida),
+    ordem: Number(row.ordem ?? 0),
+    criadoEm: row.criado_em,
+  };
+}
+
+function checklistPatchToRow(p: Partial<AtividadeChecklistInput>): Row {
+  const r: Row = {};
+  if (p.cardId !== undefined) r.card_id = p.cardId;
+  if (p.titulo !== undefined) r.titulo = p.titulo;
+  if (p.concluida !== undefined) r.concluida = p.concluida;
+  if (p.ordem !== undefined) r.ordem = p.ordem;
+  return r;
+}
+
+export interface ChecklistRepository {
+  listByCard(cardId: string): Promise<AtividadeChecklistItem[]>;
+  create(input: AtividadeChecklistInput): Promise<AtividadeChecklistItem>;
+  update(
+    id: string,
+    patch: Partial<AtividadeChecklistInput>,
+  ): Promise<AtividadeChecklistItem>;
+  remove(id: string): Promise<void>;
+  reorder(idsOrdenados: string[]): Promise<void>;
+}
+
+class SupabaseChecklistRepository implements ChecklistRepository {
+  async listByCard(cardId: string): Promise<AtividadeChecklistItem[]> {
+    const { data, error } = await supabase
+      .from("atividades_checklist")
+      .select("*")
+      .eq("card_id", cardId)
+      .order("ordem", { ascending: true });
+    if (error) throw error;
+    return (data ?? []).map(checklistFromRow);
+  }
+  async create(input: AtividadeChecklistInput): Promise<AtividadeChecklistItem> {
+    const id = novoId("chk");
+    const { data, error } = await supabase
+      .from("atividades_checklist")
+      .insert({
+        id,
+        card_id: input.cardId,
+        titulo: input.titulo,
+        concluida: input.concluida,
+        ordem: input.ordem,
+      })
+      .select()
+      .single();
+    if (error) throw error;
+    return checklistFromRow(data);
+  }
+  async update(
+    id: string,
+    patch: Partial<AtividadeChecklistInput>,
+  ): Promise<AtividadeChecklistItem> {
+    const { data, error } = await supabase
+      .from("atividades_checklist")
+      .update(checklistPatchToRow(patch))
+      .eq("id", id)
+      .select()
+      .single();
+    if (error) throw error;
+    return checklistFromRow(data);
+  }
+  async remove(id: string): Promise<void> {
+    const { error } = await supabase
+      .from("atividades_checklist")
+      .delete()
+      .eq("id", id);
+    if (error) throw error;
+  }
+  async reorder(idsOrdenados: string[]): Promise<void> {
+    await Promise.all(
+      idsOrdenados.map((id, i) =>
+        supabase.from("atividades_checklist").update({ ordem: i }).eq("id", id),
+      ),
+    );
+  }
+}
+
+export const checklistRepository: ChecklistRepository =
+  new SupabaseChecklistRepository();
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Repositório do histórico/timeline dos deals (só Supabase — feature nova)

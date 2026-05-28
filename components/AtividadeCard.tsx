@@ -6,6 +6,7 @@ import { CSS } from "@dnd-kit/utilities";
 import type { AtividadeCard as TCard, AtividadeLista } from "@/lib/types";
 import { cardBarra } from "@/lib/atividade-cores";
 import { formatDateBR } from "@/lib/format";
+import { useBoard } from "@/lib/activities-store";
 
 interface AtividadeCardProps {
   card: TCard;
@@ -21,6 +22,7 @@ export function AtividadeCard({
   onMover,
 }: AtividadeCardProps) {
   const [menu, setMenu] = useState(false);
+  const { checklistDoCard } = useBoard();
   const {
     attributes,
     listeners,
@@ -33,6 +35,9 @@ export function AtividadeCard({
 
   const barra = cardBarra(card.cor);
   const outras = listas.filter((l) => l.id !== card.listaId);
+  const checklist = checklistDoCard(card.id);
+  const concluidas = checklist.filter((i) => i.concluida).length;
+  const total = checklist.length;
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -90,20 +95,45 @@ export function AtividadeCard({
           </p>
         )}
 
-        {card.data && (
-          <span className="mt-2 inline-flex items-center gap-1 rounded-md bg-navy-50 dark:bg-dark-elevated px-1.5 py-0.5 text-[11px] font-medium text-navy-700 dark:text-gibelo-areia">
-            <svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true">
-              <path
-                d="M5 1v2M11 1v2M2.5 6.5h11M3 3h10a1 1 0 011 1v9a1 1 0 01-1 1H3a1 1 0 01-1-1V4a1 1 0 011-1z"
-                stroke="currentColor"
-                strokeWidth="1.1"
-                fill="none"
-                strokeLinecap="round"
-              />
-            </svg>
-            {formatDateBR(card.data)}
-          </span>
-        )}
+        <div className="mt-2 flex flex-wrap items-center gap-1.5">
+          {card.data && (
+            <span className="inline-flex items-center gap-1 rounded-md bg-navy-50 dark:bg-dark-elevated px-1.5 py-0.5 text-[11px] font-medium text-navy-700 dark:text-gibelo-areia">
+              <svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true">
+                <path
+                  d="M5 1v2M11 1v2M2.5 6.5h11M3 3h10a1 1 0 011 1v9a1 1 0 01-1 1H3a1 1 0 01-1-1V4a1 1 0 011-1z"
+                  stroke="currentColor"
+                  strokeWidth="1.1"
+                  fill="none"
+                  strokeLinecap="round"
+                />
+              </svg>
+              {formatDateBR(card.data)}
+            </span>
+          )}
+          {total > 0 && (
+            <span
+              className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-medium ${
+                concluidas === total
+                  ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300"
+                  : "bg-navy-50 text-navy-700 dark:bg-dark-elevated dark:text-gibelo-areia"
+              }`}
+              aria-label={`Checklist: ${concluidas} de ${total} concluídas`}
+            >
+              <svg width="11" height="11" viewBox="0 0 16 16" aria-hidden="true">
+                <path
+                  d="M2 4h8M2 8h8M2 12h8M13 3l1.5 1.5L13 6M13 7l1.5 1.5L13 10M13 11l1.5 1.5L13 14"
+                  stroke="currentColor"
+                  strokeWidth="1.3"
+                  fill="none"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              {concluidas}/{total}
+              {concluidas === total ? " ✓" : ""}
+            </span>
+          )}
+        </div>
       </div>
 
       {menu && (

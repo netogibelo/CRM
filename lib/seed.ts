@@ -159,6 +159,7 @@ export function gerarSeedAtividades(): AtividadesState {
       { id: "la-concluido", nome: "Concluído", ordem: 2, cor: "green" },
     ],
     cards: [],
+    checklist: [],
   };
 }
 
@@ -203,7 +204,11 @@ export function migrarAtividades(parsed: unknown): {
     return { ...c, cor: CARD_COR_LEGADA[cor] ?? null };
   });
 
-  return { state: { listas, cards }, changed };
+  const checklist = Array.isArray(raw.checklist)
+    ? (raw.checklist as AtividadesState["checklist"])
+    : ((changed = true), []);
+
+  return { state: { listas, cards, checklist }, changed };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
