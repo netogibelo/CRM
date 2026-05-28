@@ -41,7 +41,7 @@ const PERIODOS: { id: Periodo; label: string; dias: number }[] = [
 ];
 
 // ── Paleta Gibelo profissional + vibrante ────────────────────────────────────
-const NAVY_900 = "#0D2137"; // navy Gibelo
+const NAVY_900 = "#00385C"; // Azul Profundo · Pantone 302C · Gibelo Construtora
 const NAVY_500 = "#4f6f93";
 const ROYAL = "#2563eb"; // azul royal (linha temporal)
 const TEAL = "#0d9488"; // teal escuro

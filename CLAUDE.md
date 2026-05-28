@@ -134,9 +134,39 @@ Funil usa **HTML5 drag-and-drop nativo** via helpers em `lib/dnd.ts` (`useDropTa
 - **`SUPABASE_SERVICE_ROLE_KEY`** (se necessária pra scripts) **nunca** vai pro browser nem é commitada — só em `.env.local` e/ou Vercel env (sem prefixo `NEXT_PUBLIC_`).
 - Nunca commitar `.vercel/`, `.env*`, ou tokens do Supabase.
 
-## Identidade visual — Gibelo Engenharia
+## Identidade visual — Gibelo Construtora (Manual de Marca v1.0)
 
-- Cor dominante: navy `#0D2137`
-- Rodapé: "Gibelo Engenharia • CREA-SP 5070966442"
-- Tom: profissional/sóbrio (ferramenta de trabalho de ticket alto)
-- Toda interface em **português brasileiro**
+Nome de marca pública: **Gibelo Construtora**. Razão social legal: Gibelo Engenharia Ltda (mantida em rodapés/contratos).
+
+**Paleta** (Tailwind tokens em `tailwind.config.ts`):
+- Azul Profundo `#00385C` · Pantone 302C — primária 1; token `navy.DEFAULT`/`navy-900`, também `gibelo.azul`
+- Preto Tinta `#10182D` · Pantone Black 6C — primária 2; token `gibelo.preto`
+- Off-white `#F4F1EB` — apoio fundo; token `gibelo.offwhite` (body bg padrão)
+- Areia `#C8B89D` — apoio detalhe / separadores; token `gibelo.areia` / `brand.gold`
+- Cinza Quente `#908475` — corpo de texto longo; token `gibelo.cinza-quente`
+- Cinza Frio `#7CB780` · Pantone 430C — secundária, selos; token `gibelo.cinza-frio`
+- Azul Médio `#617486` · Pantone 2148C — acento ícones; token `gibelo.azul-medio`
+
+Cores proibidas pelo manual: verde de qualquer tom, vermelho, amarelo de qualquer tom, laranja, magenta, ciano puro, dourado, prata. Gradientes proibidos. Exceções operacionais (status/alertas no dashboard) ficam contidas em `DashboardView.tsx`.
+
+**Tipografia** (carregadas via `next/font/google` em `app/layout.tsx`):
+- Exo — display e sistema (`var(--font-exo)`). Pesos: 400/500/700/800. Extra Bold para hero, Medium para subtítulos, Regular para corpo.
+- Source Serif 4 Italic — slogan, manifesto e leads editoriais (`var(--font-source-serif)`). Sempre em itálico.
+
+**Logos** em `public/`:
+- `logo-gibelo-azul.png` — lockup horizontal Azul Profundo (login, header)
+- `logo-gibelo-branco.png` — lockup horizontal branco (fundos escuros)
+- `logo-gibelo-mini.png` — variação reduzida
+- `logo-gibelo-wordmark.svg` — wordmark vetorial (Azul Profundo, single color)
+
+**Slogan**: "Obras por taxa de administração a preço de custo."
+**Subtítulo**: "Modelo transparente, com prazo definido e sem margem oculta."
+Blocos indivisíveis (não quebrar linha): "taxa de administração", "a preço de custo", "sem margem oculta".
+
+**Dados institucionais** (rodapés, contratos, PDF):
+- Gibelo Engenharia Ltda · CNPJ 59.175.002/0001-64 · CREA-SP 2594080
+- Eng. José Gibelo Neto · CREA-SP 5070826657
+- R. Santos Dumont, 68, Sala 3 · Jardim Santa Rita · Pirassununga / SP · CEP 13631-165
+- (19) 99595-7821 · contato@gibeloconstrutora.com.br · gibeloconstrutora.com.br · @gibeloconstrutora
+
+Toda interface em **português brasileiro**. Tom: profissional/sóbrio (ferramenta de trabalho de ticket alto).

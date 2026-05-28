@@ -23,10 +23,10 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 // existir, busca no Supabase Vault via RPC `get_brevo_api_key` (security definer,
 // só executável pelo service_role).
 const REMETENTE_EMAIL = "netogibelo@outlook.com";
-const REMETENTE_NOME = "CRM Gibelo Engenharia";
+const REMETENTE_NOME = "CRM Gibelo Construtora";
 const FALLBACK_EMAIL = "netogibelo@gmail.com";
 const APP_URL = "https://crm-gibelo.vercel.app";
-const NAVY = "#0D2137";
+const NAVY = "#00385C"; // Azul Profundo · Pantone 302C · Gibelo Construtora
 
 // ── Tipos básicos ─────────────────────────────────────────────────────────────
 type Deal = {
@@ -282,7 +282,7 @@ function montarHTML(
     <tr><td align="center">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;background:#fff;border-radius:14px;overflow:hidden;border:1px solid #e2e9f1;">
         <tr><td style="background:${NAVY};padding:20px 24px;">
-          <div style="color:#fff;font-size:18px;font-weight:700;">CRM Gibelo Engenharia</div>
+          <div style="color:#fff;font-size:18px;font-weight:700;">CRM Gibelo Construtora</div>
           <div style="color:#a8c2e0;font-size:13px;margin-top:2px;">Resumo diário de alertas</div>
         </td></tr>
         <tr><td style="padding:24px 24px 8px 24px;">
@@ -307,7 +307,7 @@ function montarHTML(
         </td></tr>
         <tr><td style="background:#f6f8fb;padding:16px 24px;border-top:1px solid #e2e9f1;text-align:center;">
           <div style="font-size:11px;color:#7a93b1;">
-            Gibelo Engenharia • CREA-SP 5070966442
+            Gibelo Construtora • Gibelo Engenharia Ltda • CNPJ 59.175.002/0001-64 • CREA-SP 2594080
           </div>
           <div style="font-size:11px;color:#a8b8cc;margin-top:4px;">
             Enviado para ${escapeHtml(destinatario)}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useClients, useDeals } from "@/lib/crm-store";
 import { DashboardView } from "@/components/DashboardView";
 import { FunilView } from "@/components/FunilView";
@@ -45,18 +46,20 @@ export default function HomePage() {
   return (
     <main className="mx-auto max-w-[1400px] px-4 py-5 sm:px-6 sm:py-7">
       <header className="flex items-center gap-3">
-        <div
-          className="flex h-11 w-11 items-center justify-center rounded-xl bg-navy-900 text-sm font-bold text-white"
-          aria-hidden="true"
-        >
-          GE
-        </div>
-        <div className="flex-1">
+        <Image
+          src="/logo-gibelo-azul.png"
+          alt="Gibelo Construtora"
+          width={180}
+          height={68}
+          priority
+          className="h-auto w-32 sm:w-40"
+        />
+        <div className="flex-1 border-l border-navy-200 pl-3">
           <h1 className="text-lg font-bold tracking-tight text-navy-900 sm:text-xl">
             Pipeline de Vendas
           </h1>
           <p className="text-xs text-navy-400 sm:text-sm">
-            Gibelo Engenharia — oportunidades de projetos de alto padrão
+            Obras por taxa de administração a preço de custo
           </p>
         </div>
         <div className="flex items-center gap-2">

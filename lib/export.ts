@@ -253,64 +253,88 @@ export function exportarPDF(ctx: ExportContext): void {
     year: "numeric",
   });
 
+  // Logo wordmark Gibelo embutido inline em SVG (Azul Profundo #00385C) —
+  // garante que o PDF aberto em janela nova renderize a marca sem depender
+  // de fetch externo. Path tracing extraído de logo-gibelo-wordmark.svg.
+  const logoSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 90" aria-label="Gibelo Construtora"><g fill="#00385C" transform="translate(-180 -300) scale(0.55)"><path transform="matrix(1 0 0 -1 292.26 403.49)" d="m0 0v-0.149l-39.885-8.577v11.56l39.885 8.501c10.636-0.298 15.954-6.662 15.954-19.091v-16.332c0-17.401-9.307-26.1-27.919-26.1h-27.92c-18.614 0-27.919 8.699-27.919 26.1v59.659c0 17.401 9.305 26.102 27.919 26.102h27.92c18.612 0 27.919-8.701 27.919-26.102h-11.966c0 9.944-5.318 14.915-15.953 14.915h-27.92c-10.636 0-15.953-4.971-15.953-14.915v-59.659c0-9.943 5.317-14.914 15.953-14.914h27.92c10.635 0 15.953 4.971 15.953 14.914v20.061c0 2.088-1.329 3.43-3.988 4.027"/><path transform="matrix(1 0 0 -1 0 595.28)" d="m320.18 219.9h11.966v-78.303h-11.966zm5.983 9.322c-5.318 0-7.977 2.485-7.977 7.457 0 4.971 2.659 7.457 7.977 7.457 5.317 0 7.977-2.486 7.977-7.457 0-4.972-2.66-7.457-7.977-7.457"/><path transform="matrix(1 0 0 -1 399.95 442.49)" d="m0 0c10.635 0 15.954 4.971 15.954 14.914v26.102c0 9.942-5.319 14.914-15.954 14.914h-43.873v-41.016c0-9.943 5.317-14.914 15.954-14.914zm27.92 14.914c0-17.401-9.308-26.101-27.92-26.101h-27.919c-18.614 0-27.92 8.7-27.92 26.101v85.761h11.966v-33.559h43.873c18.612 0 27.92-8.7 27.92-26.1z"/><path transform="matrix(1 0 0 -1 465.76 386.56)" d="m0 0c-10.637 0-15.954-4.972-15.954-14.914v-16.034l56.558 12.156c2.179 0.695 3.27 1.987 3.27 3.878 0 9.942-5.318 14.914-15.954 14.914zm27.92-55.93c10.636 0 15.954 4.971 15.954 14.914h11.965c0-17.401-9.307-26.1-27.919-26.1h-27.92c-18.613 0-27.919 8.699-27.919 26.1v26.102c0 17.4 9.306 26.101 27.919 26.101h27.92c18.612 0 27.919-7.458 27.919-22.373 0-10.838-4.042-17.052-12.125-18.643l-59.588-12.678c0.478-8.949 5.77-13.423 15.874-13.423z"/><path transform="matrix(1 0 0 -1 0 595.28)" d="m529.58 253.46h11.966v-111.86h-11.966z"/><path transform="matrix(1 0 0 -1 581.43 386.56)" d="m0 0c-10.637 0-15.954-4.972-15.954-14.914v-26.102c0-9.943 5.317-14.914 15.954-14.914h27.919c10.636 0 15.954 4.971 15.954 14.914v26.102c0 9.942-5.318 14.914-15.954 14.914zm-27.92-14.914c0 17.4 9.306 26.101 27.92 26.101h27.919c18.612 0 27.919-8.701 27.919-26.101v-26.102c0-17.401-9.307-26.1-27.919-26.1h-27.919c-18.614 0-27.92 8.699-27.92 26.1z"/></g></svg>`;
+
   const html = `<!doctype html>
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8" />
-<title>Relatório CRM Gibelo — ${escapeHTML(dataAgora)}</title>
+<title>Relatório CRM Gibelo Construtora — ${escapeHTML(dataAgora)}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Exo:wght@400;500;700;800&family=Source+Serif+4:ital@1&display=swap" />
 <style>
-  @page { size: A4; margin: 25mm; }
+  /* Identidade visual Gibelo Construtora (Manual de Marca v1.0):
+     Azul Profundo #00385C · Preto Tinta #10182D · Off-white #F4F1EB
+     Areia #C8B89D · Cinza Quente #908475 · Azul Médio #617486 */
+  @page { size: A4; margin: 25mm 20mm; }
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
-  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; color: #0D2137; font-size: 12px; line-height: 1.45; }
-  h1, h2, h3 { color: #0D2137; margin: 0; }
-  header { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 3px solid #0D2137; padding-bottom: 10px; margin-bottom: 16px; }
-  header .logo { font-size: 22px; font-weight: 800; letter-spacing: -0.3px; }
-  header .logo small { display: block; font-size: 10px; font-weight: 500; color: #4f6f93; letter-spacing: 1px; text-transform: uppercase; margin-top: 2px; }
-  header .meta { text-align: right; font-size: 11px; color: #4f6f93; }
-  header .meta strong { color: #0D2137; }
-  .resumo { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 18px; }
-  .stat { border: 1px solid #d8e0eb; border-radius: 8px; padding: 10px 12px; }
-  .stat .rotulo { font-size: 10px; color: #4f6f93; text-transform: uppercase; letter-spacing: 0.5px; }
-  .stat .valor { font-size: 16px; font-weight: 700; margin-top: 4px; }
-  .stat.destaque { background: #0D2137; color: #fff; border-color: #0D2137; }
-  .stat.destaque .rotulo { color: #b8c5d6; }
+  body { font-family: "Exo", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; color: #10182D; font-size: 12px; line-height: 1.5; background: #F4F1EB; }
+  h1, h2, h3 { color: #00385C; margin: 0; font-weight: 700; letter-spacing: -0.2px; }
+  header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #00385C; padding-bottom: 12px; margin-bottom: 20px; gap: 16px; }
+  header .marca { display: flex; align-items: center; gap: 14px; }
+  header .marca svg { width: 150px; height: auto; }
+  header .marca .descritor { border-left: 1px solid #C8B89D; padding-left: 14px; }
+  header .marca .descritor strong { display: block; font-size: 13px; font-weight: 700; color: #00385C; letter-spacing: 0.3px; }
+  header .marca .descritor small { display: block; font-size: 9.5px; font-weight: 500; color: #908475; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 3px; }
+  header .meta { text-align: right; font-size: 11px; color: #908475; line-height: 1.6; }
+  header .meta strong { color: #00385C; font-weight: 600; }
+  .resumo { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 22px; }
+  .stat { border: 1px solid #C8B89D; background: #fff; border-radius: 6px; padding: 12px 14px; }
+  .stat .rotulo { font-size: 9.5px; color: #908475; text-transform: uppercase; letter-spacing: 1px; font-weight: 500; }
+  .stat .valor { font-size: 17px; font-weight: 800; margin-top: 6px; color: #00385C; letter-spacing: -0.3px; }
+  .stat.destaque { background: #00385C; color: #fff; border-color: #00385C; }
+  .stat.destaque .rotulo { color: #C8B89D; }
   .stat.destaque .valor { color: #fff; }
-  section { margin-bottom: 20px; page-break-inside: avoid; }
-  section h2 { font-size: 14px; border-bottom: 1px solid #d8e0eb; padding-bottom: 4px; margin-bottom: 10px; }
+  section { margin-bottom: 22px; page-break-inside: avoid; }
+  section h2 { font-size: 15px; border-bottom: 1px solid #C8B89D; padding-bottom: 6px; margin-bottom: 12px; font-weight: 700; }
   table { width: 100%; border-collapse: collapse; font-size: 11px; }
-  th { background: #f1f5f9; color: #0D2137; text-align: left; padding: 6px 8px; font-weight: 600; border-bottom: 1px solid #d8e0eb; }
-  td { padding: 5px 8px; border-bottom: 1px solid #ecf0f5; vertical-align: top; }
-  tr:nth-child(even) td { background: #fafbfc; }
+  th { background: #00385C; color: #fff; text-align: left; padding: 7px 9px; font-weight: 600; letter-spacing: 0.2px; }
+  td { padding: 6px 9px; border-bottom: 1px solid #ecf0f5; vertical-align: top; }
+  tr:nth-child(even) td { background: #F4F1EB; }
   .num { text-align: right; font-variant-numeric: tabular-nums; }
-  .etapa-bloco { margin-bottom: 14px; page-break-inside: avoid; }
-  .etapa-bloco .titulo { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
-  .etapa-bloco .titulo strong { font-size: 12px; }
-  .etapa-bloco .titulo span { font-size: 10px; color: #4f6f93; }
-  .funil { display: flex; flex-direction: column; gap: 4px; }
+  .etapa-bloco { margin-bottom: 16px; page-break-inside: avoid; }
+  .etapa-bloco .titulo { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+  .etapa-bloco .titulo strong { font-size: 12.5px; color: #00385C; font-weight: 700; }
+  .etapa-bloco .titulo span { font-size: 10.5px; color: #908475; }
+  .funil { display: flex; flex-direction: column; gap: 6px; }
   .funil-linha { display: grid; grid-template-columns: 180px 1fr 120px; align-items: center; gap: 12px; }
-  .funil-linha .label { font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .funil-linha .bar-wrap { width: 100%; }
-  .funil-linha .bar { background: #0D2137; height: 18px; border-radius: 3px; color: #fff; font-size: 10px; padding: 0 6px; display: inline-flex; align-items: center; min-width: 24px; box-sizing: border-box; }
-  .funil-linha .qtd { font-size: 11px; color: #4f6f93; text-align: right; font-variant-numeric: tabular-nums; }
-  footer { border-top: 1px solid #d8e0eb; margin-top: 24px; padding-top: 8px; font-size: 10px; color: #4f6f93; text-align: center; }
-  @media print { header { page-break-after: avoid; } button { display: none; } }
+  .funil-linha .label { font-size: 11px; color: #10182D; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .funil-linha .bar-wrap { width: 100%; background: #F4F1EB; border-radius: 3px; height: 20px; overflow: hidden; }
+  .funil-linha .bar { background: #00385C; height: 100%; border-radius: 3px; color: #fff; font-size: 10.5px; font-weight: 600; padding: 0 8px; display: inline-flex; align-items: center; min-width: 28px; box-sizing: border-box; }
+  .funil-linha .qtd { font-size: 11px; color: #00385C; font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
+  footer { border-top: 1px solid #C8B89D; margin-top: 28px; padding-top: 10px; font-size: 9.5px; color: #908475; text-align: center; line-height: 1.6; }
+  footer strong { color: #00385C; font-weight: 600; letter-spacing: 0.3px; }
+  .slogan { font-family: "Source Serif 4", Georgia, serif; font-style: italic; font-weight: 400; color: #00385C; font-size: 13px; text-align: center; margin: 0 0 18px 0; }
+  @media print { header { page-break-after: avoid; } button { display: none; } body { background: #fff; } }
   .botoes { text-align: center; margin: 16px 0; }
-  .botoes button { padding: 8px 16px; font-size: 13px; border-radius: 6px; border: 1px solid #0D2137; background: #0D2137; color: #fff; cursor: pointer; }
-  .botoes button.ghost { background: #fff; color: #0D2137; margin-left: 8px; }
-  .dica-impressao { max-width: 640px; margin: 0 auto 12px; padding: 10px 14px; background: #eef3fa; border: 1px solid #c5d4e8; border-radius: 6px; font-size: 11px; color: #0D2137; text-align: center; }
-  .dica-impressao strong { color: #0D2137; }
+  .botoes button { font-family: "Exo", sans-serif; padding: 9px 18px; font-size: 13px; font-weight: 600; border-radius: 6px; border: 1px solid #00385C; background: #00385C; color: #fff; cursor: pointer; letter-spacing: 0.2px; }
+  .botoes button.ghost { background: #fff; color: #00385C; margin-left: 8px; }
+  .dica-impressao { max-width: 640px; margin: 0 auto 14px; padding: 10px 14px; background: #fff; border: 1px solid #C8B89D; border-radius: 6px; font-size: 11px; color: #10182D; text-align: center; }
+  .dica-impressao strong { color: #00385C; }
   @media print { .dica-impressao { display: none; } }
 </style>
 </head>
 <body>
 <header>
-  <div class="logo">Gibelo Engenharia<small>Relatório de Pipeline — CRM</small></div>
+  <div class="marca">
+    ${logoSvg}
+    <div class="descritor">
+      <strong>Relatório de Pipeline</strong>
+      <small>CRM · Funil de Vendas</small>
+    </div>
+  </div>
   <div class="meta">
     Emitido em <strong>${escapeHTML(dataAgora)}</strong><br/>
     Período: <strong>${escapeHTML(periodoLabel)}</strong>
   </div>
 </header>
+
+<p class="slogan">Obras por taxa de administração a preço de custo.</p>
 
 <div class="dica-impressao">
   No diálogo de impressão, mantenha <strong>Margens: Padrão</strong> para garantir a margem de segurança do relatório.
@@ -408,7 +432,8 @@ export function exportarPDF(ctx: ExportContext): void {
 </section>
 
 <footer>
-  Gibelo Engenharia · CREA-SP 5070966442 · RNP 2616239100
+  <strong>Gibelo Construtora</strong> · Gibelo Engenharia Ltda · CNPJ 59.175.002/0001-64 · CREA-SP 2594080<br/>
+  R. Santos Dumont, 68, Sala 3 · Jardim Santa Rita · Pirassununga / SP · CEP 13631-165 · (19) 99595-7821 · gibeloconstrutora.com.br
 </footer>
 
 <script>

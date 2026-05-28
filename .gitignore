@@ -28,3 +28,7 @@ yarn-error.log*
 next-env.d.ts
 
 .vercel
+
+# brand source files — logos já estão em /public; pasta original (manual + fontes + PDFs)
+# fica fora do repo pra não inchar o histórico
+/Manual de Marca/

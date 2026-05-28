@@ -1,5 +1,19 @@
 import type { Config } from "tailwindcss";
 
+/**
+ * Paleta Gibelo Construtora (Manual de Marca v1.0):
+ *   Azul Profundo  · #00385C · Pantone 302C  · primária 1
+ *   Preto Tinta    · #10182D · Pantone Black 6C · primária 2
+ *   Off-white      · #F4F1EB · apoio fundo
+ *   Areia          · #C8B89D · apoio detalhe
+ *   Cinza Quente   · #908475 · apoio corpo (texto longo)
+ *   Cinza Frio     · #7CB780 · secundária — selos
+ *   Azul Médio     · #617486 · acento — ícones
+ *
+ * O token `navy` é mantido como nome interno (referenciado em todo o app),
+ * mas reancorado em #00385C — Azul Profundo do manual. As gradações são
+ * derivadas da nova cor primária.
+ */
 const config: Config = {
   content: [
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
@@ -10,30 +24,40 @@ const config: Config = {
     extend: {
       colors: {
         navy: {
-          DEFAULT: "#0D2137",
-          50: "#f3f6f9",
-          100: "#e2e9f1",
-          200: "#c7d5e3",
-          300: "#9fb6cd",
-          400: "#7090b1",
-          500: "#4f6f93",
-          600: "#3d587a",
-          700: "#334863",
-          800: "#1c2f47",
-          900: "#0D2137",
-          950: "#081627",
+          DEFAULT: "#00385C",
+          50: "#F4F7FB",
+          100: "#E2EAF2",
+          200: "#C2D2E1",
+          300: "#95B0C9",
+          400: "#5F89AC",
+          500: "#3F6A8E",
+          600: "#265679",
+          700: "#0F4B70",
+          800: "#054268",
+          900: "#00385C",
+          950: "#001D2F",
+        },
+        gibelo: {
+          azul: "#00385C",
+          "azul-medio": "#617486",
+          preto: "#10182D",
+          offwhite: "#F4F1EB",
+          areia: "#C8B89D",
+          "cinza-quente": "#908475",
+          "cinza-frio": "#7CB780",
         },
         brand: {
-          gold: "#b08d57",
+          gold: "#C8B89D",
         },
       },
       fontFamily: {
-        sans: ["var(--font-inter)", "system-ui", "sans-serif"],
+        sans: ["var(--font-exo)", "system-ui", "sans-serif"],
+        serif: ["var(--font-source-serif)", "Georgia", "serif"],
       },
       boxShadow: {
-        card: "0 1px 3px rgba(13, 33, 55, 0.08), 0 1px 2px rgba(13, 33, 55, 0.04)",
+        card: "0 1px 3px rgba(0, 56, 92, 0.08), 0 1px 2px rgba(0, 56, 92, 0.04)",
         "card-hover":
-          "0 8px 24px rgba(13, 33, 55, 0.12), 0 2px 6px rgba(13, 33, 55, 0.06)",
+          "0 8px 24px rgba(0, 56, 92, 0.12), 0 2px 6px rgba(0, 56, 92, 0.06)",
       },
     },
   },

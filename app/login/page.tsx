@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { btnPrimary, inputCls, labelCls } from "@/lib/ui";
@@ -34,21 +35,20 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-navy-50 px-4 py-10">
+    <main className="flex min-h-screen items-center justify-center bg-gibelo-offwhite px-4 py-10">
       <div className="w-full max-w-sm rounded-2xl border border-navy-100 bg-white p-8 shadow-sm">
-        <header className="flex items-center gap-3">
-          <div
-            className="flex h-11 w-11 items-center justify-center rounded-xl bg-navy-900 text-sm font-bold text-white"
-            aria-hidden="true"
-          >
-            GE
-          </div>
-          <div>
-            <h1 className="text-lg font-bold tracking-tight text-navy-900">
-              Gibelo Engenharia
-            </h1>
-            <p className="text-xs text-navy-400">CRM · Funil de Vendas</p>
-          </div>
+        <header className="flex flex-col items-center gap-3 text-center">
+          <Image
+            src="/logo-gibelo-azul.png"
+            alt="Gibelo Construtora"
+            width={220}
+            height={84}
+            priority
+            className="h-auto w-44"
+          />
+          <p className="text-xs uppercase tracking-[0.18em] text-navy-400">
+            CRM · Funil de Vendas
+          </p>
         </header>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-4" noValidate>
@@ -112,7 +112,7 @@ export default function LoginPage() {
         </form>
 
         <p className="mt-6 text-center text-xs text-navy-400">
-          Acesso restrito · Gibelo Engenharia
+          Acesso restrito · Gibelo Construtora
         </p>
       </div>
     </main>
