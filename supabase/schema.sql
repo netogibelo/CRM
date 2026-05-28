@@ -180,7 +180,7 @@ create table atividades_cards (
   descricao text,
   cor text,
   data date,
-  ordem numeric(10,6) not null,
+  ordem numeric not null,
   criado_em timestamptz default now(),
   atualizado_em timestamptz default now()
 );
