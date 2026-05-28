@@ -99,7 +99,7 @@ function ServicoRow({
   }
 
   return (
-    <li className="grid grid-cols-1 gap-2 rounded-lg bg-navy-50 p-2 sm:grid-cols-[1fr_160px_auto]">
+    <li className="grid grid-cols-1 gap-2 rounded-lg bg-navy-50 dark:bg-dark-elevated p-2 sm:grid-cols-[1fr_160px_auto]">
       <div>
         <label htmlFor={`srv-desc-${servico.id}`} className={`${labelCls} sr-only`}>
           Descrição do serviço
@@ -166,7 +166,7 @@ function ServicoRow({
           className={`rounded-lg px-2 py-1.5 text-xs font-semibold transition-colors ${
             dirty
               ? "bg-navy-900 text-white hover:bg-navy-800"
-              : "border border-navy-200 text-navy-300"
+              : "border border-navy-200 dark:border-dark-border text-navy-500 dark:text-gibelo-cinza-quente"
           } disabled:opacity-60`}
         >
           {salvando ? "…" : "✓"}
@@ -220,13 +220,13 @@ export function DealServicos({ dealId, onTotalChange }: DealServicosProps) {
   }
 
   return (
-    <fieldset className="mt-5 rounded-xl border border-navy-100 p-4">
-      <legend className="px-2 text-xs font-semibold uppercase tracking-wide text-navy-500">
+    <fieldset className="mt-5 rounded-xl border border-navy-100 dark:border-dark-border p-4">
+      <legend className="px-2 text-xs font-semibold uppercase tracking-wide text-navy-700 dark:text-gibelo-areia">
         Serviços
       </legend>
 
       {itens.length === 0 ? (
-        <p className="text-xs text-navy-400">
+        <p className="text-xs text-navy-700 dark:text-gibelo-cinza-quente">
           Sem itens. Adicione serviços para detalhar o escopo do negócio. O valor
           do deal será a soma dos itens.
         </p>
@@ -245,7 +245,7 @@ export function DealServicos({ dealId, onTotalChange }: DealServicosProps) {
       )}
 
       {itens.length > 0 && (
-        <p className="mt-2 text-[11px] text-navy-400">
+        <p className="mt-2 text-[11px] text-navy-700 dark:text-gibelo-cinza-quente">
           Editou um campo? Pressione Enter ou clique ✓ para salvar.
         </p>
       )}
@@ -254,17 +254,17 @@ export function DealServicos({ dealId, onTotalChange }: DealServicosProps) {
         <button
           type="button"
           onClick={adicionar}
-          className="rounded-lg border border-navy-200 px-3 py-1.5 text-xs font-semibold text-navy-700 transition-colors hover:bg-navy-50"
+          className="rounded-lg border border-navy-200 dark:border-dark-border px-3 py-1.5 text-xs font-semibold text-navy-700 dark:text-gibelo-offwhite transition-colors hover:bg-navy-50 dark:hover:bg-dark-elevated dark:bg-dark-elevated"
           aria-label="Adicionar serviço"
         >
           + Adicionar serviço
         </button>
         {itens.length > 0 && (
           <div className="text-right">
-            <p className="text-[11px] uppercase tracking-wide text-navy-400">
+            <p className="text-[11px] uppercase tracking-wide text-navy-700 dark:text-gibelo-cinza-quente">
               Total ({itens.length} {itens.length === 1 ? "item" : "itens"})
             </p>
-            <p className="text-base font-semibold text-navy-900">
+            <p className="text-base font-semibold text-navy-900 dark:text-gibelo-offwhite">
               {formatBRL(total)}
             </p>
           </div>

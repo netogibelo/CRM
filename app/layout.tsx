@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Exo, Source_Serif_4 } from "next/font/google";
 import "./globals.css";
 import { Footer } from "@/components/Footer";
+import { ThemeProvider, THEME_BOOT_SCRIPT } from "@/lib/theme";
 
 // Fontes oficiais da marca Gibelo Construtora (Manual de Marca v1.0).
 // Exo · display + sistema (Extra Bold para hero, Medium para subtítulos, Regular para corpo).
@@ -29,7 +30,10 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#00385C",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#00385C" },
+    { media: "(prefers-color-scheme: dark)", color: "#10182D" },
+  ],
   width: "device-width",
   initialScale: 1,
 };
@@ -41,10 +45,20 @@ export default function RootLayout({
     <html
       lang="pt-BR"
       className={`${exo.variable} ${sourceSerif.variable}`}
+      suppressHydrationWarning
     >
+      <head>
+        {/* Script anti-flash: define a classe `dark` no <html> antes do paint
+            quando o tema salvo é escuro. Não toca em React. */}
+        <script
+          dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }}
+        />
+      </head>
       <body className="flex min-h-screen flex-col">
-        <div className="flex-1">{children}</div>
-        <Footer />
+        <ThemeProvider>
+          <div className="flex-1">{children}</div>
+          <Footer />
+        </ThemeProvider>
       </body>
     </html>
   );

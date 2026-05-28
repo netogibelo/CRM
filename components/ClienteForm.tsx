@@ -80,7 +80,7 @@ export function ClienteForm({
 
           <div>
             <label htmlFor="cli-tel" className={labelCls}>
-              Telefone {!rapido && <span className="text-navy-300">(opcional)</span>}
+              Telefone {!rapido && <span className="text-navy-500 dark:text-gibelo-cinza-quente">(opcional)</span>}
             </label>
             <input
               id="cli-tel"
@@ -96,7 +96,7 @@ export function ClienteForm({
             <>
               <div>
                 <label htmlFor="cli-email" className={labelCls}>
-                  E-mail <span className="text-navy-300">(opcional)</span>
+                  E-mail <span className="text-navy-500 dark:text-gibelo-cinza-quente">(opcional)</span>
                 </label>
                 <input
                   id="cli-email"
@@ -109,7 +109,7 @@ export function ClienteForm({
               </div>
               <div>
                 <label htmlFor="cli-obs" className={labelCls}>
-                  Observações <span className="text-navy-300">(opcional)</span>
+                  Observações <span className="text-navy-500 dark:text-gibelo-cinza-quente">(opcional)</span>
                 </label>
                 <textarea
                   id="cli-obs"

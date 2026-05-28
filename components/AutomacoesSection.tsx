@@ -161,10 +161,10 @@ export function AutomacoesSection() {
   return (
     <section
       aria-label="Automações"
-      className="rounded-2xl border border-navy-100 bg-navy-50/40 p-4 sm:p-5"
+      className="rounded-2xl border border-navy-100 dark:border-dark-border bg-navy-50 dark:bg-dark-elevated/40 p-4 sm:p-5"
     >
-      <h2 className="text-sm font-semibold text-navy-900">Automações</h2>
-      <p className="mt-0.5 text-xs text-navy-400">
+      <h2 className="text-sm font-semibold text-navy-900 dark:text-gibelo-offwhite">Automações</h2>
+      <p className="mt-0.5 text-xs text-navy-700 dark:text-gibelo-cinza-quente">
         Regras que disparam ações quando algo acontece com um deal. Executadas
         quando você arrasta um deal entre colunas ou cria um novo.
       </p>
@@ -180,21 +180,21 @@ export function AutomacoesSection() {
           tituloAlfabetizar="Ordenar automações A→Z"
           emptyLabel="Nenhuma automação cadastrada."
           renderRow={(a, handle) => (
-            <div className="rounded-lg border border-navy-100 bg-white p-3">
+            <div className="rounded-lg border border-navy-100 dark:border-dark-border bg-white dark:bg-dark-surface p-3">
               <div className="flex items-center gap-3">
                 <DragHandle handle={handle} />
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-navy-900">{a.nome}</p>
-                  <p className="mt-0.5 text-xs text-navy-500">
+                  <p className="text-sm font-medium text-navy-900 dark:text-gibelo-offwhite">{a.nome}</p>
+                  <p className="mt-0.5 text-xs text-navy-700 dark:text-gibelo-areia">
                     {descrever(a, nomeEtapa, perfis)}
                   </p>
                 </div>
-                <label className="flex shrink-0 items-center gap-1.5 text-xs text-navy-600">
+                <label className="flex shrink-0 items-center gap-1.5 text-xs text-navy-700 dark:text-gibelo-areia">
                   <input
                     type="checkbox"
                     checked={a.ativa}
                     onChange={() => atualizar(a.id, { ativa: !a.ativa })}
-                    className="h-4 w-4 rounded border-navy-300 text-navy-900 focus:ring-navy-500"
+                    className="h-4 w-4 rounded border-navy-300 text-navy-900 dark:text-gibelo-offwhite focus:ring-navy-500"
                     aria-label={`${a.ativa ? "Desativar" : "Ativar"} automação ${a.nome}`}
                   />
                   Ativa
@@ -206,7 +206,7 @@ export function AutomacoesSection() {
                       ? setEditandoId(null)
                       : comecarEdicao(a)
                   }
-                  className="text-xs text-navy-500 transition-colors hover:text-navy-900"
+                  className="text-xs text-navy-700 dark:text-gibelo-areia transition-colors hover:text-navy-900 dark:text-gibelo-offwhite"
                   aria-label={`${editandoId === a.id ? "Cancelar edição" : "Editar"} automação ${a.nome}`}
                 >
                   {editandoId === a.id ? "Fechar" : "Editar"}
@@ -216,7 +216,7 @@ export function AutomacoesSection() {
                   onClick={() => {
                     if (confirm(`Excluir automação "${a.nome}"?`)) remover(a.id);
                   }}
-                  className="text-xs text-navy-400 transition-colors hover:text-red-600"
+                  className="text-xs text-navy-700 dark:text-gibelo-cinza-quente transition-colors hover:text-red-600"
                   aria-label={`Excluir automação ${a.nome}`}
                 >
                   Excluir
@@ -224,7 +224,7 @@ export function AutomacoesSection() {
               </div>
 
               {editandoId === a.id && (
-                <div className="mt-3 grid grid-cols-1 gap-3 rounded-md border border-navy-200 bg-navy-50/50 p-3 sm:grid-cols-2">
+                <div className="mt-3 grid grid-cols-1 gap-3 rounded-md border border-navy-200 dark:border-dark-border bg-navy-50 dark:bg-dark-elevated/50 p-3 sm:grid-cols-2">
                   {a.acao === "criar_tarefa" ? (
                     <>
                       <div className="sm:col-span-2">
@@ -332,8 +332,8 @@ export function AutomacoesSection() {
       </div>
 
       {/* Form nova automação */}
-      <div className="mt-4 rounded-lg border border-dashed border-navy-200 bg-white p-3">
-        <p className="text-xs font-semibold uppercase tracking-wide text-navy-500">
+      <div className="mt-4 rounded-lg border border-dashed border-navy-200 dark:border-dark-border dark:border-dark-border bg-white dark:bg-dark-surface p-3">
+        <p className="text-xs font-semibold uppercase tracking-wide text-navy-700 dark:text-gibelo-areia">
           Nova automação
         </p>
 

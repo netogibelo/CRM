@@ -107,7 +107,7 @@ export function PerfilButton() {
       <button
         type="button"
         onClick={() => setAberto((v) => !v)}
-        className="flex items-center gap-2 rounded-lg border border-navy-200 px-2 py-1 text-xs font-medium text-navy-700 transition-colors hover:bg-navy-50"
+        className="flex items-center gap-2 rounded-lg border border-navy-200 dark:border-dark-border px-2 py-1 text-xs font-medium text-navy-700 dark:text-gibelo-offwhite transition-colors hover:bg-navy-50 dark:hover:bg-dark-elevated dark:bg-dark-elevated"
         aria-label={`Menu do perfil de ${nomeAtual}`}
         aria-expanded={aberto}
         aria-haspopup="true"
@@ -127,16 +127,16 @@ export function PerfilButton() {
         <div
           role="dialog"
           aria-label="Meu perfil"
-          className="absolute right-0 top-full z-50 mt-2 w-[min(320px,calc(100vw-2rem))] overflow-hidden rounded-xl border border-navy-100 bg-white shadow-card-hover"
+          className="absolute right-0 top-full z-50 mt-2 w-[min(320px,calc(100vw-2rem))] overflow-hidden rounded-xl border border-navy-100 dark:border-dark-border bg-white dark:bg-dark-surface shadow-card-hover"
         >
-          <div className="border-b border-navy-100 px-4 py-3">
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-navy-400">
+          <div className="border-b border-navy-100 dark:border-dark-border px-4 py-3">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-navy-700 dark:text-gibelo-cinza-quente">
               Meu perfil
             </p>
-            <p className="mt-1 text-sm font-semibold text-navy-900">
+            <p className="mt-1 text-sm font-semibold text-navy-900 dark:text-gibelo-offwhite">
               {nomeAtual}
             </p>
-            <p className="text-xs text-navy-500">{sessao.email}</p>
+            <p className="text-xs text-navy-700 dark:text-gibelo-areia">{sessao.email}</p>
           </div>
 
           <div className="px-4 py-3">
@@ -183,7 +183,7 @@ export function PerfilButton() {
               <button
                 type="button"
                 onClick={() => setEditando(true)}
-                className="w-full text-left text-sm text-navy-700 hover:text-navy-900"
+                className="w-full text-left text-sm text-navy-700 dark:text-gibelo-offwhite hover:text-navy-900 dark:text-gibelo-offwhite"
                 aria-label="Editar nome de exibição"
               >
                 Editar nome de exibição
@@ -191,7 +191,7 @@ export function PerfilButton() {
             )}
           </div>
 
-          <div className="border-t border-navy-100 px-4 py-3">
+          <div className="border-t border-navy-100 dark:border-dark-border px-4 py-3">
             <button
               type="button"
               onClick={handleLogout}

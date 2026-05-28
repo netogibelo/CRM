@@ -152,7 +152,7 @@ export function DealForm({
     >
       {modoPerda ? (
         <div>
-          <p className="text-sm text-navy-600">
+          <p className="text-sm text-navy-700 dark:text-gibelo-areia">
             Marcar <strong>{deal?.projeto}</strong> como perdido. Registre o
             motivo da perda para análise futura.
           </p>
@@ -244,7 +244,7 @@ export function DealForm({
                 <button
                   type="button"
                   onClick={() => setNovoClienteAberto(true)}
-                  className="shrink-0 rounded-lg border border-navy-200 px-3 py-2 text-sm font-semibold text-navy-700 transition-colors hover:bg-navy-50"
+                  className="shrink-0 rounded-lg border border-navy-200 dark:border-dark-border px-3 py-2 text-sm font-semibold text-navy-700 dark:text-gibelo-offwhite transition-colors hover:bg-navy-50 dark:hover:bg-dark-elevated dark:bg-dark-elevated"
                   aria-label="Cadastrar novo cliente"
                 >
                   + Novo
@@ -260,7 +260,7 @@ export function DealForm({
             {clienteId && contatosDoCliente(clienteId).length > 0 && (
               <div className="sm:col-span-2">
                 <label htmlFor="contato" className={labelCls}>
-                  Contato <span className="text-navy-300">(opcional)</span>
+                  Contato <span className="text-navy-500 dark:text-gibelo-cinza-quente">(opcional)</span>
                 </label>
                 <select
                   id="contato"
@@ -290,7 +290,7 @@ export function DealForm({
                 inputMode="numeric"
                 value={valorEfetivo > 0 ? formatBRL(valorEfetivo) : ""}
                 onChange={(e) => setValor(parseValorBRL(e.target.value))}
-                className={`${inputCls} ${temServicos ? "bg-navy-50 text-navy-500" : ""}`}
+                className={`${inputCls} ${temServicos ? "bg-navy-50 dark:bg-dark-elevated text-navy-700 dark:text-gibelo-areia" : ""}`}
                 placeholder="R$ 0,00"
                 readOnly={temServicos}
                 aria-invalid={Boolean(erros.valor)}
@@ -303,7 +303,7 @@ export function DealForm({
                 }
               />
               {temServicos && (
-                <p id="hint-valor" className="mt-1 text-xs text-navy-400">
+                <p id="hint-valor" className="mt-1 text-xs text-navy-700 dark:text-gibelo-cinza-quente">
                   Soma de {qtdServicos} {qtdServicos === 1 ? "serviço" : "serviços"}.
                 </p>
               )}
@@ -370,7 +370,7 @@ export function DealForm({
                 ))}
               </select>
               {!aberto && (
-                <p className="mt-1 text-xs text-navy-400">
+                <p className="mt-1 text-xs text-navy-700 dark:text-gibelo-cinza-quente">
                   Reabra a oportunidade para mudar de etapa.
                 </p>
               )}
@@ -411,8 +411,8 @@ export function DealForm({
           </div>
 
           {/* Dados do projeto — específico engenharia civil (Gibelo) */}
-          <fieldset className="mt-5 rounded-xl border border-navy-100 p-4">
-            <legend className="px-2 text-xs font-semibold uppercase tracking-wide text-navy-500">
+          <fieldset className="mt-5 rounded-xl border border-navy-100 dark:border-dark-border p-4">
+            <legend className="px-2 text-xs font-semibold uppercase tracking-wide text-navy-700 dark:text-gibelo-areia">
               Dados do projeto
             </legend>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -482,8 +482,8 @@ export function DealForm({
           </fieldset>
 
           {editando && aberto && (
-            <div className="mt-5 flex flex-wrap gap-2 rounded-lg bg-navy-50 p-3">
-              <span className="w-full text-xs font-semibold uppercase tracking-wide text-navy-400">
+            <div className="mt-5 flex flex-wrap gap-2 rounded-lg bg-navy-50 dark:bg-dark-elevated p-3">
+              <span className="w-full text-xs font-semibold uppercase tracking-wide text-navy-700 dark:text-gibelo-cinza-quente">
                 Desfecho
               </span>
               <button
@@ -506,7 +506,7 @@ export function DealForm({
               <button
                 type="button"
                 onClick={() => setModoPerda(true)}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-white px-3 py-1.5 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-white dark:bg-dark-surface px-3 py-1.5 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50"
               >
                 Marcar como perdido
               </button>
@@ -514,19 +514,19 @@ export function DealForm({
           )}
 
           {editando && !aberto && (
-            <div className="mt-5 flex flex-wrap items-center gap-2 rounded-lg bg-navy-50 p-3">
-              <span className="w-full text-xs font-semibold uppercase tracking-wide text-navy-400">
+            <div className="mt-5 flex flex-wrap items-center gap-2 rounded-lg bg-navy-50 dark:bg-dark-elevated p-3">
+              <span className="w-full text-xs font-semibold uppercase tracking-wide text-navy-700 dark:text-gibelo-cinza-quente">
                 {deal.status === "ganho" ? "Negócio ganho" : "Negócio perdido"}
               </span>
               {deal.status === "perdido" && deal.motivoPerda && (
-                <p className="w-full text-sm text-navy-600">
+                <p className="w-full text-sm text-navy-700 dark:text-gibelo-areia">
                   Motivo: {deal.motivoPerda}
                 </p>
               )}
               <button
                 type="button"
                 onClick={() => deal && onReabrir?.(deal.id)}
-                className="rounded-lg border border-navy-200 bg-white px-3 py-1.5 text-sm font-semibold text-navy-700 transition-colors hover:bg-navy-100"
+                className="rounded-lg border border-navy-200 dark:border-dark-border bg-white dark:bg-dark-surface px-3 py-1.5 text-sm font-semibold text-navy-700 dark:text-gibelo-offwhite transition-colors hover:bg-navy-100 dark:hover:bg-dark-elevated dark:bg-dark-elevated"
               >
                 Reabrir oportunidade
               </button>

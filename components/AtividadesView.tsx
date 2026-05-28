@@ -152,7 +152,7 @@ export function AtividadesView() {
 
   if (carregando) {
     return (
-      <div className="py-16 text-center text-sm text-navy-400" role="status">
+      <div className="py-16 text-center text-sm text-navy-700 dark:text-gibelo-cinza-quente" role="status">
         Carregando atividades…
       </div>
     );
@@ -161,7 +161,7 @@ export function AtividadesView() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-navy-400">
+        <p className="text-sm text-navy-700 dark:text-gibelo-cinza-quente">
           Quadro de tarefas — arraste cards e listas, ou use os menus/setas.
         </p>
         <button
@@ -174,11 +174,11 @@ export function AtividadesView() {
       </div>
 
       {listas.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-navy-200 bg-white px-6 py-14 text-center">
-          <p className="text-sm font-medium text-navy-700">
+        <div className="rounded-2xl border border-dashed border-navy-200 dark:border-dark-border dark:border-dark-border bg-white dark:bg-dark-surface px-6 py-14 text-center">
+          <p className="text-sm font-medium text-navy-700 dark:text-gibelo-offwhite">
             Nenhuma lista no quadro.
           </p>
-          <p className="mt-1 text-sm text-navy-400">
+          <p className="mt-1 text-sm text-navy-700 dark:text-gibelo-cinza-quente">
             Crie a primeira lista para começar a organizar as tarefas.
           </p>
         </div>
@@ -220,13 +220,13 @@ export function AtividadesView() {
           <DragOverlay dropAnimation={null}>
             {activeCard ? (
               <div
-                className={`w-[272px] rotate-1 rounded-xl border border-navy-200 bg-white p-3 shadow-card-hover ${
+                className={`w-[272px] rotate-1 rounded-xl border border-navy-200 dark:border-dark-border bg-white dark:bg-dark-surface p-3 shadow-card-hover ${
                   cardBarra(activeCard.cor)
                     ? `border-l-4 ${cardBarra(activeCard.cor)}`
                     : ""
                 }`}
               >
-                <p className="text-sm font-medium leading-snug text-navy-900">
+                <p className="text-sm font-medium leading-snug text-navy-900 dark:text-gibelo-offwhite">
                   {activeCard.titulo}
                 </p>
               </div>

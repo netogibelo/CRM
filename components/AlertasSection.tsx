@@ -86,10 +86,10 @@ export function AlertasSection() {
   return (
     <section
       aria-label="Alertas por email"
-      className="rounded-2xl border border-navy-100 bg-navy-50/40 p-4 sm:p-5 lg:col-span-2"
+      className="rounded-2xl border border-navy-100 dark:border-dark-border bg-navy-50 dark:bg-dark-elevated/40 p-4 sm:p-5 lg:col-span-2"
     >
-      <h2 className="text-sm font-semibold text-navy-900">Alertas por email</h2>
-      <p className="mt-0.5 text-xs text-navy-400">
+      <h2 className="text-sm font-semibold text-navy-900 dark:text-gibelo-offwhite">Alertas por email</h2>
+      <p className="mt-0.5 text-xs text-navy-700 dark:text-gibelo-cinza-quente">
         Resumo diário enviado às 07h00 (horário de Brasília) com deals parados,
         retornos vencidos e tarefas vencidas — agrupado por responsável.
       </p>
@@ -107,13 +107,13 @@ export function AlertasSection() {
           }`}
         >
           <span
-            className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+            className={`inline-block h-4 w-4 transform rounded-full bg-white dark:bg-dark-surface shadow transition-transform ${
               ativo ? "translate-x-6" : "translate-x-1"
             }`}
             aria-hidden="true"
           />
         </button>
-        <span className="text-sm text-navy-700">
+        <span className="text-sm text-navy-700 dark:text-gibelo-offwhite">
           {carregando
             ? "Carregando…"
             : ativo
@@ -122,10 +122,10 @@ export function AlertasSection() {
         </span>
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-navy-100 pt-4">
+      <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-navy-100 dark:border-dark-border pt-4">
         <div className="flex-1 min-w-[12rem]">
-          <p className="text-xs font-medium text-navy-700">Testar agora</p>
-          <p className="mt-0.5 text-xs text-navy-400">
+          <p className="text-xs font-medium text-navy-700 dark:text-gibelo-offwhite">Testar agora</p>
+          <p className="mt-0.5 text-xs text-navy-700 dark:text-gibelo-cinza-quente">
             Dispara a função imediatamente, ignorando o toggle, e envia emails
             reais.
           </p>
@@ -153,7 +153,7 @@ export function AlertasSection() {
         </div>
       )}
 
-      <p className="mt-4 text-[11px] text-navy-400">
+      <p className="mt-4 text-[11px] text-navy-700 dark:text-gibelo-cinza-quente">
         Horário fixo no Supabase (cron <code>0 10 * * *</code> UTC). Para alterar,
         edite a função <code>alertas-diarios</code> e o agendamento pg_cron.
       </p>

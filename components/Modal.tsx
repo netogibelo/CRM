@@ -80,7 +80,7 @@ export function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-navy-950/50 p-0 backdrop-blur-sm sm:items-center sm:p-4"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-navy-950/60 p-0 backdrop-blur-sm sm:items-center sm:p-4 dark:bg-black/70"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -91,15 +91,15 @@ export function Modal({
         aria-modal="true"
         aria-labelledby={tituloId}
         aria-describedby={descricao ? `${tituloId}-desc` : undefined}
-        className={`w-full ${maxWidth} max-h-[92vh] overflow-y-auto rounded-t-2xl bg-white shadow-card-hover sm:rounded-2xl`}
+        className={`w-full ${maxWidth} max-h-[92vh] overflow-y-auto rounded-t-2xl bg-white shadow-card-hover sm:rounded-2xl dark:bg-dark-surface`}
       >
-        <div className="sticky top-0 flex items-start justify-between gap-4 border-b border-navy-100 bg-white px-5 py-4 sm:px-6">
+        <div className="sticky top-0 flex items-start justify-between gap-4 border-b border-navy-100 bg-white px-5 py-4 sm:px-6 dark:border-dark-border dark:bg-dark-surface">
           <div>
-            <h2 id={tituloId} className="text-lg font-semibold text-navy-900">
+            <h2 id={tituloId} className="text-lg font-semibold text-navy-900 dark:text-gibelo-offwhite">
               {titulo}
             </h2>
             {descricao && (
-              <p id={`${tituloId}-desc`} className="mt-0.5 text-sm text-navy-400">
+              <p id={`${tituloId}-desc`} className="mt-0.5 text-sm text-navy-600 dark:text-gibelo-areia">
                 {descricao}
               </p>
             )}
@@ -108,7 +108,7 @@ export function Modal({
             type="button"
             onClick={onClose}
             aria-label="Fechar"
-            className="-mr-1 rounded-lg p-1.5 text-navy-400 transition-colors hover:bg-navy-50 hover:text-navy-900"
+            className="-mr-1 rounded-lg p-1.5 text-navy-600 transition-colors hover:bg-navy-50 hover:text-navy-900 dark:text-gibelo-areia dark:hover:bg-dark-elevated dark:hover:text-gibelo-offwhite"
           >
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
               <path

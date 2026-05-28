@@ -67,11 +67,11 @@ export function DealTarefas({ dealId, responsavelDoDeal }: DealTarefasProps) {
   return (
     <section
       aria-label="Tarefas da oportunidade"
-      className="mt-4 rounded-xl border border-navy-100 bg-navy-50 p-4"
+      className="mt-4 rounded-xl border border-navy-100 dark:border-dark-border bg-navy-50 dark:bg-dark-elevated p-4"
     >
       <header className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-navy-900">Tarefas</h3>
-        <span className="text-xs text-navy-400">
+        <h3 className="text-sm font-semibold text-navy-900 dark:text-gibelo-offwhite">Tarefas</h3>
+        <span className="text-xs text-navy-700 dark:text-gibelo-cinza-quente">
           {tarefasDoDeal.filter((t) => !t.concluida).length} abertas
         </span>
       </header>
@@ -148,7 +148,7 @@ export function DealTarefas({ dealId, responsavelDoDeal }: DealTarefasProps) {
 
       <ul className="mt-3 space-y-2">
         {tarefasDoDeal.length === 0 ? (
-          <li className="py-3 text-center text-xs text-navy-400">
+          <li className="py-3 text-center text-xs text-navy-700 dark:text-gibelo-cinza-quente">
             Nenhuma tarefa ainda.
           </li>
         ) : (
@@ -157,30 +157,30 @@ export function DealTarefas({ dealId, responsavelDoDeal }: DealTarefasProps) {
             return (
               <li
                 key={t.id}
-                className={`flex items-center gap-3 rounded-lg border bg-white px-3 py-2 ${
+                className={`flex items-center gap-3 rounded-lg border bg-white dark:bg-dark-surface px-3 py-2 ${
                   venc
                     ? "border-red-200 bg-red-50/30"
-                    : "border-navy-100"
+                    : "border-navy-100 dark:border-dark-border"
                 }`}
               >
                 <input
                   type="checkbox"
                   checked={t.concluida}
                   onChange={() => toggle(t)}
-                  className="h-4 w-4 rounded border-navy-300 text-navy-900 focus:ring-navy-500"
+                  className="h-4 w-4 rounded border-navy-300 text-navy-900 dark:text-gibelo-offwhite focus:ring-navy-500"
                   aria-label={`Marcar tarefa "${t.titulo}" como ${t.concluida ? "pendente" : "concluída"}`}
                 />
                 <div className="flex-1">
                   <p
                     className={`text-sm ${
                       t.concluida
-                        ? "text-navy-400 line-through"
-                        : "text-navy-900"
+                        ? "text-navy-700 dark:text-gibelo-cinza-quente line-through"
+                        : "text-navy-900 dark:text-gibelo-offwhite"
                     }`}
                   >
                     {t.titulo}
                   </p>
-                  <div className="mt-0.5 flex flex-wrap items-center gap-2 text-[11px] text-navy-500">
+                  <div className="mt-0.5 flex flex-wrap items-center gap-2 text-[11px] text-navy-700 dark:text-gibelo-areia">
                     <span
                       className={
                         venc ? "font-semibold text-red-600" : undefined
@@ -197,7 +197,7 @@ export function DealTarefas({ dealId, responsavelDoDeal }: DealTarefasProps) {
                 <button
                   type="button"
                   onClick={() => remover(t.id)}
-                  className="text-xs text-navy-400 transition-colors hover:text-red-600"
+                  className="text-xs text-navy-700 dark:text-gibelo-cinza-quente transition-colors hover:text-red-600"
                   aria-label={`Remover tarefa "${t.titulo}"`}
                 >
                   Remover

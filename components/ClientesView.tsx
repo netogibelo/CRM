@@ -66,7 +66,7 @@ export function ClientesView() {
       </div>
 
       {filtrados.length === 0 ? (
-        <p className="rounded-2xl border border-dashed border-navy-200 bg-white px-6 py-12 text-center text-sm text-navy-400">
+        <p className="rounded-2xl border border-dashed border-navy-200 dark:border-dark-border dark:border-dark-border bg-white dark:bg-dark-surface px-6 py-12 text-center text-sm text-navy-700 dark:text-gibelo-cinza-quente">
           {clientes.length === 0
             ? "Nenhum cliente cadastrado ainda."
             : "Nenhum cliente encontrado para a busca."}
@@ -84,24 +84,24 @@ export function ClientesView() {
                     setEmEdicao(c);
                     setFormAberto(true);
                   }}
-                  className="flex w-full flex-col rounded-xl border border-navy-100 bg-white p-4 text-left shadow-card transition-all hover:-translate-y-0.5 hover:border-navy-200 hover:shadow-card-hover"
+                  className="flex w-full flex-col rounded-xl border border-navy-100 dark:border-dark-border bg-white dark:bg-dark-surface p-4 text-left shadow-card transition-all hover:-translate-y-0.5 hover:border-navy-200 dark:hover:border-gibelo-areia/40 dark:border-dark-border hover:shadow-card-hover"
                   aria-label={`Editar cliente ${c.nome}`}
                 >
                   <div className="flex items-start justify-between gap-2">
-                    <span className="text-sm font-semibold text-navy-900">
+                    <span className="text-sm font-semibold text-navy-900 dark:text-gibelo-offwhite">
                       {c.nome}
                     </span>
                     {c.exemplo && <ExemploBadge />}
                   </div>
-                  <div className="mt-2 space-y-1 text-xs text-navy-500">
+                  <div className="mt-2 space-y-1 text-xs text-navy-700 dark:text-gibelo-areia">
                     {c.telefone && <p>{c.telefone}</p>}
                     {c.email && <p className="truncate">{c.email}</p>}
                     {!c.telefone && !c.email && (
-                      <p className="text-navy-300">Sem contato cadastrado</p>
+                      <p className="text-navy-500 dark:text-gibelo-cinza-quente">Sem contato cadastrado</p>
                     )}
                   </div>
                   <div className="mt-3 flex flex-wrap gap-1.5">
-                    <span className="inline-flex w-fit items-center rounded-full bg-navy-50 px-2 py-0.5 text-[11px] font-medium text-navy-500">
+                    <span className="inline-flex w-fit items-center rounded-full bg-navy-50 dark:bg-dark-elevated px-2 py-0.5 text-[11px] font-medium text-navy-700 dark:text-gibelo-areia">
                       {usos} {usos === 1 ? "oportunidade" : "oportunidades"}
                     </span>
                     {qtdContatos > 0 && (

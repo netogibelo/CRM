@@ -2,15 +2,37 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import { useClients, useDeals } from "@/lib/crm-store";
-import { DashboardView } from "@/components/DashboardView";
 import { FunilView } from "@/components/FunilView";
-import { AtividadesView } from "@/components/AtividadesView";
 import { ClientesView } from "@/components/ClientesView";
 import { ConfiguracoesView } from "@/components/ConfiguracoesView";
 import { HistoricoView } from "@/components/HistoricoView";
 import { PerfilButton } from "@/components/PerfilButton";
 import { NotificacoesSino } from "@/components/NotificacoesSino";
+import { ThemeToggle } from "@/components/ThemeToggle";
+
+// DashboardView usa Recharts (~250KB de bundle). AtividadesView usa @dnd-kit.
+// Carregamos sob demanda — quem entra direto no Funil paga só o JS do Funil,
+// melhorando LCP/TBT da abertura do app.
+const PlaceholderCarregando = () => (
+  <div
+    className="py-16 text-center text-sm text-navy-500 dark:text-gibelo-areia"
+    role="status"
+  >
+    Carregando…
+  </div>
+);
+
+const DashboardView = dynamic(
+  () => import("@/components/DashboardView").then((m) => m.DashboardView),
+  { loading: PlaceholderCarregando, ssr: false },
+);
+
+const AtividadesView = dynamic(
+  () => import("@/components/AtividadesView").then((m) => m.AtividadesView),
+  { loading: PlaceholderCarregando, ssr: false },
+);
 
 type Aba =
   | "dashboard"
@@ -52,17 +74,28 @@ export default function HomePage() {
           width={180}
           height={68}
           priority
-          className="h-auto w-32 sm:w-40"
+          sizes="(max-width: 640px) 128px, 160px"
+          className="h-auto w-32 dark:hidden sm:w-40"
         />
-        <div className="flex-1 border-l border-navy-200 pl-3">
-          <h1 className="text-lg font-bold tracking-tight text-navy-900 sm:text-xl">
+        <Image
+          src="/logo-gibelo-branco.png"
+          alt="Gibelo Construtora"
+          width={180}
+          height={68}
+          priority
+          sizes="(max-width: 640px) 128px, 160px"
+          className="hidden h-auto w-32 dark:block sm:w-40"
+        />
+        <div className="flex-1 border-l border-navy-200 pl-3 dark:border-dark-border">
+          <h1 className="text-lg font-bold tracking-tight text-navy-900 dark:text-gibelo-offwhite sm:text-xl">
             Pipeline de Vendas
           </h1>
-          <p className="text-xs text-navy-400 sm:text-sm">
+          <p className="text-xs text-navy-500 dark:text-gibelo-areia sm:text-sm">
             Obras por taxa de administração a preço de custo
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <ThemeToggle />
           <NotificacoesSino
             onIrParaDeal={() => setAba("funil")}
             onIrParaDashboard={() => setAba("dashboard")}
@@ -74,7 +107,7 @@ export default function HomePage() {
       <div
         role="tablist"
         aria-label="Seções do CRM"
-        className="scrollbar-board mt-6 flex gap-1 overflow-x-auto border-b border-navy-100"
+        className="scrollbar-board mt-6 flex gap-1 overflow-x-auto border-b border-navy-100 dark:border-dark-border"
       >
         {tabs.map((t) => (
           <button
@@ -86,13 +119,13 @@ export default function HomePage() {
             onClick={() => setAba(t.id)}
             className={`relative -mb-px flex shrink-0 items-center gap-1.5 border-b-2 px-3 py-2.5 text-sm font-medium transition-colors ${
               aba === t.id
-                ? "border-navy-900 text-navy-900"
-                : "border-transparent text-navy-400 hover:text-navy-700"
+                ? "border-navy-900 text-navy-900 dark:border-gibelo-areia dark:text-gibelo-offwhite"
+                : "border-transparent text-navy-500 hover:text-navy-700 dark:text-gibelo-cinza-quente dark:hover:text-gibelo-offwhite"
             }`}
           >
             {t.label}
             {typeof t.badge === "number" && (
-              <span className="rounded-full bg-navy-100 px-1.5 py-0.5 text-xs text-navy-600">
+              <span className="rounded-full bg-navy-100 px-1.5 py-0.5 text-xs text-navy-700 dark:bg-dark-elevated dark:text-gibelo-areia">
                 {t.badge}
               </span>
             )}
@@ -102,12 +135,7 @@ export default function HomePage() {
 
       <div className="mt-6">
         {carregando && aba !== "atividades" ? (
-          <div
-            className="py-16 text-center text-sm text-navy-400"
-            role="status"
-          >
-            Carregando…
-          </div>
+          <PlaceholderCarregando />
         ) : (
           <div
             id={`painel-${aba}`}

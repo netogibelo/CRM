@@ -34,7 +34,7 @@ const origemPaleta = [
   "bg-rose-50 text-rose-700 ring-rose-600/20",
   "bg-teal-50 text-teal-700 ring-teal-600/20",
   "bg-indigo-50 text-indigo-700 ring-indigo-600/20",
-  "bg-navy-100 text-navy-600 ring-navy-600/20",
+  "bg-navy-100 dark:bg-dark-elevated text-navy-700 dark:text-gibelo-areia ring-navy-600/20",
 ];
 
 function hash(s: string): number {
@@ -87,30 +87,30 @@ export function DealCard({
       aria-label={`Oportunidade ${deal.projeto}, cliente ${clienteNome(
         deal.clienteId,
       )}, valor ${formatBRL(deal.valor)}. Abrir para editar.`}
-      className={`group cursor-grab rounded-xl border border-navy-100 bg-white p-3.5 shadow-card transition-all hover:-translate-y-0.5 hover:border-navy-200 hover:shadow-card-hover active:cursor-grabbing ${
+      className={`group cursor-grab rounded-xl border border-navy-100 dark:border-dark-border bg-white dark:bg-dark-surface p-3.5 shadow-card transition-all hover:-translate-y-0.5 hover:border-navy-200 dark:hover:border-gibelo-areia/40 dark:border-dark-border hover:shadow-card-hover active:cursor-grabbing ${
         arrastando ? "opacity-40" : "opacity-100"
       }`}
     >
       <div className="flex items-start justify-between gap-2">
-        <h4 className="text-sm font-semibold leading-snug text-navy-900">
+        <h4 className="text-sm font-semibold leading-snug text-navy-900 dark:text-gibelo-offwhite">
           {deal.projeto}
         </h4>
         {deal.exemplo && <ExemploBadge />}
       </div>
 
-      <p className="mt-0.5 text-xs text-navy-500">{clienteNome(deal.clienteId)}</p>
+      <p className="mt-0.5 text-xs text-navy-700 dark:text-gibelo-areia">{clienteNome(deal.clienteId)}</p>
       {contato && (
-        <p className="mt-0.5 text-[11px] text-navy-400">
+        <p className="mt-0.5 text-[11px] text-navy-700 dark:text-gibelo-cinza-quente">
           {contato.nome}
           {contato.cargo ? ` · ${contato.cargo}` : ""}
         </p>
       )}
 
-      <p className="mt-2 text-base font-semibold text-navy-900">
+      <p className="mt-2 text-base font-semibold text-navy-900 dark:text-gibelo-offwhite">
         {formatBRL(deal.valor)}
       </p>
       {qtdServicos > 1 && (
-        <p className="mt-0.5 text-[11px] text-navy-400">
+        <p className="mt-0.5 text-[11px] text-navy-700 dark:text-gibelo-cinza-quente">
           {qtdServicos} serviços
         </p>
       )}
@@ -125,19 +125,19 @@ export function DealCard({
           {nomeOrigem}
         </span>
         {tipoObraAbrev && (
-          <span className="inline-flex items-center rounded-full bg-navy-50 px-2 py-0.5 text-[11px] font-medium text-navy-600 ring-1 ring-inset ring-navy-200">
+          <span className="inline-flex items-center rounded-full bg-navy-50 dark:bg-dark-elevated px-2 py-0.5 text-[11px] font-medium text-navy-700 dark:text-gibelo-areia ring-1 ring-inset ring-navy-200">
             {tipoObraAbrev}
           </span>
         )}
         {localExibir && (
-          <span className="text-[11px] text-navy-400" title={localExibir}>
+          <span className="text-[11px] text-navy-700 dark:text-gibelo-cinza-quente" title={localExibir}>
             · {localExibir}
           </span>
         )}
       </div>
 
       <div className="mt-3 flex items-center justify-between border-t border-navy-50 pt-2.5">
-        <span className="inline-flex items-center gap-1 text-xs text-navy-400">
+        <span className="inline-flex items-center gap-1 text-xs text-navy-700 dark:text-gibelo-cinza-quente">
           <svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true">
             <path
               d="M5 1v2M11 1v2M2.5 6.5h11M3 3h10a1 1 0 011 1v9a1 1 0 01-1 1H3a1 1 0 01-1-1V4a1 1 0 011-1z"

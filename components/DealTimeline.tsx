@@ -13,7 +13,7 @@ interface DealTimelineProps {
 }
 
 const TIPOS: { value: HistoricoTipo; label: string; cor: string }[] = [
-  { value: "nota", label: "Nota", cor: "bg-navy-100 text-navy-700" },
+  { value: "nota", label: "Nota", cor: "bg-navy-100 dark:bg-dark-elevated text-navy-700 dark:text-gibelo-offwhite" },
   { value: "contato", label: "Contato", cor: "bg-sky-100 text-sky-700" },
   { value: "follow_up", label: "Follow-up", cor: "bg-amber-100 text-amber-700" },
   {
@@ -24,7 +24,7 @@ const TIPOS: { value: HistoricoTipo; label: string; cor: string }[] = [
 ];
 
 function corDoTipo(tipo: HistoricoTipo): string {
-  return TIPOS.find((t) => t.value === tipo)?.cor ?? "bg-navy-100 text-navy-700";
+  return TIPOS.find((t) => t.value === tipo)?.cor ?? "bg-navy-100 dark:bg-dark-elevated text-navy-700 dark:text-gibelo-offwhite";
 }
 
 function labelDoTipo(tipo: HistoricoTipo): string {
@@ -86,11 +86,11 @@ export function DealTimeline({ dealId, reloadKey = 0 }: DealTimelineProps) {
   return (
     <section
       aria-label="Histórico da oportunidade"
-      className="mt-6 rounded-xl border border-navy-100 bg-navy-50 p-4"
+      className="mt-6 rounded-xl border border-navy-100 dark:border-dark-border bg-navy-50 dark:bg-dark-elevated p-4"
     >
       <header className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-navy-900">Histórico</h3>
-        <span className="text-xs text-navy-400">
+        <h3 className="text-sm font-semibold text-navy-900 dark:text-gibelo-offwhite">Histórico</h3>
+        <span className="text-xs text-navy-700 dark:text-gibelo-cinza-quente">
           {itens.length} {itens.length === 1 ? "registro" : "registros"}
         </span>
       </header>
@@ -156,14 +156,14 @@ export function DealTimeline({ dealId, reloadKey = 0 }: DealTimelineProps) {
       <div className="mt-4">
         {carregando ? (
           <p
-            className="py-6 text-center text-xs text-navy-400"
+            className="py-6 text-center text-xs text-navy-700 dark:text-gibelo-cinza-quente"
             role="status"
             aria-live="polite"
           >
             Carregando histórico…
           </p>
         ) : itens.length === 0 ? (
-          <p className="py-6 text-center text-xs text-navy-400">
+          <p className="py-6 text-center text-xs text-navy-700 dark:text-gibelo-cinza-quente">
             Sem registros ainda. Adicione notas, contatos ou follow-ups.
           </p>
         ) : (
@@ -171,7 +171,7 @@ export function DealTimeline({ dealId, reloadKey = 0 }: DealTimelineProps) {
             {itens.map((item) => (
               <li
                 key={item.id}
-                className="rounded-lg border border-navy-100 bg-white p-3"
+                className="rounded-lg border border-navy-100 dark:border-dark-border bg-white dark:bg-dark-surface p-3"
               >
                 <div className="flex items-start justify-between gap-2">
                   <span
@@ -182,15 +182,15 @@ export function DealTimeline({ dealId, reloadKey = 0 }: DealTimelineProps) {
                     {labelDoTipo(item.tipo)}
                   </span>
                   <time
-                    className="shrink-0 text-[11px] text-navy-400"
+                    className="shrink-0 text-[11px] text-navy-700 dark:text-gibelo-cinza-quente"
                     dateTime={item.criadoEm}
                   >
                     {formatDataHora(item.criadoEm)}
                   </time>
                 </div>
-                <p className="mt-2 text-sm text-navy-800">{item.descricao}</p>
+                <p className="mt-2 text-sm text-navy-800 dark:text-gibelo-offwhite">{item.descricao}</p>
                 {item.autorEmail && (
-                  <p className="mt-1 text-[11px] text-navy-400">
+                  <p className="mt-1 text-[11px] text-navy-700 dark:text-gibelo-cinza-quente">
                     por {item.autorEmail}
                   </p>
                 )}

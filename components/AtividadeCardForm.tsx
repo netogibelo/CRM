@@ -85,7 +85,7 @@ export function AtividadeCardForm({
 
           <div>
             <label htmlFor="card-desc" className={labelCls}>
-              Descrição <span className="text-navy-300">(opcional)</span>
+              Descrição <span className="text-navy-500 dark:text-gibelo-cinza-quente">(opcional)</span>
             </label>
             <textarea
               id="card-desc"
@@ -100,7 +100,7 @@ export function AtividadeCardForm({
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label htmlFor="card-data" className={labelCls}>
-                Data <span className="text-navy-300">(opcional)</span>
+                Data <span className="text-navy-500 dark:text-gibelo-cinza-quente">(opcional)</span>
               </label>
               <input
                 id="card-data"

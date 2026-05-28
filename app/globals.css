@@ -6,12 +6,20 @@
   color-scheme: light;
 }
 
+html.dark {
+  color-scheme: dark;
+}
+
 html {
   scroll-behavior: smooth;
 }
 
 body {
-  @apply bg-gibelo-offwhite text-navy-900 antialiased;
+  @apply bg-gibelo-offwhite text-navy-900 antialiased transition-colors duration-200;
+}
+
+html.dark body {
+  @apply bg-dark-bg text-gibelo-offwhite;
 }
 
 /* Faixa de rolagem discreta para o board horizontal. */
@@ -29,12 +37,24 @@ body {
 .scrollbar-board::-webkit-scrollbar-thumb:hover {
   background-color: #9fb6cd;
 }
+html.dark .scrollbar-board {
+  scrollbar-color: #2A3A5A transparent;
+}
+html.dark .scrollbar-board::-webkit-scrollbar-thumb {
+  background-color: #2A3A5A;
+}
+html.dark .scrollbar-board::-webkit-scrollbar-thumb:hover {
+  background-color: #617486;
+}
 
 /* Anel de foco consistente e acessível em toda a interface. */
 *:focus-visible {
   outline: 2px solid #00385C;
   outline-offset: 2px;
   border-radius: 4px;
+}
+html.dark *:focus-visible {
+  outline-color: #C8B89D;
 }
 
 @media (prefers-reduced-motion: reduce) {

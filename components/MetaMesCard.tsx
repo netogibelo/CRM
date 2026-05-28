@@ -55,7 +55,7 @@ export function MetaMesCard() {
     emerald: "text-emerald-700",
     amber: "text-amber-700",
     red: "text-red-700",
-    navy: "text-navy-500",
+    navy: "text-navy-700 dark:text-gibelo-areia",
   } as const;
 
   const pctClamp = Math.min(100, Math.max(0, resumo.percentual));
@@ -79,18 +79,18 @@ export function MetaMesCard() {
   return (
     <section
       aria-label="Meta do mês"
-      className="rounded-xl border border-navy-100 bg-white p-4"
+      className="rounded-xl border border-navy-100 dark:border-dark-border bg-white dark:bg-dark-surface p-4"
     >
       <div className="flex items-baseline justify-between gap-2">
         <div>
-          <h3 className="text-sm font-semibold text-navy-900">Meta do mês</h3>
-          <p className="text-xs text-navy-400">{nomeMes(mes)}</p>
+          <h3 className="text-sm font-semibold text-navy-900 dark:text-gibelo-offwhite">Meta do mês</h3>
+          <p className="text-xs text-navy-700 dark:text-gibelo-cinza-quente">{nomeMes(mes)}</p>
         </div>
         {!editando && (
           <button
             type="button"
             onClick={() => setEditando(true)}
-            className="rounded-md px-2 py-1 text-xs font-medium text-navy-500 transition-colors hover:bg-navy-50 hover:text-navy-900"
+            className="rounded-md px-2 py-1 text-xs font-medium text-navy-700 dark:text-gibelo-areia transition-colors hover:bg-navy-50 dark:hover:bg-dark-elevated dark:bg-dark-elevated hover:text-navy-900 dark:text-gibelo-offwhite"
             aria-label="Editar meta do mês"
           >
             {resumo.valorMeta > 0 ? "Editar" : "Definir meta"}
@@ -117,7 +117,7 @@ export function MetaMesCard() {
               if (e.key === "Escape") handleCancelar();
             }}
             autoFocus
-            className="w-44 rounded-md border border-navy-200 px-2 py-1.5 text-sm text-navy-900 focus:border-navy-500 focus:outline-none focus:ring-2 focus:ring-navy-500/30"
+            className="w-44 rounded-md border border-navy-200 dark:border-dark-border px-2 py-1.5 text-sm text-navy-900 dark:text-gibelo-offwhite focus:border-navy-500 focus:outline-none focus:ring-2 focus:ring-navy-500/30"
           />
           <button
             type="button"
@@ -131,7 +131,7 @@ export function MetaMesCard() {
             type="button"
             onClick={handleCancelar}
             disabled={salvando}
-            className="rounded-md border border-navy-200 px-3 py-1.5 text-xs font-medium text-navy-700 transition-colors hover:bg-navy-50"
+            className="rounded-md border border-navy-200 dark:border-dark-border px-3 py-1.5 text-xs font-medium text-navy-700 dark:text-gibelo-offwhite transition-colors hover:bg-navy-50 dark:hover:bg-dark-elevated dark:bg-dark-elevated"
           >
             Cancelar
           </button>
@@ -139,16 +139,16 @@ export function MetaMesCard() {
       ) : (
         <>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-2xl font-bold tracking-tight text-navy-900">
+            <span className="text-2xl font-bold tracking-tight text-navy-900 dark:text-gibelo-offwhite">
               {formatBRL(resumo.valorAtual)}
             </span>
-            <span className="text-xs text-navy-400">
+            <span className="text-xs text-navy-700 dark:text-gibelo-cinza-quente">
               de {formatBRL(resumo.valorMeta)}
             </span>
           </div>
 
           <div
-            className="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-navy-100"
+            className="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-navy-100 dark:bg-dark-elevated"
             role="progressbar"
             aria-valuemin={0}
             aria-valuemax={100}
@@ -168,7 +168,7 @@ export function MetaMesCard() {
                 : "Defina a meta deste mês"}
             </span>
             {resumo.valorMeta > 0 && resumo.faltante > 0 && (
-              <span className="text-navy-400">
+              <span className="text-navy-700 dark:text-gibelo-cinza-quente">
                 Falta {formatBRL(resumo.faltante)}
               </span>
             )}

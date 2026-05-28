@@ -55,13 +55,13 @@ export function AtividadeCard({
         if (d && Math.hypot(e.clientX - d.x, e.clientY - d.y) > 6) return;
         onAbrir(card);
       }}
-      className={`group relative cursor-grab rounded-xl border border-navy-100 bg-white shadow-card transition-shadow hover:shadow-card-hover active:cursor-grabbing ${
+      className={`group relative cursor-grab rounded-xl border border-navy-100 dark:border-dark-border bg-white dark:bg-dark-surface shadow-card transition-shadow hover:shadow-card-hover active:cursor-grabbing ${
         barra ? `border-l-4 ${barra}` : ""
       } ${isDragging ? "opacity-40" : ""}`}
     >
       <div className="p-3">
         <div className="flex items-start justify-between gap-2">
-          <p className="text-sm font-medium leading-snug text-navy-900">
+          <p className="text-sm font-medium leading-snug text-navy-900 dark:text-gibelo-offwhite">
             {card.titulo}
           </p>
           <button
@@ -74,7 +74,7 @@ export function AtividadeCard({
             aria-label="Ações do card"
             aria-haspopup="menu"
             aria-expanded={menu}
-            className="-mr-1 -mt-0.5 shrink-0 rounded-md p-1 text-navy-300 transition-colors hover:bg-navy-50 hover:text-navy-700"
+            className="-mr-1 -mt-0.5 shrink-0 rounded-md p-1 text-navy-500 dark:text-gibelo-cinza-quente transition-colors hover:bg-navy-50 dark:hover:bg-dark-elevated dark:bg-dark-elevated hover:text-navy-700 dark:text-gibelo-offwhite"
           >
             <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
               <circle cx="8" cy="3.5" r="1.3" fill="currentColor" />
@@ -85,13 +85,13 @@ export function AtividadeCard({
         </div>
 
         {card.descricao && (
-          <p className="mt-1 line-clamp-2 text-xs text-navy-500">
+          <p className="mt-1 line-clamp-2 text-xs text-navy-700 dark:text-gibelo-areia">
             {card.descricao}
           </p>
         )}
 
         {card.data && (
-          <span className="mt-2 inline-flex items-center gap-1 rounded-md bg-navy-50 px-1.5 py-0.5 text-[11px] font-medium text-navy-500">
+          <span className="mt-2 inline-flex items-center gap-1 rounded-md bg-navy-50 dark:bg-dark-elevated px-1.5 py-0.5 text-[11px] font-medium text-navy-700 dark:text-gibelo-areia">
             <svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true">
               <path
                 d="M5 1v2M11 1v2M2.5 6.5h11M3 3h10a1 1 0 011 1v9a1 1 0 01-1 1H3a1 1 0 01-1-1V4a1 1 0 011-1z"
@@ -121,7 +121,7 @@ export function AtividadeCard({
           />
           <div
             role="menu"
-            className="absolute right-2 top-9 z-20 w-44 overflow-hidden rounded-lg border border-navy-100 bg-white py-1 shadow-card-hover"
+            className="absolute right-2 top-9 z-20 w-44 overflow-hidden rounded-lg border border-navy-100 dark:border-dark-border bg-white dark:bg-dark-surface py-1 shadow-card-hover"
             onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => e.stopPropagation()}
           >
@@ -133,15 +133,15 @@ export function AtividadeCard({
                 setMenu(false);
                 onAbrir(card);
               }}
-              className="block w-full px-3 py-1.5 text-left text-sm font-medium text-navy-700 transition-colors hover:bg-navy-50"
+              className="block w-full px-3 py-1.5 text-left text-sm font-medium text-navy-700 dark:text-gibelo-offwhite transition-colors hover:bg-navy-50 dark:hover:bg-dark-elevated dark:bg-dark-elevated"
             >
               Editar
             </button>
-            <p className="px-3 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-wide text-navy-300">
+            <p className="px-3 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-wide text-navy-500 dark:text-gibelo-cinza-quente">
               Mover para
             </p>
             {outras.length === 0 ? (
-              <p className="px-3 py-1.5 text-xs text-navy-400">
+              <p className="px-3 py-1.5 text-xs text-navy-700 dark:text-gibelo-cinza-quente">
                 Não há outras listas.
               </p>
             ) : (
@@ -155,7 +155,7 @@ export function AtividadeCard({
                     onMover(card.id, l.id);
                     setMenu(false);
                   }}
-                  className="block w-full px-3 py-1.5 text-left text-sm text-navy-700 transition-colors hover:bg-navy-50"
+                  className="block w-full px-3 py-1.5 text-left text-sm text-navy-700 dark:text-gibelo-offwhite transition-colors hover:bg-navy-50 dark:hover:bg-dark-elevated dark:bg-dark-elevated"
                 >
                   {l.nome}
                 </button>

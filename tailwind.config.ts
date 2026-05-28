@@ -15,6 +15,7 @@ import type { Config } from "tailwindcss";
  * derivadas da nova cor primária.
  */
 const config: Config = {
+  darkMode: "class",
   content: [
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -45,6 +46,17 @@ const config: Config = {
           areia: "#C8B89D",
           "cinza-quente": "#908475",
           "cinza-frio": "#7CB780",
+        },
+        /**
+         * Superfícies do modo dark — derivadas da paleta Gibelo Construtora
+         * para manter consistência visual da marca no tema escuro.
+         */
+        dark: {
+          bg: "#10182D",       // Preto Tinta — fundo geral
+          surface: "#1A2540",  // cards, modais, header
+          elevated: "#1E2D47", // inputs, dropdowns, tooltip
+          border: "#2A3A5A",   // bordas sutis
+          divider: "#1F2C45",  // divisores fracos
         },
         brand: {
           gold: "#C8B89D",

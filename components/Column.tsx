@@ -31,7 +31,7 @@ export function Column({
   return (
     <section
       aria-label={`Etapa ${stage.nome}, ${deals.length} oportunidades`}
-      className="flex w-[280px] shrink-0 flex-col rounded-2xl bg-navy-100/50 sm:w-[300px]"
+      className="flex w-[280px] shrink-0 flex-col rounded-2xl bg-navy-100/50 dark:bg-dark-elevated/40 sm:w-[300px]"
       {...dropProps}
     >
       <header className="flex items-center justify-between gap-2 px-3.5 pb-2 pt-3.5">
@@ -41,20 +41,20 @@ export function Column({
             style={{ backgroundColor: corDaEtapa(stage.ordem) }}
             aria-hidden="true"
           />
-          <h3 className="text-sm font-semibold text-navy-800">{stage.nome}</h3>
+          <h3 className="text-sm font-semibold text-navy-800 dark:text-gibelo-offwhite">{stage.nome}</h3>
         </div>
-        <span className="rounded-full bg-white px-2 py-0.5 text-xs font-semibold text-navy-500">
+        <span className="rounded-full bg-white dark:bg-dark-surface px-2 py-0.5 text-xs font-semibold text-navy-700 dark:text-gibelo-areia">
           {deals.length}
         </span>
       </header>
 
       <div
         className={`flex flex-1 flex-col gap-2.5 rounded-xl px-2.5 pb-2 transition-colors ${
-          sobre ? "bg-navy-200/60" : "bg-transparent"
+          sobre ? "bg-navy-200/60 dark:bg-dark-border/40" : "bg-transparent"
         }`}
       >
         {deals.length === 0 ? (
-          <p className="px-2 py-8 text-center text-xs text-navy-400">
+          <p className="px-2 py-8 text-center text-xs text-navy-700 dark:text-gibelo-cinza-quente">
             {sobre ? "Solte aqui" : "Nenhuma oportunidade"}
           </p>
         ) : (
@@ -71,11 +71,11 @@ export function Column({
         )}
       </div>
 
-      <footer className="mt-1 flex items-center justify-between border-t border-navy-200/70 px-3.5 py-2.5">
-        <span className="text-xs text-navy-500">
+      <footer className="mt-1 flex items-center justify-between border-t border-navy-200/70 dark:border-dark-border/70 px-3.5 py-2.5">
+        <span className="text-xs text-navy-700 dark:text-gibelo-areia">
           {deals.length} {deals.length === 1 ? "oportunidade" : "oportunidades"}
         </span>
-        <span className="text-xs font-semibold text-navy-800">
+        <span className="text-xs font-semibold text-navy-800 dark:text-gibelo-offwhite">
           {formatBRL(total)}
         </span>
       </footer>

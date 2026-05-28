@@ -107,7 +107,7 @@ export function NotificacoesSino({
       <button
         type="button"
         onClick={() => setAberto((v) => !v)}
-        className="relative rounded-lg border border-navy-200 p-1.5 text-navy-700 transition-colors hover:bg-navy-50"
+        className="relative rounded-lg border border-navy-200 dark:border-dark-border p-1.5 text-navy-700 dark:text-gibelo-offwhite transition-colors hover:bg-navy-50 dark:hover:bg-dark-elevated dark:bg-dark-elevated"
         aria-label={
           ativas.length > 0
             ? `Notificações (${ativas.length} pendente${ativas.length === 1 ? "" : "s"})`
@@ -151,20 +151,20 @@ export function NotificacoesSino({
         <div
           role="dialog"
           aria-label="Centro de notificações"
-          className="absolute right-0 top-full z-50 mt-2 w-[min(380px,calc(100vw-2rem))] overflow-hidden rounded-xl border border-navy-100 bg-white shadow-card-hover"
+          className="absolute right-0 top-full z-50 mt-2 w-[min(380px,calc(100vw-2rem))] overflow-hidden rounded-xl border border-navy-100 dark:border-dark-border bg-white dark:bg-dark-surface shadow-card-hover"
         >
-          <div className="flex items-baseline justify-between border-b border-navy-100 px-4 py-3">
-            <h2 className="text-sm font-semibold text-navy-900">
+          <div className="flex items-baseline justify-between border-b border-navy-100 dark:border-dark-border px-4 py-3">
+            <h2 className="text-sm font-semibold text-navy-900 dark:text-gibelo-offwhite">
               Notificações
             </h2>
-            <span className="text-xs text-navy-400">
+            <span className="text-xs text-navy-700 dark:text-gibelo-cinza-quente">
               {ativas.length} pendente{ativas.length === 1 ? "" : "s"}
             </span>
           </div>
 
           <div className="max-h-[60vh] overflow-y-auto">
             {ativas.length === 0 ? (
-              <p className="px-4 py-6 text-center text-xs text-navy-400">
+              <p className="px-4 py-6 text-center text-xs text-navy-700 dark:text-gibelo-cinza-quente">
                 Nenhuma pendência. Bom trabalho.
               </p>
             ) : (
@@ -199,17 +199,17 @@ export function NotificacoesSino({
                           {ROTULO_TIPO[n.tipo]}
                         </span>
                       </div>
-                      <p className="mt-1 text-sm font-medium text-navy-900">
+                      <p className="mt-1 text-sm font-medium text-navy-900 dark:text-gibelo-offwhite">
                         {n.projeto}
                       </p>
-                      <p className="mt-0.5 text-xs text-navy-500">
+                      <p className="mt-0.5 text-xs text-navy-700 dark:text-gibelo-areia">
                         {n.detalhe}
                       </p>
                     </button>
                     <button
                       type="button"
                       onClick={() => handleMarcar(n)}
-                      className="shrink-0 rounded p-1 text-navy-400 transition-colors hover:bg-navy-50 hover:text-navy-700"
+                      className="shrink-0 rounded p-1 text-navy-700 dark:text-gibelo-cinza-quente transition-colors hover:bg-navy-50 dark:hover:bg-dark-elevated dark:bg-dark-elevated hover:text-navy-700 dark:text-gibelo-offwhite"
                       aria-label={`Marcar notificação como vista`}
                       title="Marcar como vista"
                     >

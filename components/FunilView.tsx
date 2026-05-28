@@ -59,7 +59,7 @@ export function FunilView() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-3">
-        <h2 className="text-base font-semibold text-navy-900">
+        <h2 className="text-base font-semibold text-navy-900 dark:text-gibelo-offwhite">
           Funil de oportunidades
         </h2>
         <button type="button" onClick={abrirNovo} className={btnPrimary}>
@@ -78,13 +78,13 @@ export function FunilView() {
       />
 
       {abertosFiltrados.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-navy-200 bg-white px-6 py-14 text-center">
-          <p className="text-sm font-medium text-navy-700">
+        <div className="rounded-2xl border border-dashed border-navy-200 dark:border-dark-border dark:border-dark-border bg-white dark:bg-dark-surface px-6 py-14 text-center">
+          <p className="text-sm font-medium text-navy-700 dark:text-gibelo-offwhite">
             {abertos.length === 0
               ? "Nenhuma oportunidade aberta no funil."
               : "Nenhuma oportunidade corresponde aos filtros."}
           </p>
-          <p className="mt-1 text-sm text-navy-400">
+          <p className="mt-1 text-sm text-navy-700 dark:text-gibelo-cinza-quente">
             {abertos.length === 0
               ? "Crie a primeira oportunidade para começar a acompanhar."
               : "Ajuste ou limpe os filtros para ver as oportunidades."}

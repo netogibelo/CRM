@@ -82,9 +82,9 @@ interface FiltrosFunilProps {
   filtradosCount: number;
 }
 
-const labelInline = "block text-[11px] font-semibold uppercase tracking-wide text-navy-500";
+const labelInline = "block text-[11px] font-semibold uppercase tracking-wide text-navy-700 dark:text-gibelo-areia";
 const inputInline =
-  "w-full rounded-md border border-navy-200 bg-white px-2.5 py-1.5 text-sm text-navy-900 placeholder:text-navy-300 focus:border-navy-500 focus:outline-none focus:ring-2 focus:ring-navy-500/30";
+  "w-full rounded-md border border-navy-200 dark:border-dark-border bg-white dark:bg-dark-surface px-2.5 py-1.5 text-sm text-navy-900 dark:text-gibelo-offwhite placeholder:text-navy-500 dark:placeholder:text-gibelo-cinza-quente focus:border-navy-500 focus:outline-none focus:ring-2 focus:ring-navy-500/30";
 
 export function FiltrosFunil({
   filtros,
@@ -116,7 +116,7 @@ export function FiltrosFunil({
   return (
     <section
       aria-label="Filtros do funil"
-      className="rounded-xl border border-navy-100 bg-white p-3"
+      className="rounded-xl border border-navy-100 dark:border-dark-border bg-white dark:bg-dark-surface p-3"
     >
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-3 lg:grid-cols-6">
         <div>
@@ -225,10 +225,10 @@ export function FiltrosFunil({
       </div>
 
       <div className="mt-3 flex items-center justify-between border-t border-navy-50 pt-2">
-        <span className="text-xs text-navy-500">
+        <span className="text-xs text-navy-700 dark:text-gibelo-areia">
           Mostrando{" "}
-          <strong className="text-navy-900">{filtradosCount}</strong> de{" "}
-          <strong className="text-navy-900">{totalDeals}</strong>{" "}
+          <strong className="text-navy-900 dark:text-gibelo-offwhite">{filtradosCount}</strong> de{" "}
+          <strong className="text-navy-900 dark:text-gibelo-offwhite">{totalDeals}</strong>{" "}
           oportunidade{totalDeals === 1 ? "" : "s"}
         </span>
         {algumAtivo && (

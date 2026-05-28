@@ -122,19 +122,19 @@ function StatCard({
       className={`rounded-xl border p-4 ${
         destaque
           ? "border-navy-900 bg-navy-900 text-white"
-          : "border-navy-100 bg-white"
+          : "border-navy-100 dark:border-dark-border bg-white dark:bg-dark-surface"
       }`}
     >
       <p
         className={`text-xs font-medium ${
-          destaque ? "text-navy-200" : "text-navy-400"
+          destaque ? "text-navy-200" : "text-navy-700 dark:text-gibelo-cinza-quente"
         }`}
       >
         {rotulo}
       </p>
       <p
         className={`mt-1.5 text-xl font-bold tracking-tight ${
-          destaque ? "text-white" : "text-navy-900"
+          destaque ? "text-white" : "text-navy-900 dark:text-gibelo-offwhite"
         }`}
       >
         {valor}
@@ -142,7 +142,7 @@ function StatCard({
       {detalhe && (
         <p
           className={`mt-0.5 text-xs ${
-            destaque ? "text-navy-300" : "text-navy-400"
+            destaque ? "text-navy-300" : "text-navy-700 dark:text-gibelo-cinza-quente"
           }`}
         >
           {detalhe}
@@ -164,11 +164,11 @@ function ChartCard({
   altura?: number;
 }) {
   return (
-    <div className="rounded-xl border border-navy-100 bg-white p-4">
+    <div className="rounded-xl border border-navy-100 dark:border-dark-border bg-white dark:bg-dark-surface p-4">
       <div className="mb-3 flex items-baseline justify-between gap-3">
-        <h3 className="text-sm font-semibold text-navy-900">{titulo}</h3>
+        <h3 className="text-sm font-semibold text-navy-900 dark:text-gibelo-offwhite">{titulo}</h3>
         {detalhe && (
-          <span className="text-xs text-navy-400">{detalhe}</span>
+          <span className="text-xs text-navy-700 dark:text-gibelo-cinza-quente">{detalhe}</span>
         )}
       </div>
       <div style={{ width: "100%", height: altura }}>{children}</div>
@@ -295,8 +295,8 @@ export function DashboardView() {
       {/* Cabeçalho + filtro de período */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-base font-semibold text-navy-900">Dashboard</h2>
-          <p className="text-xs text-navy-400">
+          <h2 className="text-base font-semibold text-navy-900 dark:text-gibelo-offwhite">Dashboard</h2>
+          <p className="text-xs text-navy-700 dark:text-gibelo-cinza-quente">
             Visão consolidada do funil — período: {periodo.label}
           </p>
         </div>
@@ -304,7 +304,7 @@ export function DashboardView() {
           <div
             role="tablist"
             aria-label="Período de análise"
-            className="inline-flex shrink-0 rounded-lg border border-navy-100 bg-white p-0.5"
+            className="inline-flex shrink-0 rounded-lg border border-navy-100 dark:border-dark-border bg-white dark:bg-dark-surface p-0.5"
           >
             {PERIODOS.map((p) => (
               <button
@@ -317,7 +317,7 @@ export function DashboardView() {
                 className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
                   periodoId === p.id
                     ? "bg-navy-900 text-white"
-                    : "text-navy-500 hover:text-navy-900"
+                    : "text-navy-700 dark:text-gibelo-areia hover:text-navy-900 dark:text-gibelo-offwhite"
                 }`}
               >
                 {p.label}
@@ -340,7 +340,7 @@ export function DashboardView() {
                   periodoDias: periodo.dias,
                 })
               }
-              className="inline-flex items-center gap-1.5 rounded-lg border border-navy-200 bg-white px-2.5 py-1 text-xs font-semibold text-navy-700 transition-colors hover:bg-navy-50"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-navy-200 dark:border-dark-border bg-white dark:bg-dark-surface px-2.5 py-1 text-xs font-semibold text-navy-700 dark:text-gibelo-offwhite transition-colors hover:bg-navy-50 dark:hover:bg-dark-elevated dark:bg-dark-elevated"
               aria-label="Exportar relatório em Excel"
               title="Baixar planilha XLSX com pipeline, fechados, perdidos e serviços"
             >
@@ -376,7 +376,7 @@ export function DashboardView() {
                   periodoDias: periodo.dias,
                 })
               }
-              className="inline-flex items-center gap-1.5 rounded-lg border border-navy-200 bg-white px-2.5 py-1 text-xs font-semibold text-navy-700 transition-colors hover:bg-navy-50"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-navy-200 dark:border-dark-border bg-white dark:bg-dark-surface px-2.5 py-1 text-xs font-semibold text-navy-700 dark:text-gibelo-offwhite transition-colors hover:bg-navy-50 dark:hover:bg-dark-elevated dark:bg-dark-elevated"
               aria-label="Exportar relatório em PDF"
               title="Gerar relatório imprimível em PDF"
             >
@@ -660,7 +660,7 @@ export function DashboardView() {
 
 function EmptyChart() {
   return (
-    <div className="flex h-full items-center justify-center text-xs text-navy-300">
+    <div className="flex h-full items-center justify-center text-xs text-navy-500 dark:text-gibelo-cinza-quente">
       Sem dados no período.
     </div>
   );

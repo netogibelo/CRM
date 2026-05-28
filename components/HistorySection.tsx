@@ -25,33 +25,33 @@ function HistoricoItem({
       <button
         type="button"
         onClick={() => onAbrir(deal)}
-        className="w-full rounded-xl border border-navy-100 bg-white p-3.5 text-left transition-colors hover:border-navy-200 hover:bg-navy-50/60"
+        className="w-full rounded-xl border border-navy-100 dark:border-dark-border bg-white dark:bg-dark-surface p-3.5 text-left transition-colors hover:border-navy-200 dark:hover:border-gibelo-areia/40 dark:border-dark-border hover:bg-navy-50 dark:hover:bg-dark-elevated dark:bg-dark-elevated/60"
         aria-label={`${deal.projeto}, ${formatBRL(deal.valor)}. Abrir detalhes.`}
       >
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="truncate text-sm font-semibold text-navy-900">
+            <p className="truncate text-sm font-semibold text-navy-900 dark:text-gibelo-offwhite">
               {deal.projeto}
             </p>
-            <p className="mt-0.5 text-xs text-navy-500">
+            <p className="mt-0.5 text-xs text-navy-700 dark:text-gibelo-areia">
               {clienteNome(deal.clienteId)}
             </p>
           </div>
           <p
             className={`shrink-0 text-sm font-bold ${
-              tipo === "ganho" ? "text-emerald-600" : "text-navy-400"
+              tipo === "ganho" ? "text-emerald-600" : "text-navy-700 dark:text-gibelo-cinza-quente"
             }`}
           >
             {formatBRL(deal.valor)}
           </p>
         </div>
-        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-navy-400">
+        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-navy-700 dark:text-gibelo-cinza-quente">
           <span>{origemNome(deal.origemId)}</span>
           <span aria-hidden="true">•</span>
           <span>{formatTimestampBR(deal.atualizadoEm)}</span>
         </div>
         {tipo === "perdido" && deal.motivoPerda && (
-          <p className="mt-2 rounded-lg bg-navy-50 px-2.5 py-1.5 text-xs text-navy-600">
+          <p className="mt-2 rounded-lg bg-navy-50 dark:bg-dark-elevated px-2.5 py-1.5 text-xs text-navy-700 dark:text-gibelo-areia">
             <span className="font-medium">Motivo:</span> {deal.motivoPerda}
           </p>
         )}
@@ -72,7 +72,7 @@ export function HistorySection({
     <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
       <section aria-label="Negócios ganhos">
         <div className="mb-3 flex items-center justify-between">
-          <h3 className="flex items-center gap-2 text-sm font-semibold text-navy-900">
+          <h3 className="flex items-center gap-2 text-sm font-semibold text-navy-900 dark:text-gibelo-offwhite">
             <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" aria-hidden="true" />
             Ganhos ({ganhos.length})
           </h3>
@@ -81,7 +81,7 @@ export function HistorySection({
           </span>
         </div>
         {ganhos.length === 0 ? (
-          <p className="rounded-xl border border-dashed border-navy-200 bg-white px-4 py-8 text-center text-sm text-navy-400">
+          <p className="rounded-xl border border-dashed border-navy-200 dark:border-dark-border dark:border-dark-border bg-white dark:bg-dark-surface px-4 py-8 text-center text-sm text-navy-700 dark:text-gibelo-cinza-quente">
             Nenhum negócio ganho ainda.
           </p>
         ) : (
@@ -95,16 +95,16 @@ export function HistorySection({
 
       <section aria-label="Negócios perdidos">
         <div className="mb-3 flex items-center justify-between">
-          <h3 className="flex items-center gap-2 text-sm font-semibold text-navy-900">
+          <h3 className="flex items-center gap-2 text-sm font-semibold text-navy-900 dark:text-gibelo-offwhite">
             <span className="h-2.5 w-2.5 rounded-full bg-red-400" aria-hidden="true" />
             Perdidos ({perdidos.length})
           </h3>
-          <span className="text-sm font-semibold text-navy-400">
+          <span className="text-sm font-semibold text-navy-700 dark:text-gibelo-cinza-quente">
             {formatBRL(totalPerdido)}
           </span>
         </div>
         {perdidos.length === 0 ? (
-          <p className="rounded-xl border border-dashed border-navy-200 bg-white px-4 py-8 text-center text-sm text-navy-400">
+          <p className="rounded-xl border border-dashed border-navy-200 dark:border-dark-border dark:border-dark-border bg-white dark:bg-dark-surface px-4 py-8 text-center text-sm text-navy-700 dark:text-gibelo-cinza-quente">
             Nenhum negócio perdido registrado.
           </p>
         ) : (

@@ -142,7 +142,7 @@ export function SortableConfigList<T>({
           disabled={items.length < 2}
           aria-label={tituloAlfabetizar}
           title={tituloAlfabetizar}
-          className="inline-flex items-center gap-1 rounded-md border border-navy-200 bg-white px-2 py-1 text-[11px] font-semibold text-navy-700 transition-colors hover:bg-navy-50 disabled:opacity-40 disabled:hover:bg-white"
+          className="inline-flex items-center gap-1 rounded-md border border-navy-200 dark:border-dark-border bg-white dark:bg-dark-surface px-2 py-1 text-[11px] font-semibold text-navy-700 dark:text-gibelo-offwhite transition-colors hover:bg-navy-50 dark:hover:bg-dark-elevated dark:bg-dark-elevated disabled:opacity-40 disabled:hover:bg-white dark:bg-dark-surface"
         >
           <svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true">
             <path
@@ -159,7 +159,7 @@ export function SortableConfigList<T>({
       </div>
 
       {items.length === 0 && emptyLabel ? (
-        <p className="py-3 text-center text-xs text-navy-400">{emptyLabel}</p>
+        <p className="py-3 text-center text-xs text-navy-700 dark:text-gibelo-cinza-quente">{emptyLabel}</p>
       ) : (
         <DndContext
           sensors={sensors}
@@ -193,7 +193,7 @@ export function DragHandle({ handle }: { handle: DragHandleProps }) {
       {...handle.attributes}
       {...(handle.listeners ?? {})}
       aria-label="Arrastar para reordenar"
-      className="shrink-0 cursor-grab touch-none rounded-md p-1 text-navy-300 transition-colors hover:bg-navy-50 hover:text-navy-700 active:cursor-grabbing"
+      className="shrink-0 cursor-grab touch-none rounded-md p-1 text-navy-500 dark:text-gibelo-cinza-quente transition-colors hover:bg-navy-50 dark:hover:bg-dark-elevated dark:bg-dark-elevated hover:text-navy-700 dark:text-gibelo-offwhite active:cursor-grabbing"
     >
       <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true">
         <circle cx="6" cy="4" r="1.2" fill="currentColor" />
