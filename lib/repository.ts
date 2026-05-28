@@ -710,6 +710,11 @@ function cardFromRow(row: Row): AtividadeCard {
       row.metragem === null || row.metragem === undefined
         ? null
         : Number(row.metragem),
+    dataInicio: row.data_inicio ?? null,
+    dataVencimento: row.data_vencimento ?? null,
+    horaVencimento: row.hora_vencimento ?? "",
+    recorrencia: (row.recorrencia ?? "nunca") as AtividadeCard["recorrencia"],
+    concluidaEm: row.concluida_em ?? null,
     criadoEm: row.criado_em,
     atualizadoEm: row.atualizado_em,
   };
@@ -727,6 +732,11 @@ function cardToRow(c: AtividadeCard): Row {
     fornecedor: c.fornecedor || null,
     numero_nf: c.numeroNF || null,
     metragem: c.metragem,
+    data_inicio: c.dataInicio,
+    data_vencimento: c.dataVencimento,
+    hora_vencimento: c.horaVencimento || null,
+    recorrencia: c.recorrencia,
+    concluida_em: c.concluidaEm,
     criado_em: c.criadoEm,
     atualizado_em: c.atualizadoEm,
   };
@@ -743,6 +753,11 @@ function cardPatchToRow(p: Partial<AtividadeCardInput>): Row {
   if (p.fornecedor !== undefined) r.fornecedor = p.fornecedor || null;
   if (p.numeroNF !== undefined) r.numero_nf = p.numeroNF || null;
   if (p.metragem !== undefined) r.metragem = p.metragem;
+  if (p.dataInicio !== undefined) r.data_inicio = p.dataInicio;
+  if (p.dataVencimento !== undefined) r.data_vencimento = p.dataVencimento;
+  if (p.horaVencimento !== undefined) r.hora_vencimento = p.horaVencimento || null;
+  if (p.recorrencia !== undefined) r.recorrencia = p.recorrencia;
+  if (p.concluidaEm !== undefined) r.concluida_em = p.concluidaEm;
   return r;
 }
 

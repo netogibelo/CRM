@@ -114,18 +114,55 @@ export function AtividadeCard({
         )}
 
         <div className="mt-2 flex flex-wrap items-center gap-1.5">
-          {card.data && (
-            <span className="inline-flex items-center gap-1 rounded-md bg-navy-50 dark:bg-dark-elevated px-1.5 py-0.5 text-[11px] font-medium text-navy-700 dark:text-gibelo-areia">
-              <svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true">
-                <path
-                  d="M5 1v2M11 1v2M2.5 6.5h11M3 3h10a1 1 0 011 1v9a1 1 0 01-1 1H3a1 1 0 01-1-1V4a1 1 0 011-1z"
-                  stroke="currentColor"
-                  strokeWidth="1.1"
-                  fill="none"
-                  strokeLinecap="round"
-                />
-              </svg>
-              {formatDateBR(card.data)}
+          {(() => {
+            const venc = card.dataVencimento ?? card.data;
+            if (!venc) return null;
+            const hoje = new Date();
+            hoje.setHours(0, 0, 0, 0);
+            const dv = new Date(venc + "T00:00:00");
+            const diff = (dv.getTime() - hoje.getTime()) / 86400000;
+            const concluido = Boolean(card.concluidaEm);
+            const cls = concluido
+              ? "bg-navy-50 text-navy-500 dark:bg-dark-elevated dark:text-gibelo-areia line-through"
+              : diff < 0
+                ? "bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-300"
+                : diff === 0
+                  ? "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-200"
+                  : "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300";
+            return (
+              <span
+                className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-medium ${cls}`}
+                title={
+                  concluido
+                    ? "Card concluído"
+                    : diff < 0
+                      ? `Atrasado em ${Math.abs(diff)} dia(s)`
+                      : diff === 0
+                        ? "Vence hoje"
+                        : `Vence em ${diff} dia(s)`
+                }
+              >
+                <svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true">
+                  <path
+                    d="M5 1v2M11 1v2M2.5 6.5h11M3 3h10a1 1 0 011 1v9a1 1 0 01-1 1H3a1 1 0 01-1-1V4a1 1 0 011-1z"
+                    stroke="currentColor"
+                    strokeWidth="1.1"
+                    fill="none"
+                    strokeLinecap="round"
+                  />
+                </svg>
+                {formatDateBR(venc)}
+                {card.horaVencimento ? ` ${card.horaVencimento}` : ""}
+              </span>
+            );
+          })()}
+          {card.recorrencia !== "nunca" && (
+            <span
+              className="inline-flex items-center rounded-md bg-navy-50 px-1.5 py-0.5 text-[11px] font-medium text-navy-700 dark:bg-dark-elevated dark:text-gibelo-areia"
+              title={`Recorrência: ${card.recorrencia}`}
+              aria-label={`Card recorrente (${card.recorrencia})`}
+            >
+              🔄
             </span>
           )}
           {card.valorEstimado !== null && (

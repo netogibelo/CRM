@@ -160,13 +160,19 @@ export interface AtividadeLista {
 }
 export type AtividadeListaInput = Omit<AtividadeLista, "id">;
 
+/** Período de recorrência (F4). "nunca" = card não-recorrente. */
+export type Recorrencia = "nunca" | "diaria" | "semanal" | "quinzenal" | "mensal";
+
 export interface AtividadeCard {
   id: string;
   listaId: string;
   titulo: string;
   descricao: string;
   cor: CardCor | null;
-  /** Data opcional, ISO (yyyy-mm-dd). */
+  /**
+   * Data opcional, ISO (yyyy-mm-dd). DEPRECATED: substituído por
+   * `dataVencimento`. Mantido para compatibilidade até migração completa.
+   */
   data: string | null;
   ordem: number;
   /** Campos personalizados (F3) — opcionais, contexto de engenharia. */
@@ -174,6 +180,13 @@ export interface AtividadeCard {
   fornecedor: string;
   numeroNF: string;
   metragem: number | null;
+  /** Datas e recorrência (F4). */
+  dataInicio: string | null;
+  dataVencimento: string | null;
+  /** Hora de vencimento (HH:mm). */
+  horaVencimento: string;
+  recorrencia: Recorrencia;
+  concluidaEm: string | null;
   criadoEm: string;
   atualizadoEm: string;
 }

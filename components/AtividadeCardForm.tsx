@@ -1,7 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import type { AtividadeCard, CardCor, AtividadeLista } from "@/lib/types";
+import type {
+  AtividadeCard,
+  CardCor,
+  AtividadeLista,
+  Recorrencia,
+} from "@/lib/types";
 import { CARD_CORES } from "@/lib/atividade-cores";
 import { btnGhost, btnPrimary, inputCls, labelCls } from "@/lib/ui";
 import { Modal } from "./Modal";
@@ -18,6 +23,11 @@ export interface CardFormData {
   fornecedor: string;
   numeroNF: string;
   metragem: number | null;
+  dataInicio: string | null;
+  dataVencimento: string | null;
+  horaVencimento: string;
+  recorrencia: Recorrencia;
+  concluidaEm: string | null;
 }
 
 interface AtividadeCardFormProps {
@@ -27,6 +37,8 @@ interface AtividadeCardFormProps {
   onSalvar: (data: CardFormData) => void | Promise<void>;
   onClose: () => void;
   onExcluir?: (id: string) => void;
+  /** Marca como concluído / reabre. Se recorrente, gera nova ocorrência. */
+  onConcluir?: (id: string, concluir: boolean) => void | Promise<void>;
 }
 
 export function AtividadeCardForm({
@@ -36,6 +48,7 @@ export function AtividadeCardForm({
   onSalvar,
   onClose,
   onExcluir,
+  onConcluir,
 }: AtividadeCardFormProps) {
   const editando = card !== null;
   const [titulo, setTitulo] = useState(card?.titulo ?? "");
@@ -57,6 +70,18 @@ export function AtividadeCardForm({
       ? String(card.metragem)
       : "",
   );
+  // Datas e recorrência (F4)
+  const [dataInicio, setDataInicio] = useState(card?.dataInicio ?? "");
+  const [dataVencimento, setDataVencimento] = useState(
+    card?.dataVencimento ?? "",
+  );
+  const [horaVencimento, setHoraVencimento] = useState(
+    card?.horaVencimento ?? "",
+  );
+  const [recorrencia, setRecorrencia] = useState<Recorrencia>(
+    card?.recorrencia ?? "nunca",
+  );
+  const concluida = Boolean(card?.concluidaEm);
   const temCamposPreenchidos = Boolean(
     card?.valorEstimado || card?.fornecedor || card?.numeroNF || card?.metragem,
   );
@@ -85,6 +110,11 @@ export function AtividadeCardForm({
       fornecedor: fornecedor.trim(),
       numeroNF: numeroNF.trim(),
       metragem: parseNumero(metragem),
+      dataInicio: dataInicio || null,
+      dataVencimento: dataVencimento || null,
+      horaVencimento: horaVencimento || "",
+      recorrencia,
+      concluidaEm: card?.concluidaEm ?? null,
     });
   }
 
@@ -131,20 +161,62 @@ export function AtividadeCardForm({
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3">
             <div>
-              <label htmlFor="card-data" className={labelCls}>
-                Data <span className="text-navy-500 dark:text-gibelo-areia">(opcional)</span>
+              <label htmlFor="card-inicio" className={labelCls}>
+                Início <span className="text-navy-500 dark:text-gibelo-areia">(opcional)</span>
               </label>
               <input
-                id="card-data"
+                id="card-inicio"
                 type="date"
-                value={data}
-                onChange={(e) => setData(e.target.value)}
+                value={dataInicio}
+                onChange={(e) => setDataInicio(e.target.value)}
                 className={inputCls}
               />
             </div>
             <div>
+              <label htmlFor="card-venc" className={labelCls}>
+                Vencimento <span className="text-navy-500 dark:text-gibelo-areia">(opcional)</span>
+              </label>
+              <input
+                id="card-venc"
+                type="date"
+                value={dataVencimento}
+                onChange={(e) => setDataVencimento(e.target.value)}
+                className={inputCls}
+              />
+            </div>
+            <div>
+              <label htmlFor="card-hora" className={labelCls}>
+                Hora <span className="text-navy-500 dark:text-gibelo-areia">(opcional)</span>
+              </label>
+              <input
+                id="card-hora"
+                type="time"
+                value={horaVencimento}
+                onChange={(e) => setHoraVencimento(e.target.value)}
+                className={inputCls}
+                disabled={!dataVencimento}
+              />
+            </div>
+            <div>
+              <label htmlFor="card-rec" className={labelCls}>
+                Recorrência
+              </label>
+              <select
+                id="card-rec"
+                value={recorrencia}
+                onChange={(e) => setRecorrencia(e.target.value as Recorrencia)}
+                className={inputCls}
+              >
+                <option value="nunca">Nunca</option>
+                <option value="diaria">Diária</option>
+                <option value="semanal">Semanal</option>
+                <option value="quinzenal">Quinzenal</option>
+                <option value="mensal">Mensal</option>
+              </select>
+            </div>
+            <div className="col-span-2">
               <label htmlFor="card-lista" className={labelCls}>
                 Lista
               </label>
@@ -162,6 +234,25 @@ export function AtividadeCardForm({
               </select>
             </div>
           </div>
+
+          {card && (
+            <div
+              className={`rounded-lg border px-3 py-2 text-sm ${
+                concluida
+                  ? "border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-700/40 dark:bg-emerald-950/40 dark:text-emerald-200"
+                  : "border-navy-100 bg-navy-50/40 text-navy-700 dark:border-dark-border dark:bg-dark-elevated/30 dark:text-gibelo-areia"
+              }`}
+            >
+              <span className="font-medium">
+                {concluida ? "Card concluído" : "Card em aberto"}
+              </span>
+              {recorrencia !== "nunca" && (
+                <span className="ml-2 text-xs">
+                  · ao concluir cria nova ocorrência ({recorrencia})
+                </span>
+              )}
+            </div>
+          )}
 
           {card && (
             <div className="rounded-lg border border-navy-100 bg-navy-50/40 p-3 dark:border-dark-border dark:bg-dark-elevated/30">
@@ -288,7 +379,21 @@ export function AtividadeCardForm({
         </div>
 
         <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div>
+          <div className="flex flex-wrap items-center gap-1">
+            {editando && onConcluir && card && (
+              <button
+                type="button"
+                onClick={() => onConcluir(card.id, !concluida)}
+                aria-label={concluida ? "Reabrir card" : "Marcar card como concluído"}
+                className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                  concluida
+                    ? "text-navy-700 hover:bg-navy-50 dark:text-gibelo-areia dark:hover:bg-dark-elevated"
+                    : "text-emerald-700 hover:bg-emerald-50 dark:text-emerald-300 dark:hover:bg-emerald-950/40"
+                }`}
+              >
+                {concluida ? "Reabrir" : "✓ Concluir"}
+              </button>
+            )}
             {editando && onExcluir && (
               <button
                 type="button"

@@ -70,6 +70,8 @@ interface ActivitiesContextValue {
   removerEtiqueta: (id: string) => Promise<void>;
   reordenarEtiquetas: (idsOrdenados: string[]) => Promise<void>;
   toggleEtiquetaNoCard: (cardId: string, etiquetaId: string) => Promise<void>;
+  // Concluir/Reabrir card (F4); se recorrente, clona com próxima data
+  concluirCard: (id: string, concluir: boolean) => Promise<void>;
 }
 
 const ActivitiesContext = createContext<ActivitiesContextValue | null>(null);
@@ -316,6 +318,59 @@ export function ActivitiesProvider({ children }: { children: React.ReactNode }) 
     await etiquetaRepository.reorder(idsOrdenados);
   }, []);
 
+  const concluirCard = useCallback(async (id: string, concluir: boolean) => {
+    const card = ref.current.cards.find((c) => c.id === id);
+    if (!card) return;
+    const agora = new Date();
+    const concluidaEm = concluir ? agora.toISOString() : null;
+    const upd = await activityRepository.updateCard(id, { concluidaEm });
+    setState((s) => ({
+      ...s,
+      cards: s.cards.map((c) => (c.id === id ? upd : c)),
+    }));
+
+    // Se recorrente e marcando como concluído, clona com próximo vencimento.
+    if (concluir && card.recorrencia !== "nunca") {
+      const base = card.dataVencimento
+        ? new Date(card.dataVencimento)
+        : new Date();
+      const proxima = new Date(base);
+      switch (card.recorrencia) {
+        case "diaria":
+          proxima.setDate(proxima.getDate() + 1);
+          break;
+        case "semanal":
+          proxima.setDate(proxima.getDate() + 7);
+          break;
+        case "quinzenal":
+          proxima.setDate(proxima.getDate() + 14);
+          break;
+        case "mensal":
+          proxima.setMonth(proxima.getMonth() + 1);
+          break;
+      }
+      const proxStr = proxima.toISOString().slice(0, 10);
+      const novo = await activityRepository.createCard({
+        listaId: card.listaId,
+        titulo: card.titulo,
+        descricao: card.descricao,
+        cor: card.cor,
+        data: null,
+        ordem: Date.now(),
+        valorEstimado: card.valorEstimado,
+        fornecedor: card.fornecedor,
+        numeroNF: card.numeroNF,
+        metragem: card.metragem,
+        dataInicio: null,
+        dataVencimento: proxStr,
+        horaVencimento: card.horaVencimento,
+        recorrencia: card.recorrencia,
+        concluidaEm: null,
+      });
+      setState((s) => ({ ...s, cards: [...s.cards, novo] }));
+    }
+  }, []);
+
   const toggleEtiquetaNoCard = useCallback(
     async (cardId: string, etiquetaId: string) => {
       const existe = ref.current.cardEtiquetas.some(
@@ -366,6 +421,7 @@ export function ActivitiesProvider({ children }: { children: React.ReactNode }) 
     removerEtiqueta,
     reordenarEtiquetas,
     toggleEtiquetaNoCard,
+    concluirCard,
   };
 
   return (

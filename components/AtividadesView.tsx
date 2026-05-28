@@ -41,6 +41,7 @@ export function AtividadesView() {
     atualizarCard,
     removerCard,
     moverCard,
+    concluirCard,
   } = useBoard();
 
   const [activeCard, setActiveCard] = useState<TCard | null>(null);
@@ -243,6 +244,10 @@ export function AtividadesView() {
           onSalvar={salvarCard}
           onClose={fecharForm}
           onExcluir={excluirCard}
+          onConcluir={async (id, concluir) => {
+            await concluirCard(id, concluir);
+            fecharForm();
+          }}
         />
       )}
     </div>
