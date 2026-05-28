@@ -169,6 +169,11 @@ export interface AtividadeCard {
   /** Data opcional, ISO (yyyy-mm-dd). */
   data: string | null;
   ordem: number;
+  /** Campos personalizados (F3) — opcionais, contexto de engenharia. */
+  valorEstimado: number | null;
+  fornecedor: string;
+  numeroNF: string;
+  metragem: number | null;
   criadoEm: string;
   atualizadoEm: string;
 }

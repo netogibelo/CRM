@@ -700,6 +700,16 @@ function cardFromRow(row: Row): AtividadeCard {
     cor: (row.cor ?? null) as AtividadeCard["cor"],
     data: row.data ?? null,
     ordem: Number(row.ordem),
+    valorEstimado:
+      row.valor_estimado === null || row.valor_estimado === undefined
+        ? null
+        : Number(row.valor_estimado),
+    fornecedor: row.fornecedor ?? "",
+    numeroNF: row.numero_nf ?? "",
+    metragem:
+      row.metragem === null || row.metragem === undefined
+        ? null
+        : Number(row.metragem),
     criadoEm: row.criado_em,
     atualizadoEm: row.atualizado_em,
   };
@@ -713,6 +723,10 @@ function cardToRow(c: AtividadeCard): Row {
     cor: c.cor,
     data: c.data,
     ordem: c.ordem,
+    valor_estimado: c.valorEstimado,
+    fornecedor: c.fornecedor || null,
+    numero_nf: c.numeroNF || null,
+    metragem: c.metragem,
     criado_em: c.criadoEm,
     atualizado_em: c.atualizadoEm,
   };
@@ -725,6 +739,10 @@ function cardPatchToRow(p: Partial<AtividadeCardInput>): Row {
   if (p.cor !== undefined) r.cor = p.cor;
   if (p.data !== undefined) r.data = p.data;
   if (p.ordem !== undefined) r.ordem = p.ordem;
+  if (p.valorEstimado !== undefined) r.valor_estimado = p.valorEstimado;
+  if (p.fornecedor !== undefined) r.fornecedor = p.fornecedor || null;
+  if (p.numeroNF !== undefined) r.numero_nf = p.numeroNF || null;
+  if (p.metragem !== undefined) r.metragem = p.metragem;
   return r;
 }
 

@@ -5,7 +5,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import type { AtividadeCard as TCard, AtividadeLista } from "@/lib/types";
 import { cardBarra } from "@/lib/atividade-cores";
-import { formatDateBR } from "@/lib/format";
+import { formatBRLCompact, formatDateBR } from "@/lib/format";
 import { useBoard } from "@/lib/activities-store";
 
 interface AtividadeCardProps {
@@ -126,6 +126,38 @@ export function AtividadeCard({
                 />
               </svg>
               {formatDateBR(card.data)}
+            </span>
+          )}
+          {card.valorEstimado !== null && (
+            <span
+              className="inline-flex items-center gap-1 rounded-md bg-navy-50 px-1.5 py-0.5 text-[11px] font-medium text-navy-700 dark:bg-dark-elevated dark:text-gibelo-areia"
+              title={`Valor estimado: ${formatBRLCompact(card.valorEstimado)}`}
+            >
+              {formatBRLCompact(card.valorEstimado)}
+            </span>
+          )}
+          {card.metragem !== null && (
+            <span
+              className="inline-flex items-center gap-1 rounded-md bg-navy-50 px-1.5 py-0.5 text-[11px] font-medium text-navy-700 dark:bg-dark-elevated dark:text-gibelo-areia"
+              title={`Metragem: ${card.metragem} m²`}
+            >
+              {card.metragem} m²
+            </span>
+          )}
+          {card.fornecedor && (
+            <span
+              className="inline-flex max-w-[10rem] items-center gap-1 truncate rounded-md bg-navy-50 px-1.5 py-0.5 text-[11px] font-medium text-navy-700 dark:bg-dark-elevated dark:text-gibelo-areia"
+              title={`Fornecedor: ${card.fornecedor}`}
+            >
+              {card.fornecedor}
+            </span>
+          )}
+          {card.numeroNF && (
+            <span
+              className="inline-flex items-center gap-1 rounded-md bg-navy-50 px-1.5 py-0.5 text-[11px] font-medium text-navy-700 dark:bg-dark-elevated dark:text-gibelo-areia"
+              title={`NF: ${card.numeroNF}`}
+            >
+              NF {card.numeroNF}
             </span>
           )}
           {total > 0 && (

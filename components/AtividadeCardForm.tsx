@@ -14,6 +14,10 @@ export interface CardFormData {
   descricao: string;
   cor: CardCor | null;
   data: string | null;
+  valorEstimado: number | null;
+  fornecedor: string;
+  numeroNF: string;
+  metragem: number | null;
 }
 
 interface AtividadeCardFormProps {
@@ -40,6 +44,30 @@ export function AtividadeCardForm({
   const [data, setData] = useState(card?.data ?? "");
   const [listaId, setListaId] = useState(card?.listaId ?? listaIdInicial);
   const [erro, setErro] = useState("");
+  // Campos personalizados (F3) — armazenados como strings no form, convertidos no submit.
+  const [valorEstimado, setValorEstimado] = useState(
+    card?.valorEstimado !== null && card?.valorEstimado !== undefined
+      ? String(card.valorEstimado)
+      : "",
+  );
+  const [fornecedor, setFornecedor] = useState(card?.fornecedor ?? "");
+  const [numeroNF, setNumeroNF] = useState(card?.numeroNF ?? "");
+  const [metragem, setMetragem] = useState(
+    card?.metragem !== null && card?.metragem !== undefined
+      ? String(card.metragem)
+      : "",
+  );
+  const temCamposPreenchidos = Boolean(
+    card?.valorEstimado || card?.fornecedor || card?.numeroNF || card?.metragem,
+  );
+  const [dadosAbertos, setDadosAbertos] = useState(temCamposPreenchidos);
+
+  function parseNumero(v: string): number | null {
+    const t = v.trim().replace(",", ".");
+    if (!t) return null;
+    const n = Number(t);
+    return Number.isFinite(n) ? n : null;
+  }
 
   async function handleSubmit(ev: React.FormEvent) {
     ev.preventDefault();
@@ -53,6 +81,10 @@ export function AtividadeCardForm({
       descricao: descricao.trim(),
       cor,
       data: data || null,
+      valorEstimado: parseNumero(valorEstimado),
+      fornecedor: fornecedor.trim(),
+      numeroNF: numeroNF.trim(),
+      metragem: parseNumero(metragem),
     });
   }
 
@@ -142,6 +174,90 @@ export function AtividadeCardForm({
               <AtividadeChecklistSection cardId={card.id} />
             </div>
           )}
+
+          <div className="rounded-lg border border-navy-100 bg-navy-50/40 dark:border-dark-border dark:bg-dark-elevated/30">
+            <button
+              type="button"
+              onClick={() => setDadosAbertos((v) => !v)}
+              aria-expanded={dadosAbertos}
+              className="flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2.5 text-left hover:bg-white/60 dark:hover:bg-dark-surface/40"
+            >
+              <span className="text-xs font-semibold uppercase tracking-wide text-navy-700 dark:text-gibelo-areia">
+                Dados adicionais
+              </span>
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 16 16"
+                aria-hidden="true"
+                className={`transition-transform ${dadosAbertos ? "rotate-180" : ""} text-navy-700 dark:text-gibelo-areia`}
+              >
+                <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.6" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+            {dadosAbertos && (
+              <div className="grid grid-cols-2 gap-3 px-3 pb-3">
+                <div>
+                  <label htmlFor="card-valor" className={labelCls}>
+                    Valor estimado (R$)
+                  </label>
+                  <input
+                    id="card-valor"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    inputMode="decimal"
+                    value={valorEstimado}
+                    onChange={(e) => setValorEstimado(e.target.value)}
+                    className={inputCls}
+                    placeholder="0,00"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="card-metragem" className={labelCls}>
+                    Metragem (m²)
+                  </label>
+                  <input
+                    id="card-metragem"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    inputMode="decimal"
+                    value={metragem}
+                    onChange={(e) => setMetragem(e.target.value)}
+                    className={inputCls}
+                    placeholder="0,00"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="card-fornec" className={labelCls}>
+                    Fornecedor
+                  </label>
+                  <input
+                    id="card-fornec"
+                    type="text"
+                    value={fornecedor}
+                    onChange={(e) => setFornecedor(e.target.value)}
+                    className={inputCls}
+                    placeholder="Empresa ou pessoa"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="card-nf" className={labelCls}>
+                    Número da NF
+                  </label>
+                  <input
+                    id="card-nf"
+                    type="text"
+                    value={numeroNF}
+                    onChange={(e) => setNumeroNF(e.target.value)}
+                    className={inputCls}
+                    placeholder="000123"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
 
           <div>
             <span className={labelCls}>Etiqueta de cor</span>
