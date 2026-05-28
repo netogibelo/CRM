@@ -7,6 +7,7 @@ import type {
   AtividadeLista,
   Recorrencia,
 } from "@/lib/types";
+import { EQUIPE } from "@/lib/equipe";
 import { CARD_CORES } from "@/lib/atividade-cores";
 import { btnGhost, btnPrimary, inputCls, labelCls } from "@/lib/ui";
 import { Modal } from "./Modal";
@@ -30,6 +31,7 @@ export interface CardFormData {
   horaVencimento: string;
   recorrencia: Recorrencia;
   concluidaEm: string | null;
+  responsavelEmail: string | null;
 }
 
 interface AtividadeCardFormProps {
@@ -83,6 +85,9 @@ export function AtividadeCardForm({
   const [recorrencia, setRecorrencia] = useState<Recorrencia>(
     card?.recorrencia ?? "nunca",
   );
+  const [responsavelEmail, setResponsavelEmail] = useState<string>(
+    card?.responsavelEmail ?? "",
+  );
   const concluida = Boolean(card?.concluidaEm);
   const temCamposPreenchidos = Boolean(
     card?.valorEstimado || card?.fornecedor || card?.numeroNF || card?.metragem,
@@ -117,6 +122,7 @@ export function AtividadeCardForm({
       horaVencimento: horaVencimento || "",
       recorrencia,
       concluidaEm: card?.concluidaEm ?? null,
+      responsavelEmail: responsavelEmail || null,
     });
   }
 
@@ -218,7 +224,7 @@ export function AtividadeCardForm({
                 <option value="mensal">Mensal</option>
               </select>
             </div>
-            <div className="col-span-2">
+            <div>
               <label htmlFor="card-lista" className={labelCls}>
                 Lista
               </label>
@@ -231,6 +237,24 @@ export function AtividadeCardForm({
                 {listas.map((l) => (
                   <option key={l.id} value={l.id}>
                     {l.nome}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="card-resp" className={labelCls}>
+                Responsável <span className="text-navy-500 dark:text-gibelo-areia">(opcional)</span>
+              </label>
+              <select
+                id="card-resp"
+                value={responsavelEmail}
+                onChange={(e) => setResponsavelEmail(e.target.value)}
+                className={inputCls}
+              >
+                <option value="">— Sem responsável</option>
+                {EQUIPE.map((m) => (
+                  <option key={m.email} value={m.email}>
+                    {m.nome}
                   </option>
                 ))}
               </select>

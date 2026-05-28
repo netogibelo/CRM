@@ -440,6 +440,7 @@ export function ActivitiesProvider({ children }: { children: React.ReactNode }) 
         horaVencimento: card.horaVencimento,
         recorrencia: card.recorrencia,
         concluidaEm: null,
+        responsavelEmail: card.responsavelEmail,
       });
       setState((s) => ({ ...s, cards: [...s.cards, novo] }));
     }

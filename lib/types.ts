@@ -187,6 +187,8 @@ export interface AtividadeCard {
   horaVencimento: string;
   recorrencia: Recorrencia;
   concluidaEm: string | null;
+  /** Responsável pelo card (F7) — email da equipe. */
+  responsavelEmail: string | null;
   criadoEm: string;
   atualizadoEm: string;
 }

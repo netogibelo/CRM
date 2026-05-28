@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -24,6 +24,69 @@ import { cardBarra } from "@/lib/atividade-cores";
 import { btnPrimary } from "@/lib/ui";
 import { AtividadeColuna } from "./AtividadeColuna";
 import { AtividadeCardForm, type CardFormData } from "./AtividadeCardForm";
+import {
+  AtividadesFiltros,
+  carregarFiltros,
+  FILTROS_VAZIOS,
+  type FiltrosAtividades,
+} from "./AtividadesFiltros";
+
+function aplicaFiltros(
+  cards: TCard[],
+  filtros: FiltrosAtividades,
+  cardEtiquetas: { cardId: string; etiquetaId: string }[],
+): TCard[] {
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
+  const etqByCard = new Map<string, Set<string>>();
+  for (const ce of cardEtiquetas) {
+    const set = etqByCard.get(ce.cardId);
+    if (set) set.add(ce.etiquetaId);
+    else etqByCard.set(ce.cardId, new Set([ce.etiquetaId]));
+  }
+  const busca = filtros.busca.trim().toLowerCase();
+
+  return cards.filter((c) => {
+    if (filtros.responsavel === "__sem") {
+      if (c.responsavelEmail) return false;
+    } else if (filtros.responsavel) {
+      if (c.responsavelEmail !== filtros.responsavel) return false;
+    }
+    if (filtros.etiquetasIds.length > 0) {
+      const set = etqByCard.get(c.id);
+      if (!set) return false;
+      if (!filtros.etiquetasIds.every((id) => set.has(id))) return false;
+    }
+    const venc = c.dataVencimento ?? c.data;
+    const concluido = Boolean(c.concluidaEm);
+    switch (filtros.status) {
+      case "abertos":
+        if (concluido) return false;
+        break;
+      case "concluidos":
+        if (!concluido) return false;
+        break;
+      case "atrasados": {
+        if (concluido || !venc) return false;
+        const dv = new Date(venc + "T00:00:00");
+        if (dv.getTime() >= hoje.getTime()) return false;
+        break;
+      }
+      case "vencendo_hoje": {
+        if (concluido || !venc) return false;
+        const dv = new Date(venc + "T00:00:00");
+        if (dv.getTime() !== hoje.getTime()) return false;
+        break;
+      }
+    }
+    if (filtros.ocultarRecorrentes && c.recorrencia !== "nunca") return false;
+    if (busca) {
+      const hay = `${c.titulo} ${c.descricao}`.toLowerCase();
+      if (!hay.includes(busca)) return false;
+    }
+    return true;
+  });
+}
 
 export function AtividadesView() {
   const {
@@ -42,6 +105,8 @@ export function AtividadesView() {
     removerCard,
     moverCard,
     concluirCard,
+    cardEtiquetas,
+    etiquetas,
   } = useBoard();
 
   const [activeCard, setActiveCard] = useState<TCard | null>(null);
@@ -50,6 +115,19 @@ export function AtividadesView() {
     card: TCard | null;
     listaId: string;
   }>({ aberto: false, card: null, listaId: "" });
+  const [filtros, setFiltros] = useState<FiltrosAtividades>(() =>
+    typeof window !== "undefined" ? carregarFiltros() : FILTROS_VAZIOS,
+  );
+  const cardsVisiveis = useMemo(
+    () => aplicaFiltros(cards, filtros, cardEtiquetas),
+    [cards, filtros, cardEtiquetas],
+  );
+  const idsVisiveis = useMemo(
+    () => new Set(cardsVisiveis.map((c) => c.id)),
+    [cardsVisiveis],
+  );
+  const filtrarLista = (listaId: string) =>
+    cardsDaLista(listaId).filter((c) => idsVisiveis.has(c.id));
 
   const sensors = useSensors(
     // distância de ativação: permite tap/clique sem iniciar arraste (toque + mouse)
@@ -174,6 +252,16 @@ export function AtividadesView() {
         </button>
       </div>
 
+      {listas.length > 0 && (
+        <AtividadesFiltros
+          filtros={filtros}
+          onChange={setFiltros}
+          etiquetas={etiquetas}
+          visiveis={cardsVisiveis.length}
+          total={cards.length}
+        />
+      )}
+
       {listas.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-navy-200 dark:border-dark-border dark:border-dark-border bg-white dark:bg-dark-surface px-6 py-14 text-center">
           <p className="text-sm font-medium text-navy-700 dark:text-gibelo-offwhite">
@@ -201,7 +289,7 @@ export function AtividadesView() {
                   <AtividadeColuna
                     key={lista.id}
                     lista={lista}
-                    cards={cardsDaLista(lista.id)}
+                    cards={filtrarLista(lista.id)}
                     listas={listas}
                     posicao={i}
                     total={listas.length}

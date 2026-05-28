@@ -719,6 +719,7 @@ function cardFromRow(row: Row): AtividadeCard {
     horaVencimento: row.hora_vencimento ?? "",
     recorrencia: (row.recorrencia ?? "nunca") as AtividadeCard["recorrencia"],
     concluidaEm: row.concluida_em ?? null,
+    responsavelEmail: row.responsavel_email ?? null,
     criadoEm: row.criado_em,
     atualizadoEm: row.atualizado_em,
   };
@@ -741,6 +742,7 @@ function cardToRow(c: AtividadeCard): Row {
     hora_vencimento: c.horaVencimento || null,
     recorrencia: c.recorrencia,
     concluida_em: c.concluidaEm,
+    responsavel_email: c.responsavelEmail,
     criado_em: c.criadoEm,
     atualizado_em: c.atualizadoEm,
   };
@@ -762,6 +764,7 @@ function cardPatchToRow(p: Partial<AtividadeCardInput>): Row {
   if (p.horaVencimento !== undefined) r.hora_vencimento = p.horaVencimento || null;
   if (p.recorrencia !== undefined) r.recorrencia = p.recorrencia;
   if (p.concluidaEm !== undefined) r.concluida_em = p.concluidaEm;
+  if (p.responsavelEmail !== undefined) r.responsavel_email = p.responsavelEmail;
   return r;
 }
 
