@@ -259,7 +259,7 @@ export function exportarPDF(ctx: ExportContext): void {
 <meta charset="utf-8" />
 <title>Relatório CRM Gibelo — ${escapeHTML(dataAgora)}</title>
 <style>
-  @page { size: A4; margin: 14mm 12mm; }
+  @page { size: A4; margin: 20mm; }
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
   body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; color: #0D2137; font-size: 12px; line-height: 1.45; }
@@ -288,10 +288,11 @@ export function exportarPDF(ctx: ExportContext): void {
   .etapa-bloco .titulo strong { font-size: 12px; }
   .etapa-bloco .titulo span { font-size: 10px; color: #4f6f93; }
   .funil { display: flex; flex-direction: column; gap: 4px; }
-  .funil-linha { display: flex; align-items: center; gap: 8px; }
-  .funil-linha .label { width: 130px; font-size: 11px; }
-  .funil-linha .bar { background: #0D2137; height: 18px; border-radius: 3px; color: #fff; font-size: 10px; padding: 0 6px; display: inline-flex; align-items: center; min-width: 24px; }
-  .funil-linha .qtd { font-size: 11px; color: #4f6f93; }
+  .funil-linha { display: grid; grid-template-columns: 180px 1fr 120px; align-items: center; gap: 12px; }
+  .funil-linha .label { font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .funil-linha .bar-wrap { width: 100%; }
+  .funil-linha .bar { background: #0D2137; height: 18px; border-radius: 3px; color: #fff; font-size: 10px; padding: 0 6px; display: inline-flex; align-items: center; min-width: 24px; box-sizing: border-box; }
+  .funil-linha .qtd { font-size: 11px; color: #4f6f93; text-align: right; font-variant-numeric: tabular-nums; }
   footer { border-top: 1px solid #d8e0eb; margin-top: 24px; padding-top: 8px; font-size: 10px; color: #4f6f93; text-align: center; }
   @media print { header { page-break-after: avoid; } button { display: none; } }
   .botoes { text-align: center; margin: 16px 0; }
@@ -344,7 +345,7 @@ export function exportarPDF(ctx: ExportContext): void {
         return `
         <div class="funil-linha">
           <div class="label">${escapeHTML(p.etapa.nome)}</div>
-          <div class="bar" style="width: ${w}%">${p.deals.length}</div>
+          <div class="bar-wrap"><div class="bar" style="width: ${w}%">${p.deals.length}</div></div>
           <div class="qtd">${escapeHTML(formatBRL(p.total))}</div>
         </div>`;
       })
