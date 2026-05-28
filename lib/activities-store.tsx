@@ -25,10 +25,21 @@ import type {
 } from "./types";
 import {
   activityRepository,
+  atividadeHistoricoRepository,
   checklistRepository,
   etiquetaRepository,
 } from "./repository";
 import { LISTA_COR_IDS } from "./atividade-cores";
+import { supabase } from "./supabase";
+
+async function autorEmail(): Promise<string | null> {
+  try {
+    const { data } = await supabase.auth.getUser();
+    return data.user?.email ?? null;
+  } catch {
+    return null;
+  }
+}
 
 interface ActivitiesContextValue {
   carregando: boolean;
@@ -183,6 +194,13 @@ export function ActivitiesProvider({ children }: { children: React.ReactNode }) 
         ordem: Date.now(),
       });
       setState((s) => ({ ...s, cards: [...s.cards, card] }));
+      const lista = ref.current.listas.find((l) => l.id === card.listaId);
+      atividadeHistoricoRepository.log({
+        cardId: card.id,
+        autorEmail: await autorEmail(),
+        tipo: "criacao",
+        descricao: `Card criado na lista "${lista?.nome ?? "—"}"`,
+      });
       return card;
     },
     [],
@@ -190,11 +208,38 @@ export function ActivitiesProvider({ children }: { children: React.ReactNode }) 
 
   const atualizarCard = useCallback(
     async (id: string, patch: Partial<AtividadeCardInput>) => {
+      const anterior = ref.current.cards.find((c) => c.id === id);
       const upd = await activityRepository.updateCard(id, patch);
       setState((s) => ({
         ...s,
         cards: s.cards.map((c) => (c.id === id ? upd : c)),
       }));
+
+      // Auditoria: movimentação e edição de título.
+      if (anterior) {
+        if (patch.listaId !== undefined && patch.listaId !== anterior.listaId) {
+          const de = ref.current.listas.find((l) => l.id === anterior.listaId);
+          const para = ref.current.listas.find((l) => l.id === patch.listaId);
+          atividadeHistoricoRepository.log({
+            cardId: id,
+            autorEmail: await autorEmail(),
+            tipo: "movimentacao",
+            descricao: `Movido de "${de?.nome ?? "—"}" para "${para?.nome ?? "—"}"`,
+          });
+        }
+        if (
+          patch.titulo !== undefined &&
+          patch.titulo !== anterior.titulo &&
+          patch.titulo.trim()
+        ) {
+          atividadeHistoricoRepository.log({
+            cardId: id,
+            autorEmail: await autorEmail(),
+            tipo: "edicao",
+            descricao: `Título alterado de "${anterior.titulo}" para "${patch.titulo}"`,
+          });
+        }
+      }
       return upd;
     },
     [],
@@ -239,17 +284,38 @@ export function ActivitiesProvider({ children }: { children: React.ReactNode }) 
         ordem,
       });
       setState((s) => ({ ...s, checklist: [...s.checklist, item] }));
+      atividadeHistoricoRepository.log({
+        cardId,
+        autorEmail: await autorEmail(),
+        tipo: "checklist",
+        descricao: `Subtarefa adicionada: "${t}"`,
+      });
     },
     [],
   );
 
   const atualizarChecklistItem = useCallback(
     async (id: string, patch: { titulo?: string; concluida?: boolean }) => {
+      const anterior = ref.current.checklist.find((c) => c.id === id);
       const upd = await checklistRepository.update(id, patch);
       setState((s) => ({
         ...s,
         checklist: s.checklist.map((c) => (c.id === id ? upd : c)),
       }));
+      if (
+        anterior &&
+        patch.concluida !== undefined &&
+        patch.concluida !== anterior.concluida
+      ) {
+        atividadeHistoricoRepository.log({
+          cardId: upd.cardId,
+          autorEmail: await autorEmail(),
+          tipo: "checklist",
+          descricao: patch.concluida
+            ? `Subtarefa concluída: "${upd.titulo}"`
+            : `Subtarefa reaberta: "${upd.titulo}"`,
+        });
+      }
     },
     [],
   );
@@ -328,6 +394,14 @@ export function ActivitiesProvider({ children }: { children: React.ReactNode }) 
       ...s,
       cards: s.cards.map((c) => (c.id === id ? upd : c)),
     }));
+    atividadeHistoricoRepository.log({
+      cardId: id,
+      autorEmail: await autorEmail(),
+      tipo: concluir ? "conclusao" : "reabertura",
+      descricao: concluir
+        ? "Card marcado como concluído"
+        : "Card reaberto",
+    });
 
     // Se recorrente e marcando como concluído, clona com próximo vencimento.
     if (concluir && card.recorrencia !== "nunca") {
@@ -376,6 +450,7 @@ export function ActivitiesProvider({ children }: { children: React.ReactNode }) 
       const existe = ref.current.cardEtiquetas.some(
         (ce) => ce.cardId === cardId && ce.etiquetaId === etiquetaId,
       );
+      const etiq = ref.current.etiquetas.find((e) => e.id === etiquetaId);
       if (existe) {
         await etiquetaRepository.unlink(cardId, etiquetaId);
         setState((s) => ({
@@ -390,6 +465,16 @@ export function ActivitiesProvider({ children }: { children: React.ReactNode }) 
           ...s,
           cardEtiquetas: [...s.cardEtiquetas, { cardId, etiquetaId }],
         }));
+      }
+      if (etiq) {
+        atividadeHistoricoRepository.log({
+          cardId,
+          autorEmail: await autorEmail(),
+          tipo: "etiqueta",
+          descricao: existe
+            ? `Etiqueta "${etiq.nome}" removida`
+            : `Etiqueta "${etiq.nome}" adicionada`,
+        });
       }
     },
     [],

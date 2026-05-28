@@ -196,6 +196,34 @@ export type AtividadeCardInput = Omit<
 >;
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Histórico (feed de auditoria) de cards de atividade (F6) — append-only
+// ─────────────────────────────────────────────────────────────────────────────
+export type AtividadeHistoricoTipo =
+  | "criacao"
+  | "movimentacao"
+  | "conclusao"
+  | "reabertura"
+  | "edicao"
+  | "comentario"
+  | "checklist"
+  | "etiqueta";
+
+export interface AtividadeHistoricoItem {
+  id: string;
+  cardId: string;
+  autorEmail: string | null;
+  tipo: AtividadeHistoricoTipo;
+  descricao: string;
+  criadoEm: string;
+}
+export type AtividadeHistoricoInput = {
+  cardId: string;
+  autorEmail: string | null;
+  tipo: AtividadeHistoricoTipo;
+  descricao: string;
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Comentários em cards de atividade (F5)
 // ─────────────────────────────────────────────────────────────────────────────
 export interface AtividadeComentario {

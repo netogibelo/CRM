@@ -13,6 +13,7 @@ import { Modal } from "./Modal";
 import { AtividadeChecklistSection } from "./AtividadeChecklistSection";
 import { AtividadeEtiquetasSection } from "./AtividadeEtiquetasSection";
 import { AtividadeComentariosSection } from "./AtividadeComentariosSection";
+import { AtividadeHistoricoSection } from "./AtividadeHistoricoSection";
 
 export interface CardFormData {
   listaId: string;
@@ -270,6 +271,12 @@ export function AtividadeCardForm({
           {card && (
             <div className="rounded-lg border border-navy-100 bg-navy-50/40 p-3 dark:border-dark-border dark:bg-dark-elevated/30">
               <AtividadeComentariosSection cardId={card.id} />
+            </div>
+          )}
+
+          {card && (
+            <div className="rounded-lg border border-navy-100 bg-navy-50/40 px-3 py-2 dark:border-dark-border dark:bg-dark-elevated/30">
+              <AtividadeHistoricoSection cardId={card.id} />
             </div>
           )}
 

@@ -2,7 +2,10 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { AtividadeComentario } from "@/lib/types";
-import { comentarioRepository } from "@/lib/repository";
+import {
+  atividadeHistoricoRepository,
+  comentarioRepository,
+} from "@/lib/repository";
 import { supabase } from "@/lib/supabase";
 import { usePerfis } from "@/lib/crm-store";
 import { EQUIPE, iniciaisOuFallback, nomeOuEmail } from "@/lib/equipe";
@@ -119,6 +122,12 @@ export function AtividadeComentariosSection({ cardId }: Props) {
       setComentarios((prev) => [...prev, c]);
       setNovo("");
       setMention(null);
+      atividadeHistoricoRepository.log({
+        cardId,
+        autorEmail: usuarioEmail,
+        tipo: "comentario",
+        descricao: `Comentou: "${t.length > 60 ? t.slice(0, 57) + "…" : t}"`,
+      });
     } finally {
       setSalvando(false);
     }

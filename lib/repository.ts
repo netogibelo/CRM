@@ -15,6 +15,8 @@ import type {
   AtividadeChecklistItem,
   AtividadeComentario,
   AtividadeComentarioInput,
+  AtividadeHistoricoInput,
+  AtividadeHistoricoItem,
   AtividadeEtiqueta,
   AtividadeEtiquetaInput,
   AtividadeLista,
@@ -1104,6 +1106,58 @@ class SupabaseComentarioRepository implements ComentarioRepository {
 
 export const comentarioRepository: ComentarioRepository =
   new SupabaseComentarioRepository();
+
+// ── Histórico de atividade (F6) — append-only ────────────────────────────────
+function atividadeHistoricoFromRow(row: Row): AtividadeHistoricoItem {
+  return {
+    id: row.id,
+    cardId: row.card_id,
+    autorEmail: row.autor_email ?? null,
+    tipo: row.tipo as AtividadeHistoricoItem["tipo"],
+    descricao: row.descricao,
+    criadoEm: row.criado_em,
+  };
+}
+
+export interface AtividadeHistoricoRepository {
+  listByCard(cardId: string): Promise<AtividadeHistoricoItem[]>;
+  log(input: AtividadeHistoricoInput): Promise<AtividadeHistoricoItem | null>;
+}
+
+class SupabaseAtividadeHistoricoRepository
+  implements AtividadeHistoricoRepository
+{
+  async listByCard(cardId: string): Promise<AtividadeHistoricoItem[]> {
+    const { data, error } = await supabase
+      .from("atividades_historico")
+      .select("*")
+      .eq("card_id", cardId)
+      .order("criado_em", { ascending: false });
+    if (error) throw error;
+    return (data ?? []).map(atividadeHistoricoFromRow);
+  }
+  async log(
+    input: AtividadeHistoricoInput,
+  ): Promise<AtividadeHistoricoItem | null> {
+    const id = novoId("ahis");
+    const { data, error } = await supabase
+      .from("atividades_historico")
+      .insert({
+        id,
+        card_id: input.cardId,
+        autor_email: input.autorEmail,
+        tipo: input.tipo,
+        descricao: input.descricao,
+      })
+      .select()
+      .single();
+    if (error) return null;
+    return atividadeHistoricoFromRow(data);
+  }
+}
+
+export const atividadeHistoricoRepository: AtividadeHistoricoRepository =
+  new SupabaseAtividadeHistoricoRepository();
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Repositório do histórico/timeline dos deals (só Supabase — feature nova)
