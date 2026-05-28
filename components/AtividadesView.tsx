@@ -24,6 +24,7 @@ import { cardBarra } from "@/lib/atividade-cores";
 import { btnPrimary } from "@/lib/ui";
 import { AtividadeColuna } from "./AtividadeColuna";
 import { AtividadeCardForm, type CardFormData } from "./AtividadeCardForm";
+import { AtividadesCalendario } from "./AtividadesCalendario";
 import {
   AtividadesFiltros,
   carregarFiltros,
@@ -115,6 +116,7 @@ export function AtividadesView() {
     card: TCard | null;
     listaId: string;
   }>({ aberto: false, card: null, listaId: "" });
+  const [modo, setModo] = useState<"kanban" | "calendario">("kanban");
   const [filtros, setFiltros] = useState<FiltrosAtividades>(() =>
     typeof window !== "undefined" ? carregarFiltros() : FILTROS_VAZIOS,
   );
@@ -239,17 +241,55 @@ export function AtividadesView() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm text-navy-700 dark:text-gibelo-areia">
-          Quadro de tarefas — arraste cards e listas, ou use os menus/setas.
+          {modo === "kanban"
+            ? "Quadro de tarefas — arraste cards e listas, ou use os menus/setas."
+            : "Visualização mensal — cards posicionados pela data de vencimento."}
         </p>
-        <button
-          type="button"
-          onClick={() => criarLista("Nova lista")}
-          className={btnPrimary}
-        >
-          + Nova lista
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <div
+            role="tablist"
+            aria-label="Modo de visualização"
+            className="inline-flex overflow-hidden rounded-lg border border-navy-200 dark:border-dark-border"
+          >
+            <button
+              type="button"
+              role="tab"
+              aria-selected={modo === "kanban"}
+              onClick={() => setModo("kanban")}
+              className={`px-3 py-1.5 text-xs font-medium transition-colors ${
+                modo === "kanban"
+                  ? "bg-navy-900 text-white dark:bg-gibelo-areia dark:text-navy-900"
+                  : "bg-white text-navy-700 hover:bg-navy-50 dark:bg-dark-surface dark:text-gibelo-offwhite dark:hover:bg-dark-elevated"
+              }`}
+            >
+              Kanban
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={modo === "calendario"}
+              onClick={() => setModo("calendario")}
+              className={`px-3 py-1.5 text-xs font-medium transition-colors ${
+                modo === "calendario"
+                  ? "bg-navy-900 text-white dark:bg-gibelo-areia dark:text-navy-900"
+                  : "bg-white text-navy-700 hover:bg-navy-50 dark:bg-dark-surface dark:text-gibelo-offwhite dark:hover:bg-dark-elevated"
+              }`}
+            >
+              Calendário
+            </button>
+          </div>
+          {modo === "kanban" && (
+            <button
+              type="button"
+              onClick={() => criarLista("Nova lista")}
+              className={btnPrimary}
+            >
+              + Nova lista
+            </button>
+          )}
+        </div>
       </div>
 
       {listas.length > 0 && (
@@ -271,6 +311,8 @@ export function AtividadesView() {
             Crie a primeira lista para começar a organizar as tarefas.
           </p>
         </div>
+      ) : modo === "calendario" ? (
+        <AtividadesCalendario cards={cardsVisiveis} onAbrir={abrirCard} />
       ) : (
         <DndContext
           sensors={sensors}
