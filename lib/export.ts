@@ -259,7 +259,7 @@ export function exportarPDF(ctx: ExportContext): void {
 <meta charset="utf-8" />
 <title>Relatório CRM Gibelo — ${escapeHTML(dataAgora)}</title>
 <style>
-  @page { size: A4; margin: 20mm; }
+  @page { size: A4; margin: 25mm 20mm 22mm 20mm; }
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
   body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; color: #0D2137; font-size: 12px; line-height: 1.45; }
@@ -298,6 +298,9 @@ export function exportarPDF(ctx: ExportContext): void {
   .botoes { text-align: center; margin: 16px 0; }
   .botoes button { padding: 8px 16px; font-size: 13px; border-radius: 6px; border: 1px solid #0D2137; background: #0D2137; color: #fff; cursor: pointer; }
   .botoes button.ghost { background: #fff; color: #0D2137; margin-left: 8px; }
+  .dica-impressao { max-width: 640px; margin: 0 auto 12px; padding: 10px 14px; background: #eef3fa; border: 1px solid #c5d4e8; border-radius: 6px; font-size: 11px; color: #0D2137; text-align: center; }
+  .dica-impressao strong { color: #0D2137; }
+  @media print { .dica-impressao { display: none; } }
 </style>
 </head>
 <body>
@@ -308,6 +311,10 @@ export function exportarPDF(ctx: ExportContext): void {
     Período: <strong>${escapeHTML(periodoLabel)}</strong>
   </div>
 </header>
+
+<div class="dica-impressao">
+  No diálogo de impressão, mantenha <strong>Margens: Padrão</strong> para garantir a margem de segurança do relatório.
+</div>
 
 <div class="botoes">
   <button onclick="window.print()">Imprimir / Salvar PDF</button>
