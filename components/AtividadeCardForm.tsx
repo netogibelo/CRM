@@ -12,6 +12,7 @@ import { btnGhost, btnPrimary, inputCls, labelCls } from "@/lib/ui";
 import { Modal } from "./Modal";
 import { AtividadeChecklistSection } from "./AtividadeChecklistSection";
 import { AtividadeEtiquetasSection } from "./AtividadeEtiquetasSection";
+import { AtividadeComentariosSection } from "./AtividadeComentariosSection";
 
 export interface CardFormData {
   listaId: string;
@@ -263,6 +264,12 @@ export function AtividadeCardForm({
           {card && (
             <div className="rounded-lg border border-navy-100 bg-navy-50/40 p-3 dark:border-dark-border dark:bg-dark-elevated/30">
               <AtividadeChecklistSection cardId={card.id} />
+            </div>
+          )}
+
+          {card && (
+            <div className="rounded-lg border border-navy-100 bg-navy-50/40 p-3 dark:border-dark-border dark:bg-dark-elevated/30">
+              <AtividadeComentariosSection cardId={card.id} />
             </div>
           )}
 

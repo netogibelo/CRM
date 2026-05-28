@@ -13,6 +13,8 @@ import type {
   AtividadeCardInput,
   AtividadeChecklistInput,
   AtividadeChecklistItem,
+  AtividadeComentario,
+  AtividadeComentarioInput,
   AtividadeEtiqueta,
   AtividadeEtiquetaInput,
   AtividadeLista,
@@ -1034,6 +1036,74 @@ class SupabaseEtiquetaRepository implements EtiquetaRepository {
 
 export const etiquetaRepository: EtiquetaRepository =
   new SupabaseEtiquetaRepository();
+
+// ── Comentários (F5) ─────────────────────────────────────────────────────────
+function comentarioFromRow(row: Row): AtividadeComentario {
+  return {
+    id: row.id,
+    cardId: row.card_id,
+    autorEmail: row.autor_email,
+    texto: row.texto,
+    criadoEm: row.criado_em,
+    editadoEm: row.editado_em ?? null,
+  };
+}
+
+export interface ComentarioRepository {
+  listByCard(cardId: string): Promise<AtividadeComentario[]>;
+  create(input: AtividadeComentarioInput): Promise<AtividadeComentario>;
+  update(id: string, texto: string): Promise<AtividadeComentario>;
+  remove(id: string): Promise<void>;
+}
+
+class SupabaseComentarioRepository implements ComentarioRepository {
+  async listByCard(cardId: string): Promise<AtividadeComentario[]> {
+    const { data, error } = await supabase
+      .from("atividades_comentarios")
+      .select("*")
+      .eq("card_id", cardId)
+      .order("criado_em", { ascending: true });
+    if (error) throw error;
+    return (data ?? []).map(comentarioFromRow);
+  }
+  async create(
+    input: AtividadeComentarioInput,
+  ): Promise<AtividadeComentario> {
+    const id = novoId("com");
+    const { data, error } = await supabase
+      .from("atividades_comentarios")
+      .insert({
+        id,
+        card_id: input.cardId,
+        autor_email: input.autorEmail,
+        texto: input.texto,
+      })
+      .select()
+      .single();
+    if (error) throw error;
+    return comentarioFromRow(data);
+  }
+  async update(id: string, texto: string): Promise<AtividadeComentario> {
+    const { data, error } = await supabase
+      .from("atividades_comentarios")
+      .update({ texto, editado_em: agoraISO() })
+      .eq("id", id)
+      .select()
+      .single();
+    if (error) throw error;
+    return comentarioFromRow(data);
+  }
+  async remove(id: string): Promise<void> {
+    const { error } = await supabase
+      .from("atividades_comentarios")
+      .delete()
+      .eq("id", id);
+    if (error) throw error;
+  }
+}
+
+export const comentarioRepository: ComentarioRepository =
+  new SupabaseComentarioRepository();
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Repositório do histórico/timeline dos deals (só Supabase — feature nova)

@@ -196,6 +196,23 @@ export type AtividadeCardInput = Omit<
 >;
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Comentários em cards de atividade (F5)
+// ─────────────────────────────────────────────────────────────────────────────
+export interface AtividadeComentario {
+  id: string;
+  cardId: string;
+  autorEmail: string;
+  texto: string;
+  criadoEm: string;
+  editadoEm: string | null;
+}
+export type AtividadeComentarioInput = {
+  cardId: string;
+  autorEmail: string;
+  texto: string;
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Etiquetas de card de atividade (com cor hex, configuráveis)
 // ─────────────────────────────────────────────────────────────────────────────
 export interface AtividadeEtiqueta {
