@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import dynamic from "next/dynamic";
 import { useClients, useDeals } from "@/lib/crm-store";
 import { FunilView } from "@/components/FunilView";
@@ -11,6 +10,7 @@ import { HistoricoView } from "@/components/HistoricoView";
 import { PerfilButton } from "@/components/PerfilButton";
 import { NotificacoesSino } from "@/components/NotificacoesSino";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { GibeloLogo } from "@/components/GibeloLogo";
 
 // DashboardView usa Recharts (~250KB de bundle). AtividadesView usa @dnd-kit.
 // Carregamos sob demanda — quem entra direto no Funil paga só o JS do Funil,
@@ -68,29 +68,13 @@ export default function HomePage() {
   return (
     <main className="mx-auto max-w-[1400px] px-4 py-5 sm:px-6 sm:py-7">
       <header className="flex items-center gap-3">
-        <Image
-          src="/logo-gibelo-azul.png"
-          alt="Gibelo Construtora"
-          width={180}
-          height={68}
-          priority
-          sizes="(max-width: 640px) 128px, 160px"
-          className="h-auto w-32 dark:hidden sm:w-40"
-        />
-        <Image
-          src="/logo-gibelo-branco.png"
-          alt="Gibelo Construtora"
-          width={180}
-          height={68}
-          priority
-          sizes="(max-width: 640px) 128px, 160px"
-          className="hidden h-auto w-32 dark:block sm:w-40"
-        />
+        <GibeloLogo width={130} className="sm:hidden" comDescritor={false} />
+        <GibeloLogo width={160} className="hidden sm:inline-flex" />
         <div className="flex-1 border-l border-navy-200 pl-3 dark:border-dark-border">
           <h1 className="text-lg font-bold tracking-tight text-navy-900 dark:text-gibelo-offwhite sm:text-xl">
             Pipeline de Vendas
           </h1>
-          <p className="text-xs text-navy-500 dark:text-gibelo-areia sm:text-sm">
+          <p className="text-xs text-navy-700 dark:text-gibelo-areia sm:text-sm">
             Obras por taxa de administração a preço de custo
           </p>
         </div>
@@ -120,7 +104,7 @@ export default function HomePage() {
             className={`relative -mb-px flex shrink-0 items-center gap-1.5 border-b-2 px-3 py-2.5 text-sm font-medium transition-colors ${
               aba === t.id
                 ? "border-navy-900 text-navy-900 dark:border-gibelo-areia dark:text-gibelo-offwhite"
-                : "border-transparent text-navy-500 hover:text-navy-700 dark:text-gibelo-cinza-quente dark:hover:text-gibelo-offwhite"
+                : "border-transparent text-navy-500 hover:text-navy-700 dark:text-gibelo-areia dark:hover:text-gibelo-offwhite"
             }`}
           >
             {t.label}

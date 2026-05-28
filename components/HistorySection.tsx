@@ -39,13 +39,13 @@ function HistoricoItem({
           </div>
           <p
             className={`shrink-0 text-sm font-bold ${
-              tipo === "ganho" ? "text-emerald-600" : "text-navy-700 dark:text-gibelo-cinza-quente"
+              tipo === "ganho" ? "text-emerald-600" : "text-navy-700 dark:text-gibelo-areia"
             }`}
           >
             {formatBRL(deal.valor)}
           </p>
         </div>
-        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-navy-700 dark:text-gibelo-cinza-quente">
+        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-navy-700 dark:text-gibelo-areia">
           <span>{origemNome(deal.origemId)}</span>
           <span aria-hidden="true">•</span>
           <span>{formatTimestampBR(deal.atualizadoEm)}</span>
@@ -81,7 +81,7 @@ export function HistorySection({
           </span>
         </div>
         {ganhos.length === 0 ? (
-          <p className="rounded-xl border border-dashed border-navy-200 dark:border-dark-border dark:border-dark-border bg-white dark:bg-dark-surface px-4 py-8 text-center text-sm text-navy-700 dark:text-gibelo-cinza-quente">
+          <p className="rounded-xl border border-dashed border-navy-200 dark:border-dark-border dark:border-dark-border bg-white dark:bg-dark-surface px-4 py-8 text-center text-sm text-navy-700 dark:text-gibelo-areia">
             Nenhum negócio ganho ainda.
           </p>
         ) : (
@@ -99,12 +99,12 @@ export function HistorySection({
             <span className="h-2.5 w-2.5 rounded-full bg-red-400" aria-hidden="true" />
             Perdidos ({perdidos.length})
           </h3>
-          <span className="text-sm font-semibold text-navy-700 dark:text-gibelo-cinza-quente">
+          <span className="text-sm font-semibold text-navy-700 dark:text-gibelo-areia">
             {formatBRL(totalPerdido)}
           </span>
         </div>
         {perdidos.length === 0 ? (
-          <p className="rounded-xl border border-dashed border-navy-200 dark:border-dark-border dark:border-dark-border bg-white dark:bg-dark-surface px-4 py-8 text-center text-sm text-navy-700 dark:text-gibelo-cinza-quente">
+          <p className="rounded-xl border border-dashed border-navy-200 dark:border-dark-border dark:border-dark-border bg-white dark:bg-dark-surface px-4 py-8 text-center text-sm text-navy-700 dark:text-gibelo-areia">
             Nenhum negócio perdido registrado.
           </p>
         ) : (

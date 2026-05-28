@@ -130,7 +130,7 @@ export function PerfilButton() {
           className="absolute right-0 top-full z-50 mt-2 w-[min(320px,calc(100vw-2rem))] overflow-hidden rounded-xl border border-navy-100 dark:border-dark-border bg-white dark:bg-dark-surface shadow-card-hover"
         >
           <div className="border-b border-navy-100 dark:border-dark-border px-4 py-3">
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-navy-700 dark:text-gibelo-cinza-quente">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-navy-700 dark:text-gibelo-areia">
               Meu perfil
             </p>
             <p className="mt-1 text-sm font-semibold text-navy-900 dark:text-gibelo-offwhite">

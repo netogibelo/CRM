@@ -84,7 +84,7 @@ export function MetaMesCard() {
       <div className="flex items-baseline justify-between gap-2">
         <div>
           <h3 className="text-sm font-semibold text-navy-900 dark:text-gibelo-offwhite">Meta do mês</h3>
-          <p className="text-xs text-navy-700 dark:text-gibelo-cinza-quente">{nomeMes(mes)}</p>
+          <p className="text-xs text-navy-700 dark:text-gibelo-areia">{nomeMes(mes)}</p>
         </div>
         {!editando && (
           <button
@@ -142,7 +142,7 @@ export function MetaMesCard() {
             <span className="text-2xl font-bold tracking-tight text-navy-900 dark:text-gibelo-offwhite">
               {formatBRL(resumo.valorAtual)}
             </span>
-            <span className="text-xs text-navy-700 dark:text-gibelo-cinza-quente">
+            <span className="text-xs text-navy-700 dark:text-gibelo-areia">
               de {formatBRL(resumo.valorMeta)}
             </span>
           </div>
@@ -168,7 +168,7 @@ export function MetaMesCard() {
                 : "Defina a meta deste mês"}
             </span>
             {resumo.valorMeta > 0 && resumo.faltante > 0 && (
-              <span className="text-navy-700 dark:text-gibelo-cinza-quente">
+              <span className="text-navy-700 dark:text-gibelo-areia">
                 Falta {formatBRL(resumo.faltante)}
               </span>
             )}

@@ -74,7 +74,7 @@ export function AtividadeCard({
             aria-label="Ações do card"
             aria-haspopup="menu"
             aria-expanded={menu}
-            className="-mr-1 -mt-0.5 shrink-0 rounded-md p-1 text-navy-500 dark:text-gibelo-cinza-quente transition-colors hover:bg-navy-50 dark:hover:bg-dark-elevated dark:bg-dark-elevated hover:text-navy-700 dark:text-gibelo-offwhite"
+            className="-mr-1 -mt-0.5 shrink-0 rounded-md p-1 text-navy-500 dark:text-gibelo-areia transition-colors hover:bg-navy-50 dark:hover:bg-dark-elevated dark:bg-dark-elevated hover:text-navy-700 dark:text-gibelo-offwhite"
           >
             <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
               <circle cx="8" cy="3.5" r="1.3" fill="currentColor" />
@@ -137,11 +137,11 @@ export function AtividadeCard({
             >
               Editar
             </button>
-            <p className="px-3 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-wide text-navy-500 dark:text-gibelo-cinza-quente">
+            <p className="px-3 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-wide text-navy-500 dark:text-gibelo-areia">
               Mover para
             </p>
             {outras.length === 0 ? (
-              <p className="px-3 py-1.5 text-xs text-navy-700 dark:text-gibelo-cinza-quente">
+              <p className="px-3 py-1.5 text-xs text-navy-700 dark:text-gibelo-areia">
                 Não há outras listas.
               </p>
             ) : (

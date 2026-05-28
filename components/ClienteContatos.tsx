@@ -44,7 +44,7 @@ export function ClienteContatos({ clienteId }: Props) {
       </header>
 
       {contatos.length === 0 && !adicionando && (
-        <p className="rounded-lg border border-dashed border-navy-200 dark:border-dark-border dark:border-dark-border bg-navy-50 dark:bg-dark-elevated/50 px-3 py-4 text-center text-xs text-navy-700 dark:text-gibelo-cinza-quente">
+        <p className="rounded-lg border border-dashed border-navy-200 dark:border-dark-border dark:border-dark-border bg-navy-50 dark:bg-dark-elevated/50 px-3 py-4 text-center text-xs text-navy-700 dark:text-gibelo-areia">
           Nenhum contato cadastrado.
         </p>
       )}
@@ -181,7 +181,7 @@ function ContatoForm({
         </div>
         <div>
           <label htmlFor={`ct-cargo-${contato?.id ?? "novo"}`} className={labelCls}>
-            Cargo <span className="text-navy-500 dark:text-gibelo-cinza-quente">(opcional)</span>
+            Cargo <span className="text-navy-500 dark:text-gibelo-areia">(opcional)</span>
           </label>
           <input
             id={`ct-cargo-${contato?.id ?? "novo"}`}
@@ -194,7 +194,7 @@ function ContatoForm({
         </div>
         <div>
           <label htmlFor={`ct-tel-${contato?.id ?? "novo"}`} className={labelCls}>
-            Telefone <span className="text-navy-500 dark:text-gibelo-cinza-quente">(opcional)</span>
+            Telefone <span className="text-navy-500 dark:text-gibelo-areia">(opcional)</span>
           </label>
           <input
             id={`ct-tel-${contato?.id ?? "novo"}`}
@@ -207,7 +207,7 @@ function ContatoForm({
         </div>
         <div>
           <label htmlFor={`ct-email-${contato?.id ?? "novo"}`} className={labelCls}>
-            E-mail <span className="text-navy-500 dark:text-gibelo-cinza-quente">(opcional)</span>
+            E-mail <span className="text-navy-500 dark:text-gibelo-areia">(opcional)</span>
           </label>
           <input
             id={`ct-email-${contato?.id ?? "novo"}`}

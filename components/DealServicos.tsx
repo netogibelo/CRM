@@ -166,7 +166,7 @@ function ServicoRow({
           className={`rounded-lg px-2 py-1.5 text-xs font-semibold transition-colors ${
             dirty
               ? "bg-navy-900 text-white hover:bg-navy-800"
-              : "border border-navy-200 dark:border-dark-border text-navy-500 dark:text-gibelo-cinza-quente"
+              : "border border-navy-200 dark:border-dark-border text-navy-500 dark:text-gibelo-areia"
           } disabled:opacity-60`}
         >
           {salvando ? "…" : "✓"}
@@ -226,7 +226,7 @@ export function DealServicos({ dealId, onTotalChange }: DealServicosProps) {
       </legend>
 
       {itens.length === 0 ? (
-        <p className="text-xs text-navy-700 dark:text-gibelo-cinza-quente">
+        <p className="text-xs text-navy-700 dark:text-gibelo-areia">
           Sem itens. Adicione serviços para detalhar o escopo do negócio. O valor
           do deal será a soma dos itens.
         </p>
@@ -245,7 +245,7 @@ export function DealServicos({ dealId, onTotalChange }: DealServicosProps) {
       )}
 
       {itens.length > 0 && (
-        <p className="mt-2 text-[11px] text-navy-700 dark:text-gibelo-cinza-quente">
+        <p className="mt-2 text-[11px] text-navy-700 dark:text-gibelo-areia">
           Editou um campo? Pressione Enter ou clique ✓ para salvar.
         </p>
       )}
@@ -261,7 +261,7 @@ export function DealServicos({ dealId, onTotalChange }: DealServicosProps) {
         </button>
         {itens.length > 0 && (
           <div className="text-right">
-            <p className="text-[11px] uppercase tracking-wide text-navy-700 dark:text-gibelo-cinza-quente">
+            <p className="text-[11px] uppercase tracking-wide text-navy-700 dark:text-gibelo-areia">
               Total ({itens.length} {itens.length === 1 ? "item" : "itens"})
             </p>
             <p className="text-base font-semibold text-navy-900 dark:text-gibelo-offwhite">

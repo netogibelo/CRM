@@ -71,7 +71,7 @@ export function DealTarefas({ dealId, responsavelDoDeal }: DealTarefasProps) {
     >
       <header className="flex items-center justify-between">
         <h3 className="text-sm font-semibold text-navy-900 dark:text-gibelo-offwhite">Tarefas</h3>
-        <span className="text-xs text-navy-700 dark:text-gibelo-cinza-quente">
+        <span className="text-xs text-navy-700 dark:text-gibelo-areia">
           {tarefasDoDeal.filter((t) => !t.concluida).length} abertas
         </span>
       </header>
@@ -148,7 +148,7 @@ export function DealTarefas({ dealId, responsavelDoDeal }: DealTarefasProps) {
 
       <ul className="mt-3 space-y-2">
         {tarefasDoDeal.length === 0 ? (
-          <li className="py-3 text-center text-xs text-navy-700 dark:text-gibelo-cinza-quente">
+          <li className="py-3 text-center text-xs text-navy-700 dark:text-gibelo-areia">
             Nenhuma tarefa ainda.
           </li>
         ) : (
@@ -174,7 +174,7 @@ export function DealTarefas({ dealId, responsavelDoDeal }: DealTarefasProps) {
                   <p
                     className={`text-sm ${
                       t.concluida
-                        ? "text-navy-700 dark:text-gibelo-cinza-quente line-through"
+                        ? "text-navy-700 dark:text-gibelo-areia line-through"
                         : "text-navy-900 dark:text-gibelo-offwhite"
                     }`}
                   >
@@ -197,7 +197,7 @@ export function DealTarefas({ dealId, responsavelDoDeal }: DealTarefasProps) {
                 <button
                   type="button"
                   onClick={() => remover(t.id)}
-                  className="text-xs text-navy-700 dark:text-gibelo-cinza-quente transition-colors hover:text-red-600"
+                  className="text-xs text-navy-700 dark:text-gibelo-areia transition-colors hover:text-red-600"
                   aria-label={`Remover tarefa "${t.titulo}"`}
                 >
                   Remover

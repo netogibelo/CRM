@@ -157,14 +157,14 @@ export function NotificacoesSino({
             <h2 className="text-sm font-semibold text-navy-900 dark:text-gibelo-offwhite">
               Notificações
             </h2>
-            <span className="text-xs text-navy-700 dark:text-gibelo-cinza-quente">
+            <span className="text-xs text-navy-700 dark:text-gibelo-areia">
               {ativas.length} pendente{ativas.length === 1 ? "" : "s"}
             </span>
           </div>
 
           <div className="max-h-[60vh] overflow-y-auto">
             {ativas.length === 0 ? (
-              <p className="px-4 py-6 text-center text-xs text-navy-700 dark:text-gibelo-cinza-quente">
+              <p className="px-4 py-6 text-center text-xs text-navy-700 dark:text-gibelo-areia">
                 Nenhuma pendência. Bom trabalho.
               </p>
             ) : (
@@ -209,7 +209,7 @@ export function NotificacoesSino({
                     <button
                       type="button"
                       onClick={() => handleMarcar(n)}
-                      className="shrink-0 rounded p-1 text-navy-700 dark:text-gibelo-cinza-quente transition-colors hover:bg-navy-50 dark:hover:bg-dark-elevated dark:bg-dark-elevated hover:text-navy-700 dark:text-gibelo-offwhite"
+                      className="shrink-0 rounded p-1 text-navy-700 dark:text-gibelo-areia transition-colors hover:bg-navy-50 dark:hover:bg-dark-elevated dark:bg-dark-elevated hover:text-navy-700 dark:text-gibelo-offwhite"
                       aria-label={`Marcar notificação como vista`}
                       title="Marcar como vista"
                     >

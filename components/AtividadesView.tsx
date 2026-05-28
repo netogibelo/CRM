@@ -152,7 +152,7 @@ export function AtividadesView() {
 
   if (carregando) {
     return (
-      <div className="py-16 text-center text-sm text-navy-700 dark:text-gibelo-cinza-quente" role="status">
+      <div className="py-16 text-center text-sm text-navy-700 dark:text-gibelo-areia" role="status">
         Carregando atividades…
       </div>
     );
@@ -161,7 +161,7 @@ export function AtividadesView() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-navy-700 dark:text-gibelo-cinza-quente">
+        <p className="text-sm text-navy-700 dark:text-gibelo-areia">
           Quadro de tarefas — arraste cards e listas, ou use os menus/setas.
         </p>
         <button
@@ -178,7 +178,7 @@ export function AtividadesView() {
           <p className="text-sm font-medium text-navy-700 dark:text-gibelo-offwhite">
             Nenhuma lista no quadro.
           </p>
-          <p className="mt-1 text-sm text-navy-700 dark:text-gibelo-cinza-quente">
+          <p className="mt-1 text-sm text-navy-700 dark:text-gibelo-areia">
             Crie a primeira lista para começar a organizar as tarefas.
           </p>
         </div>

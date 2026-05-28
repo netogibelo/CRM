@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { btnPrimary, inputCls, labelCls } from "@/lib/ui";
+import { GibeloLogo } from "@/components/GibeloLogo";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -38,25 +38,8 @@ export default function LoginPage() {
     <main className="flex min-h-screen items-center justify-center bg-gibelo-offwhite px-4 py-10 dark:bg-dark-bg">
       <div className="w-full max-w-sm rounded-2xl border border-navy-100 bg-white p-8 shadow-sm dark:border-dark-border dark:bg-dark-surface">
         <header className="flex flex-col items-center gap-3 text-center">
-          <Image
-            src="/logo-gibelo-azul.png"
-            alt="Gibelo Construtora"
-            width={220}
-            height={84}
-            priority
-            sizes="176px"
-            className="h-auto w-44 dark:hidden"
-          />
-          <Image
-            src="/logo-gibelo-branco.png"
-            alt="Gibelo Construtora"
-            width={220}
-            height={84}
-            priority
-            sizes="176px"
-            className="hidden h-auto w-44 dark:block"
-          />
-          <p className="text-xs uppercase tracking-[0.18em] text-navy-500 dark:text-gibelo-areia">
+          <GibeloLogo width={180} />
+          <p className="text-xs uppercase tracking-[0.18em] text-navy-700 dark:text-gibelo-areia">
             CRM · Funil de Vendas
           </p>
         </header>
@@ -121,7 +104,7 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <p className="mt-6 text-center text-xs text-navy-500 dark:text-gibelo-cinza-quente">
+        <p className="mt-6 text-center text-xs text-navy-500 dark:text-gibelo-areia">
           Acesso restrito · Gibelo Construtora
         </p>
       </div>

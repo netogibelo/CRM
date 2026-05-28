@@ -47,7 +47,7 @@ function OrigemRow({
         type="button"
         onClick={onDelete}
         aria-label={`Excluir origem ${origem.nome}`}
-        className="shrink-0 rounded-md p-1.5 text-navy-700 dark:text-gibelo-cinza-quente transition-colors hover:bg-red-50 hover:text-red-600"
+        className="shrink-0 rounded-md p-1.5 text-navy-700 dark:text-gibelo-areia transition-colors hover:bg-red-50 hover:text-red-600"
       >
         <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
           <path
@@ -120,7 +120,7 @@ function EtapaRow({
           }}
           className="w-16 rounded-md border border-navy-200 dark:border-dark-border px-2 py-1 text-right text-sm text-navy-900 dark:text-gibelo-offwhite focus:border-navy-500 focus:outline-none focus:ring-2 focus:ring-navy-500/30"
         />
-        <span className="text-xs text-navy-700 dark:text-gibelo-cinza-quente">%</span>
+        <span className="text-xs text-navy-700 dark:text-gibelo-areia">%</span>
       </div>
 
       {etapa.final ? (
@@ -137,7 +137,7 @@ function EtapaRow({
               type="button"
               onClick={onDelete}
               aria-label={`Excluir etapa ${etapa.nome}`}
-              className="shrink-0 rounded-md p-1.5 text-navy-700 dark:text-gibelo-cinza-quente transition-colors hover:bg-red-50 hover:text-red-600"
+              className="shrink-0 rounded-md p-1.5 text-navy-700 dark:text-gibelo-areia transition-colors hover:bg-red-50 hover:text-red-600"
             >
               <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
                 <path d="M2.5 4h11M6 4V2.5h4V4M5 4l.5 9h5l.5-9" stroke="currentColor" strokeWidth="1.3" fill="none" strokeLinecap="round" strokeLinejoin="round" />
@@ -175,7 +175,7 @@ function TipoServicoRow({
         type="button"
         onClick={onDesativar}
         aria-label={`Excluir tipo de serviço ${tipo.nome}`}
-        className="shrink-0 rounded-md p-1.5 text-navy-700 dark:text-gibelo-cinza-quente transition-colors hover:bg-red-50 hover:text-red-600"
+        className="shrink-0 rounded-md p-1.5 text-navy-700 dark:text-gibelo-areia transition-colors hover:bg-red-50 hover:text-red-600"
       >
         <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
           <path
@@ -272,7 +272,7 @@ export function ConfiguracoesView() {
         className="rounded-2xl border border-navy-100 dark:border-dark-border bg-navy-50 dark:bg-dark-elevated/40 p-4 sm:p-5"
       >
         <h2 className="text-sm font-semibold text-navy-900 dark:text-gibelo-offwhite">Origens</h2>
-        <p className="mt-0.5 text-xs text-navy-700 dark:text-gibelo-cinza-quente">
+        <p className="mt-0.5 text-xs text-navy-700 dark:text-gibelo-areia">
           De onde vêm as oportunidades. Arraste para reordenar. Não é possível
           excluir uma origem em uso.
         </p>
@@ -318,7 +318,7 @@ export function ConfiguracoesView() {
         className="rounded-2xl border border-navy-100 dark:border-dark-border bg-navy-50 dark:bg-dark-elevated/40 p-4 sm:p-5"
       >
         <h2 className="text-sm font-semibold text-navy-900 dark:text-gibelo-offwhite">Etapas do funil</h2>
-        <p className="mt-0.5 text-xs text-navy-700 dark:text-gibelo-cinza-quente">
+        <p className="mt-0.5 text-xs text-navy-700 dark:text-gibelo-areia">
           Nome, probabilidade (alimenta o valor ponderado) e ordem das colunas.
           Arraste para reordenar. A etapa de fechamento (ganho) fica fixa no fim.
         </p>
@@ -377,7 +377,7 @@ export function ConfiguracoesView() {
               aria-label="Probabilidade da nova etapa em %"
               className="w-16 rounded-lg border border-navy-200 dark:border-dark-border px-2 py-2 text-right text-sm focus:border-navy-500 focus:outline-none focus:ring-2 focus:ring-navy-500/30"
             />
-            <span className="text-xs text-navy-700 dark:text-gibelo-cinza-quente">%</span>
+            <span className="text-xs text-navy-700 dark:text-gibelo-areia">%</span>
           </div>
           <button type="button" onClick={addEtapa} className={btnPrimary}>
             Adicionar
@@ -391,7 +391,7 @@ export function ConfiguracoesView() {
         className="rounded-2xl border border-navy-100 dark:border-dark-border bg-navy-50 dark:bg-dark-elevated/40 p-4 sm:p-5"
       >
         <h2 className="text-sm font-semibold text-navy-900 dark:text-gibelo-offwhite">Tipos de serviço</h2>
-        <p className="mt-0.5 text-xs text-navy-700 dark:text-gibelo-cinza-quente">
+        <p className="mt-0.5 text-xs text-navy-700 dark:text-gibelo-areia">
           Sugestões oferecidas ao adicionar um serviço dentro de um deal.
           Arraste para reordenar. Excluir não apaga histórico, só remove da lista
           de sugestões.

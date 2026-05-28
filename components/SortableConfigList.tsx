@@ -159,7 +159,7 @@ export function SortableConfigList<T>({
       </div>
 
       {items.length === 0 && emptyLabel ? (
-        <p className="py-3 text-center text-xs text-navy-700 dark:text-gibelo-cinza-quente">{emptyLabel}</p>
+        <p className="py-3 text-center text-xs text-navy-700 dark:text-gibelo-areia">{emptyLabel}</p>
       ) : (
         <DndContext
           sensors={sensors}
@@ -193,7 +193,7 @@ export function DragHandle({ handle }: { handle: DragHandleProps }) {
       {...handle.attributes}
       {...(handle.listeners ?? {})}
       aria-label="Arrastar para reordenar"
-      className="shrink-0 cursor-grab touch-none rounded-md p-1 text-navy-500 dark:text-gibelo-cinza-quente transition-colors hover:bg-navy-50 dark:hover:bg-dark-elevated dark:bg-dark-elevated hover:text-navy-700 dark:text-gibelo-offwhite active:cursor-grabbing"
+      className="shrink-0 cursor-grab touch-none rounded-md p-1 text-navy-500 dark:text-gibelo-areia transition-colors hover:bg-navy-50 dark:hover:bg-dark-elevated dark:bg-dark-elevated hover:text-navy-700 dark:text-gibelo-offwhite active:cursor-grabbing"
     >
       <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true">
         <circle cx="6" cy="4" r="1.2" fill="currentColor" />

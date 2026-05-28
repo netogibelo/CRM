@@ -66,7 +66,7 @@ export function ClientesView() {
       </div>
 
       {filtrados.length === 0 ? (
-        <p className="rounded-2xl border border-dashed border-navy-200 dark:border-dark-border dark:border-dark-border bg-white dark:bg-dark-surface px-6 py-12 text-center text-sm text-navy-700 dark:text-gibelo-cinza-quente">
+        <p className="rounded-2xl border border-dashed border-navy-200 dark:border-dark-border dark:border-dark-border bg-white dark:bg-dark-surface px-6 py-12 text-center text-sm text-navy-700 dark:text-gibelo-areia">
           {clientes.length === 0
             ? "Nenhum cliente cadastrado ainda."
             : "Nenhum cliente encontrado para a busca."}
@@ -97,7 +97,7 @@ export function ClientesView() {
                     {c.telefone && <p>{c.telefone}</p>}
                     {c.email && <p className="truncate">{c.email}</p>}
                     {!c.telefone && !c.email && (
-                      <p className="text-navy-500 dark:text-gibelo-cinza-quente">Sem contato cadastrado</p>
+                      <p className="text-navy-500 dark:text-gibelo-areia">Sem contato cadastrado</p>
                     )}
                   </div>
                   <div className="mt-3 flex flex-wrap gap-1.5">

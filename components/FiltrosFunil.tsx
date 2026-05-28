@@ -84,7 +84,7 @@ interface FiltrosFunilProps {
 
 const labelInline = "block text-[11px] font-semibold uppercase tracking-wide text-navy-700 dark:text-gibelo-areia";
 const inputInline =
-  "w-full rounded-md border border-navy-200 dark:border-dark-border bg-white dark:bg-dark-surface px-2.5 py-1.5 text-sm text-navy-900 dark:text-gibelo-offwhite placeholder:text-navy-500 dark:placeholder:text-gibelo-cinza-quente focus:border-navy-500 focus:outline-none focus:ring-2 focus:ring-navy-500/30";
+  "w-full rounded-md border border-navy-200 dark:border-dark-border bg-white dark:bg-dark-surface px-2.5 py-1.5 text-sm text-navy-900 dark:text-gibelo-offwhite placeholder:text-navy-500 dark:placeholder:text-gibelo-areia focus:border-navy-500 focus:outline-none focus:ring-2 focus:ring-navy-500/30";
 
 export function FiltrosFunil({
   filtros,

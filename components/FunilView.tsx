@@ -84,7 +84,7 @@ export function FunilView() {
               ? "Nenhuma oportunidade aberta no funil."
               : "Nenhuma oportunidade corresponde aos filtros."}
           </p>
-          <p className="mt-1 text-sm text-navy-700 dark:text-gibelo-cinza-quente">
+          <p className="mt-1 text-sm text-navy-700 dark:text-gibelo-areia">
             {abertos.length === 0
               ? "Crie a primeira oportunidade para começar a acompanhar."
               : "Ajuste ou limpe os filtros para ver as oportunidades."}

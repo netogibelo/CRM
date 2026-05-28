@@ -17,12 +17,12 @@ export function OriginAnalysis({ origens }: OriginAnalysisProps) {
       <h3 className="text-sm font-semibold text-navy-900 dark:text-gibelo-offwhite">
         De onde vêm os negócios fechados
       </h3>
-      <p className="mt-0.5 text-xs text-navy-700 dark:text-gibelo-cinza-quente">
+      <p className="mt-0.5 text-xs text-navy-700 dark:text-gibelo-areia">
         Ordenado por valor ganho — qual origem realmente converte em receita.
       </p>
 
       {origens.length === 0 ? (
-        <p className="mt-4 text-sm text-navy-700 dark:text-gibelo-cinza-quente">
+        <p className="mt-4 text-sm text-navy-700 dark:text-gibelo-areia">
           Nenhuma oportunidade cadastrada ainda.
         </p>
       ) : (
@@ -45,7 +45,7 @@ export function OriginAnalysis({ origens }: OriginAnalysisProps) {
                   }}
                 />
               </div>
-              <div className="mt-1 flex items-center justify-between text-xs text-navy-700 dark:text-gibelo-cinza-quente">
+              <div className="mt-1 flex items-center justify-between text-xs text-navy-700 dark:text-gibelo-areia">
                 <span>
                   {o.ganhos} de {o.totalLeads}{" "}
                   {o.totalLeads === 1 ? "oportunidade" : "oportunidades"}

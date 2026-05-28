@@ -164,7 +164,7 @@ export function AutomacoesSection() {
       className="rounded-2xl border border-navy-100 dark:border-dark-border bg-navy-50 dark:bg-dark-elevated/40 p-4 sm:p-5"
     >
       <h2 className="text-sm font-semibold text-navy-900 dark:text-gibelo-offwhite">Automações</h2>
-      <p className="mt-0.5 text-xs text-navy-700 dark:text-gibelo-cinza-quente">
+      <p className="mt-0.5 text-xs text-navy-700 dark:text-gibelo-areia">
         Regras que disparam ações quando algo acontece com um deal. Executadas
         quando você arrasta um deal entre colunas ou cria um novo.
       </p>
@@ -216,7 +216,7 @@ export function AutomacoesSection() {
                   onClick={() => {
                     if (confirm(`Excluir automação "${a.nome}"?`)) remover(a.id);
                   }}
-                  className="text-xs text-navy-700 dark:text-gibelo-cinza-quente transition-colors hover:text-red-600"
+                  className="text-xs text-navy-700 dark:text-gibelo-areia transition-colors hover:text-red-600"
                   aria-label={`Excluir automação ${a.nome}`}
                 >
                   Excluir

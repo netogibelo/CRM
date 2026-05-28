@@ -201,7 +201,7 @@ export function AtividadeColuna({
       >
         <SortableContext items={itemIds} strategy={verticalListSortingStrategy}>
           {cards.length === 0 ? (
-            <p className="px-2 py-8 text-center text-xs text-navy-700 dark:text-gibelo-cinza-quente">
+            <p className="px-2 py-8 text-center text-xs text-navy-700 dark:text-gibelo-areia">
               {isOver ? "Solte aqui" : "Nenhum card"}
             </p>
           ) : (

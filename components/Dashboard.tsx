@@ -29,7 +29,7 @@ function StatCard({
     >
       <p
         className={`text-xs font-medium ${
-          destaque ? "text-navy-200" : "text-navy-700 dark:text-gibelo-cinza-quente"
+          destaque ? "text-navy-200" : "text-navy-700 dark:text-gibelo-areia"
         }`}
       >
         {rotulo}
@@ -44,7 +44,7 @@ function StatCard({
       {detalhe && (
         <p
           className={`mt-0.5 text-xs ${
-            destaque ? "text-navy-300" : "text-navy-700 dark:text-gibelo-cinza-quente"
+            destaque ? "text-navy-300" : "text-navy-700 dark:text-gibelo-areia"
           }`}
         >
           {detalhe}
@@ -88,19 +88,19 @@ export function Dashboard({ m }: DashboardProps) {
             <h3 className="text-sm font-semibold text-navy-900 dark:text-gibelo-offwhite">
               Conversão entre etapas
             </h3>
-            <span className="text-xs text-navy-700 dark:text-gibelo-cinza-quente">funil cumulativo</span>
+            <span className="text-xs text-navy-700 dark:text-gibelo-areia">funil cumulativo</span>
           </div>
           <ul className="mt-3 space-y-2.5">
             {m.conversoes.map((c) => (
               <li key={c.deOrigemId}>
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-navy-700 dark:text-gibelo-areia">
-                    {c.deNome} <span className="text-navy-500 dark:text-gibelo-cinza-quente">→</span>{" "}
+                    {c.deNome} <span className="text-navy-500 dark:text-gibelo-areia">→</span>{" "}
                     {c.paraNome}
                   </span>
                   <span className="font-semibold text-navy-800 dark:text-gibelo-offwhite">
                     {formatPct(c.taxa)}
-                    <span className="ml-1 font-normal text-navy-700 dark:text-gibelo-cinza-quente">
+                    <span className="ml-1 font-normal text-navy-700 dark:text-gibelo-areia">
                       ({c.avancaram}/{c.base})
                     </span>
                   </span>
@@ -119,13 +119,13 @@ export function Dashboard({ m }: DashboardProps) {
         {/* Destaques e alerta */}
         <div className="flex flex-col gap-4">
           <div className="rounded-xl border border-navy-100 dark:border-dark-border bg-white dark:bg-dark-surface p-4">
-            <p className="text-xs font-medium text-navy-700 dark:text-gibelo-cinza-quente">
+            <p className="text-xs font-medium text-navy-700 dark:text-gibelo-areia">
               Valor médio de negócio
             </p>
             <p className="mt-1.5 text-xl font-bold tracking-tight text-navy-900 dark:text-gibelo-offwhite">
               {formatBRL(m.valorMedio)}
             </p>
-            <p className="mt-0.5 text-xs text-navy-700 dark:text-gibelo-cinza-quente">ticket médio de ganhos</p>
+            <p className="mt-0.5 text-xs text-navy-700 dark:text-gibelo-areia">ticket médio de ganhos</p>
           </div>
 
           <div
@@ -140,7 +140,7 @@ export function Dashboard({ m }: DashboardProps) {
                 className={`flex h-7 w-7 items-center justify-center rounded-full ${
                   m.paradas > 0
                     ? "bg-amber-100 text-amber-700"
-                    : "bg-navy-50 dark:bg-dark-elevated text-navy-700 dark:text-gibelo-cinza-quente"
+                    : "bg-navy-50 dark:bg-dark-elevated text-navy-700 dark:text-gibelo-areia"
                 }`}
                 aria-hidden="true"
               >
@@ -172,7 +172,7 @@ export function Dashboard({ m }: DashboardProps) {
             </div>
             <p
               className={`mt-1 text-xs ${
-                m.paradas > 0 ? "text-amber-700" : "text-navy-700 dark:text-gibelo-cinza-quente"
+                m.paradas > 0 ? "text-amber-700" : "text-navy-700 dark:text-gibelo-areia"
               }`}
             >
               Sem atualização há mais de 14 dias.

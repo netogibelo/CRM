@@ -127,7 +127,7 @@ function StatCard({
     >
       <p
         className={`text-xs font-medium ${
-          destaque ? "text-navy-200" : "text-navy-700 dark:text-gibelo-cinza-quente"
+          destaque ? "text-navy-200" : "text-navy-700 dark:text-gibelo-areia"
         }`}
       >
         {rotulo}
@@ -142,7 +142,7 @@ function StatCard({
       {detalhe && (
         <p
           className={`mt-0.5 text-xs ${
-            destaque ? "text-navy-300" : "text-navy-700 dark:text-gibelo-cinza-quente"
+            destaque ? "text-navy-300" : "text-navy-700 dark:text-gibelo-areia"
           }`}
         >
           {detalhe}
@@ -168,7 +168,7 @@ function ChartCard({
       <div className="mb-3 flex items-baseline justify-between gap-3">
         <h3 className="text-sm font-semibold text-navy-900 dark:text-gibelo-offwhite">{titulo}</h3>
         {detalhe && (
-          <span className="text-xs text-navy-700 dark:text-gibelo-cinza-quente">{detalhe}</span>
+          <span className="text-xs text-navy-700 dark:text-gibelo-areia">{detalhe}</span>
         )}
       </div>
       <div style={{ width: "100%", height: altura }}>{children}</div>
@@ -296,7 +296,7 @@ export function DashboardView() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-base font-semibold text-navy-900 dark:text-gibelo-offwhite">Dashboard</h2>
-          <p className="text-xs text-navy-700 dark:text-gibelo-cinza-quente">
+          <p className="text-xs text-navy-700 dark:text-gibelo-areia">
             Visão consolidada do funil — período: {periodo.label}
           </p>
         </div>
@@ -660,7 +660,7 @@ export function DashboardView() {
 
 function EmptyChart() {
   return (
-    <div className="flex h-full items-center justify-center text-xs text-navy-500 dark:text-gibelo-cinza-quente">
+    <div className="flex h-full items-center justify-center text-xs text-navy-500 dark:text-gibelo-areia">
       Sem dados no período.
     </div>
   );

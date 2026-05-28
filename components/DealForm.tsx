@@ -260,7 +260,7 @@ export function DealForm({
             {clienteId && contatosDoCliente(clienteId).length > 0 && (
               <div className="sm:col-span-2">
                 <label htmlFor="contato" className={labelCls}>
-                  Contato <span className="text-navy-500 dark:text-gibelo-cinza-quente">(opcional)</span>
+                  Contato <span className="text-navy-500 dark:text-gibelo-areia">(opcional)</span>
                 </label>
                 <select
                   id="contato"
@@ -303,7 +303,7 @@ export function DealForm({
                 }
               />
               {temServicos && (
-                <p id="hint-valor" className="mt-1 text-xs text-navy-700 dark:text-gibelo-cinza-quente">
+                <p id="hint-valor" className="mt-1 text-xs text-navy-700 dark:text-gibelo-areia">
                   Soma de {qtdServicos} {qtdServicos === 1 ? "serviço" : "serviços"}.
                 </p>
               )}
@@ -370,7 +370,7 @@ export function DealForm({
                 ))}
               </select>
               {!aberto && (
-                <p className="mt-1 text-xs text-navy-700 dark:text-gibelo-cinza-quente">
+                <p className="mt-1 text-xs text-navy-700 dark:text-gibelo-areia">
                   Reabra a oportunidade para mudar de etapa.
                 </p>
               )}
@@ -483,7 +483,7 @@ export function DealForm({
 
           {editando && aberto && (
             <div className="mt-5 flex flex-wrap gap-2 rounded-lg bg-navy-50 dark:bg-dark-elevated p-3">
-              <span className="w-full text-xs font-semibold uppercase tracking-wide text-navy-700 dark:text-gibelo-cinza-quente">
+              <span className="w-full text-xs font-semibold uppercase tracking-wide text-navy-700 dark:text-gibelo-areia">
                 Desfecho
               </span>
               <button
@@ -515,7 +515,7 @@ export function DealForm({
 
           {editando && !aberto && (
             <div className="mt-5 flex flex-wrap items-center gap-2 rounded-lg bg-navy-50 dark:bg-dark-elevated p-3">
-              <span className="w-full text-xs font-semibold uppercase tracking-wide text-navy-700 dark:text-gibelo-cinza-quente">
+              <span className="w-full text-xs font-semibold uppercase tracking-wide text-navy-700 dark:text-gibelo-areia">
                 {deal.status === "ganho" ? "Negócio ganho" : "Negócio perdido"}
               </span>
               {deal.status === "perdido" && deal.motivoPerda && (

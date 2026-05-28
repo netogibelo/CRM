@@ -90,7 +90,7 @@ export function DealTimeline({ dealId, reloadKey = 0 }: DealTimelineProps) {
     >
       <header className="flex items-center justify-between">
         <h3 className="text-sm font-semibold text-navy-900 dark:text-gibelo-offwhite">Histórico</h3>
-        <span className="text-xs text-navy-700 dark:text-gibelo-cinza-quente">
+        <span className="text-xs text-navy-700 dark:text-gibelo-areia">
           {itens.length} {itens.length === 1 ? "registro" : "registros"}
         </span>
       </header>
@@ -156,14 +156,14 @@ export function DealTimeline({ dealId, reloadKey = 0 }: DealTimelineProps) {
       <div className="mt-4">
         {carregando ? (
           <p
-            className="py-6 text-center text-xs text-navy-700 dark:text-gibelo-cinza-quente"
+            className="py-6 text-center text-xs text-navy-700 dark:text-gibelo-areia"
             role="status"
             aria-live="polite"
           >
             Carregando histórico…
           </p>
         ) : itens.length === 0 ? (
-          <p className="py-6 text-center text-xs text-navy-700 dark:text-gibelo-cinza-quente">
+          <p className="py-6 text-center text-xs text-navy-700 dark:text-gibelo-areia">
             Sem registros ainda. Adicione notas, contatos ou follow-ups.
           </p>
         ) : (
@@ -182,7 +182,7 @@ export function DealTimeline({ dealId, reloadKey = 0 }: DealTimelineProps) {
                     {labelDoTipo(item.tipo)}
                   </span>
                   <time
-                    className="shrink-0 text-[11px] text-navy-700 dark:text-gibelo-cinza-quente"
+                    className="shrink-0 text-[11px] text-navy-700 dark:text-gibelo-areia"
                     dateTime={item.criadoEm}
                   >
                     {formatDataHora(item.criadoEm)}
@@ -190,7 +190,7 @@ export function DealTimeline({ dealId, reloadKey = 0 }: DealTimelineProps) {
                 </div>
                 <p className="mt-2 text-sm text-navy-800 dark:text-gibelo-offwhite">{item.descricao}</p>
                 {item.autorEmail && (
-                  <p className="mt-1 text-[11px] text-navy-700 dark:text-gibelo-cinza-quente">
+                  <p className="mt-1 text-[11px] text-navy-700 dark:text-gibelo-areia">
                     por {item.autorEmail}
                   </p>
                 )}

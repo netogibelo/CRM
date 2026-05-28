@@ -89,7 +89,7 @@ export function AlertasSection() {
       className="rounded-2xl border border-navy-100 dark:border-dark-border bg-navy-50 dark:bg-dark-elevated/40 p-4 sm:p-5 lg:col-span-2"
     >
       <h2 className="text-sm font-semibold text-navy-900 dark:text-gibelo-offwhite">Alertas por email</h2>
-      <p className="mt-0.5 text-xs text-navy-700 dark:text-gibelo-cinza-quente">
+      <p className="mt-0.5 text-xs text-navy-700 dark:text-gibelo-areia">
         Resumo diário enviado às 07h00 (horário de Brasília) com deals parados,
         retornos vencidos e tarefas vencidas — agrupado por responsável.
       </p>
@@ -125,7 +125,7 @@ export function AlertasSection() {
       <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-navy-100 dark:border-dark-border pt-4">
         <div className="flex-1 min-w-[12rem]">
           <p className="text-xs font-medium text-navy-700 dark:text-gibelo-offwhite">Testar agora</p>
-          <p className="mt-0.5 text-xs text-navy-700 dark:text-gibelo-cinza-quente">
+          <p className="mt-0.5 text-xs text-navy-700 dark:text-gibelo-areia">
             Dispara a função imediatamente, ignorando o toggle, e envia emails
             reais.
           </p>
@@ -153,7 +153,7 @@ export function AlertasSection() {
         </div>
       )}
 
-      <p className="mt-4 text-[11px] text-navy-700 dark:text-gibelo-cinza-quente">
+      <p className="mt-4 text-[11px] text-navy-700 dark:text-gibelo-areia">
         Horário fixo no Supabase (cron <code>0 10 * * *</code> UTC). Para alterar,
         edite a função <code>alertas-diarios</code> e o agendamento pg_cron.
       </p>

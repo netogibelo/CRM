@@ -100,7 +100,7 @@ export function DealCard({
 
       <p className="mt-0.5 text-xs text-navy-700 dark:text-gibelo-areia">{clienteNome(deal.clienteId)}</p>
       {contato && (
-        <p className="mt-0.5 text-[11px] text-navy-700 dark:text-gibelo-cinza-quente">
+        <p className="mt-0.5 text-[11px] text-navy-700 dark:text-gibelo-areia">
           {contato.nome}
           {contato.cargo ? ` · ${contato.cargo}` : ""}
         </p>
@@ -110,7 +110,7 @@ export function DealCard({
         {formatBRL(deal.valor)}
       </p>
       {qtdServicos > 1 && (
-        <p className="mt-0.5 text-[11px] text-navy-700 dark:text-gibelo-cinza-quente">
+        <p className="mt-0.5 text-[11px] text-navy-700 dark:text-gibelo-areia">
           {qtdServicos} serviços
         </p>
       )}
@@ -130,14 +130,14 @@ export function DealCard({
           </span>
         )}
         {localExibir && (
-          <span className="text-[11px] text-navy-700 dark:text-gibelo-cinza-quente" title={localExibir}>
+          <span className="text-[11px] text-navy-700 dark:text-gibelo-areia" title={localExibir}>
             · {localExibir}
           </span>
         )}
       </div>
 
       <div className="mt-3 flex items-center justify-between border-t border-navy-50 pt-2.5">
-        <span className="inline-flex items-center gap-1 text-xs text-navy-700 dark:text-gibelo-cinza-quente">
+        <span className="inline-flex items-center gap-1 text-xs text-navy-700 dark:text-gibelo-areia">
           <svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true">
             <path
               d="M5 1v2M11 1v2M2.5 6.5h11M3 3h10a1 1 0 011 1v9a1 1 0 01-1 1H3a1 1 0 01-1-1V4a1 1 0 011-1z"

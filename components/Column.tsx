@@ -54,7 +54,7 @@ export function Column({
         }`}
       >
         {deals.length === 0 ? (
-          <p className="px-2 py-8 text-center text-xs text-navy-700 dark:text-gibelo-cinza-quente">
+          <p className="px-2 py-8 text-center text-xs text-navy-700 dark:text-gibelo-areia">
             {sobre ? "Solte aqui" : "Nenhuma oportunidade"}
           </p>
         ) : (
