@@ -14,13 +14,20 @@ import {
 } from "react";
 import type {
   AtividadeCard,
+  AtividadeCardEtiqueta,
   AtividadeCardInput,
   AtividadeChecklistItem,
+  AtividadeEtiqueta,
+  AtividadeEtiquetaInput,
   AtividadeLista,
   AtividadesState,
   ListaCor,
 } from "./types";
-import { activityRepository, checklistRepository } from "./repository";
+import {
+  activityRepository,
+  checklistRepository,
+  etiquetaRepository,
+} from "./repository";
 import { LISTA_COR_IDS } from "./atividade-cores";
 
 interface ActivitiesContextValue {
@@ -52,6 +59,17 @@ interface ActivitiesContextValue {
   ) => Promise<void>;
   removerChecklistItem: (id: string) => Promise<void>;
   reordenarChecklist: (cardId: string, idsOrdenados: string[]) => Promise<void>;
+  // Etiquetas (F2)
+  etiquetas: AtividadeEtiqueta[];
+  cardEtiquetas: AtividadeCardEtiqueta[];
+  criarEtiqueta: (input: AtividadeEtiquetaInput) => Promise<AtividadeEtiqueta>;
+  atualizarEtiqueta: (
+    id: string,
+    patch: Partial<AtividadeEtiquetaInput>,
+  ) => Promise<void>;
+  removerEtiqueta: (id: string) => Promise<void>;
+  reordenarEtiquetas: (idsOrdenados: string[]) => Promise<void>;
+  toggleEtiquetaNoCard: (cardId: string, etiquetaId: string) => Promise<void>;
 }
 
 const ActivitiesContext = createContext<ActivitiesContextValue | null>(null);
@@ -61,6 +79,8 @@ export function ActivitiesProvider({ children }: { children: React.ReactNode }) 
     listas: [],
     cards: [],
     checklist: [],
+    etiquetas: [],
+    cardEtiquetas: [],
   });
   const [carregando, setCarregando] = useState(true);
   const ref = useRef(state);
@@ -111,9 +131,13 @@ export function ActivitiesProvider({ children }: { children: React.ReactNode }) 
       const cardsRestantes = s.cards.filter((c) => c.listaId !== id);
       const cardIdsRestantes = new Set(cardsRestantes.map((c) => c.id));
       return {
+        ...s,
         listas: s.listas.filter((l) => l.id !== id),
         cards: cardsRestantes,
         checklist: s.checklist.filter((c) => cardIdsRestantes.has(c.cardId)),
+        cardEtiquetas: s.cardEtiquetas.filter((ce) =>
+          cardIdsRestantes.has(ce.cardId),
+        ),
       };
     });
   }, []);
@@ -180,6 +204,7 @@ export function ActivitiesProvider({ children }: { children: React.ReactNode }) 
       ...s,
       cards: s.cards.filter((c) => c.id !== id),
       checklist: s.checklist.filter((c) => c.cardId !== id),
+      cardEtiquetas: s.cardEtiquetas.filter((ce) => ce.cardId !== id),
     }));
   }, []);
 
@@ -251,11 +276,77 @@ export function ActivitiesProvider({ children }: { children: React.ReactNode }) 
     [],
   );
 
+  // ── Etiquetas (F2) ────────────────────────────────────────────────────────
+  const criarEtiqueta = useCallback(async (input: AtividadeEtiquetaInput) => {
+    const e = await etiquetaRepository.create(input);
+    setState((s) => ({ ...s, etiquetas: [...s.etiquetas, e] }));
+    return e;
+  }, []);
+
+  const atualizarEtiqueta = useCallback(
+    async (id: string, patch: Partial<AtividadeEtiquetaInput>) => {
+      const upd = await etiquetaRepository.update(id, patch);
+      setState((s) => ({
+        ...s,
+        etiquetas: s.etiquetas.map((e) => (e.id === id ? upd : e)),
+      }));
+    },
+    [],
+  );
+
+  const removerEtiqueta = useCallback(async (id: string) => {
+    await etiquetaRepository.remove(id);
+    setState((s) => ({
+      ...s,
+      etiquetas: s.etiquetas.filter((e) => e.id !== id),
+      cardEtiquetas: s.cardEtiquetas.filter((ce) => ce.etiquetaId !== id),
+    }));
+  }, []);
+
+  const reordenarEtiquetas = useCallback(async (idsOrdenados: string[]) => {
+    setState((s) => ({
+      ...s,
+      etiquetas: s.etiquetas
+        .map((e) => {
+          const i = idsOrdenados.indexOf(e.id);
+          return i === -1 ? e : { ...e, ordem: i };
+        })
+        .sort((a, b) => a.ordem - b.ordem),
+    }));
+    await etiquetaRepository.reorder(idsOrdenados);
+  }, []);
+
+  const toggleEtiquetaNoCard = useCallback(
+    async (cardId: string, etiquetaId: string) => {
+      const existe = ref.current.cardEtiquetas.some(
+        (ce) => ce.cardId === cardId && ce.etiquetaId === etiquetaId,
+      );
+      if (existe) {
+        await etiquetaRepository.unlink(cardId, etiquetaId);
+        setState((s) => ({
+          ...s,
+          cardEtiquetas: s.cardEtiquetas.filter(
+            (ce) => !(ce.cardId === cardId && ce.etiquetaId === etiquetaId),
+          ),
+        }));
+      } else {
+        await etiquetaRepository.link(cardId, etiquetaId);
+        setState((s) => ({
+          ...s,
+          cardEtiquetas: [...s.cardEtiquetas, { cardId, etiquetaId }],
+        }));
+      }
+    },
+    [],
+  );
+
   const value: ActivitiesContextValue = {
     carregando,
     listas: state.listas,
     cards: state.cards,
     checklist: state.checklist,
+    etiquetas: state.etiquetas,
+    cardEtiquetas: state.cardEtiquetas,
     criarLista,
     renomearLista,
     pintarLista,
@@ -270,6 +361,11 @@ export function ActivitiesProvider({ children }: { children: React.ReactNode }) 
     atualizarChecklistItem,
     removerChecklistItem,
     reordenarChecklist,
+    criarEtiqueta,
+    atualizarEtiqueta,
+    removerEtiqueta,
+    reordenarEtiquetas,
+    toggleEtiquetaNoCard,
   };
 
   return (
@@ -312,5 +408,36 @@ export function useBoard() {
   const checklistDoCard = (cardId: string) =>
     checklistPorCard.get(cardId) ?? [];
 
-  return { ...ctx, listas, cardsDaLista, checklistDoCard };
+  const etiquetasOrdenadas = useMemo(
+    () => [...ctx.etiquetas].sort((a, b) => a.ordem - b.ordem),
+    [ctx.etiquetas],
+  );
+
+  const etiquetasPorCard = useMemo(() => {
+    const map = new Map<string, AtividadeEtiqueta[]>();
+    const etiqMap = new Map(ctx.etiquetas.map((e) => [e.id, e]));
+    for (const ce of ctx.cardEtiquetas) {
+      const etiq = etiqMap.get(ce.etiquetaId);
+      if (!etiq) continue;
+      const arr = map.get(ce.cardId);
+      if (arr) arr.push(etiq);
+      else map.set(ce.cardId, [etiq]);
+    }
+    for (const arr of map.values()) {
+      arr.sort((a, b) => a.ordem - b.ordem);
+    }
+    return map;
+  }, [ctx.cardEtiquetas, ctx.etiquetas]);
+
+  const etiquetasDoCard = (cardId: string) =>
+    etiquetasPorCard.get(cardId) ?? [];
+
+  return {
+    ...ctx,
+    listas,
+    cardsDaLista,
+    checklistDoCard,
+    etiquetas: etiquetasOrdenadas,
+    etiquetasDoCard,
+  };
 }

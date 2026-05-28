@@ -22,7 +22,7 @@ export function AtividadeCard({
   onMover,
 }: AtividadeCardProps) {
   const [menu, setMenu] = useState(false);
-  const { checklistDoCard } = useBoard();
+  const { checklistDoCard, etiquetasDoCard } = useBoard();
   const {
     attributes,
     listeners,
@@ -38,6 +38,7 @@ export function AtividadeCard({
   const checklist = checklistDoCard(card.id);
   const concluidas = checklist.filter((i) => i.concluida).length;
   const total = checklist.length;
+  const etiquetas = etiquetasDoCard(card.id);
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -65,6 +66,23 @@ export function AtividadeCard({
       } ${isDragging ? "opacity-40" : ""}`}
     >
       <div className="p-3">
+        {etiquetas.length > 0 && (
+          <div
+            className="-mt-1 mb-2 flex flex-wrap gap-1"
+            aria-label={`Etiquetas: ${etiquetas.map((e) => e.nome).join(", ")}`}
+          >
+            {etiquetas.map((e) => (
+              <span
+                key={e.id}
+                title={e.nome}
+                className="h-1.5 w-9 rounded-full"
+                style={{ backgroundColor: e.cor }}
+                aria-hidden="true"
+              />
+            ))}
+          </div>
+        )}
+
         <div className="flex items-start justify-between gap-2">
           <p className="text-sm font-medium leading-snug text-navy-900 dark:text-gibelo-offwhite">
             {card.titulo}

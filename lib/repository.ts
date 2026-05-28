@@ -9,9 +9,12 @@
 
 import type {
   AtividadeCard,
+  AtividadeCardEtiqueta,
   AtividadeCardInput,
   AtividadeChecklistInput,
   AtividadeChecklistItem,
+  AtividadeEtiqueta,
+  AtividadeEtiquetaInput,
   AtividadeLista,
   AtividadeListaInput,
   AtividadesState,
@@ -292,7 +295,8 @@ function writeAtiv(state: AtividadesState): void {
 }
 
 function readAtiv(): AtividadesState {
-  if (typeof window === "undefined") return { listas: [], cards: [], checklist: [] };
+  if (typeof window === "undefined")
+    return { listas: [], cards: [], checklist: [], etiquetas: [], cardEtiquetas: [] };
   const raw = window.localStorage.getItem(ATIVIDADES_STORAGE_KEY);
   if (!raw) {
     const seeded = gerarSeedAtividades();
@@ -313,7 +317,12 @@ function readAtiv(): AtividadesState {
 class LocalStorageActivityRepository implements ActivityRepository {
   async load(): Promise<AtividadesState> {
     const s = readAtiv();
-    return { ...s, checklist: s.checklist ?? [] };
+    return {
+      ...s,
+      checklist: s.checklist ?? [],
+      etiquetas: s.etiquetas ?? [],
+      cardEtiquetas: s.cardEtiquetas ?? [],
+    };
   }
   async createLista(input: AtividadeListaInput): Promise<AtividadeLista> {
     const s = readAtiv();
@@ -721,18 +730,28 @@ function cardPatchToRow(p: Partial<AtividadeCardInput>): Row {
 
 class SupabaseActivityRepository implements ActivityRepository {
   async load(): Promise<AtividadesState> {
-    const [listasRes, cardsRes, checklistRes] = await Promise.all([
-      supabase.from("atividades_listas").select("*"),
-      supabase.from("atividades_cards").select("*"),
-      supabase.from("atividades_checklist").select("*"),
-    ]);
+    const [listasRes, cardsRes, checklistRes, etiqRes, cardEtiqRes] =
+      await Promise.all([
+        supabase.from("atividades_listas").select("*"),
+        supabase.from("atividades_cards").select("*"),
+        supabase.from("atividades_checklist").select("*"),
+        supabase.from("atividades_etiquetas").select("*"),
+        supabase.from("atividades_cards_etiquetas").select("*"),
+      ]);
     if (listasRes.error) throw listasRes.error;
     if (cardsRes.error) throw cardsRes.error;
     if (checklistRes.error) throw checklistRes.error;
+    if (etiqRes.error) throw etiqRes.error;
+    if (cardEtiqRes.error) throw cardEtiqRes.error;
     return {
       listas: (listasRes.data ?? []).map(listaFromRow),
       cards: (cardsRes.data ?? []).map(cardFromRow),
       checklist: (checklistRes.data ?? []).map(checklistFromRow),
+      etiquetas: (etiqRes.data ?? []).map(etiquetaFromRow),
+      cardEtiquetas: (cardEtiqRes.data ?? []).map((r: Row) => ({
+        cardId: r.card_id,
+        etiquetaId: r.etiqueta_id,
+      })),
     };
   }
   async createLista(input: AtividadeListaInput): Promise<AtividadeLista> {
@@ -879,6 +898,109 @@ class SupabaseChecklistRepository implements ChecklistRepository {
 
 export const checklistRepository: ChecklistRepository =
   new SupabaseChecklistRepository();
+
+// ── Etiquetas de atividade (F2) ──────────────────────────────────────────────
+function etiquetaFromRow(row: Row): AtividadeEtiqueta {
+  return {
+    id: row.id,
+    nome: row.nome,
+    cor: row.cor,
+    ordem: Number(row.ordem ?? 0),
+    criadoEm: row.criado_em,
+  };
+}
+
+function etiquetaPatchToRow(p: Partial<AtividadeEtiquetaInput>): Row {
+  const r: Row = {};
+  if (p.nome !== undefined) r.nome = p.nome;
+  if (p.cor !== undefined) r.cor = p.cor;
+  if (p.ordem !== undefined) r.ordem = p.ordem;
+  return r;
+}
+
+export interface EtiquetaRepository {
+  listAll(): Promise<AtividadeEtiqueta[]>;
+  create(input: AtividadeEtiquetaInput): Promise<AtividadeEtiqueta>;
+  update(
+    id: string,
+    patch: Partial<AtividadeEtiquetaInput>,
+  ): Promise<AtividadeEtiqueta>;
+  remove(id: string): Promise<void>;
+  reorder(idsOrdenados: string[]): Promise<void>;
+  // vínculos
+  link(cardId: string, etiquetaId: string): Promise<void>;
+  unlink(cardId: string, etiquetaId: string): Promise<void>;
+}
+
+class SupabaseEtiquetaRepository implements EtiquetaRepository {
+  async listAll(): Promise<AtividadeEtiqueta[]> {
+    const { data, error } = await supabase
+      .from("atividades_etiquetas")
+      .select("*")
+      .order("ordem", { ascending: true });
+    if (error) throw error;
+    return (data ?? []).map(etiquetaFromRow);
+  }
+  async create(input: AtividadeEtiquetaInput): Promise<AtividadeEtiqueta> {
+    const id = novoId("etiq");
+    const { data, error } = await supabase
+      .from("atividades_etiquetas")
+      .insert({
+        id,
+        nome: input.nome,
+        cor: input.cor,
+        ordem: input.ordem,
+      })
+      .select()
+      .single();
+    if (error) throw error;
+    return etiquetaFromRow(data);
+  }
+  async update(
+    id: string,
+    patch: Partial<AtividadeEtiquetaInput>,
+  ): Promise<AtividadeEtiqueta> {
+    const { data, error } = await supabase
+      .from("atividades_etiquetas")
+      .update(etiquetaPatchToRow(patch))
+      .eq("id", id)
+      .select()
+      .single();
+    if (error) throw error;
+    return etiquetaFromRow(data);
+  }
+  async remove(id: string): Promise<void> {
+    const { error } = await supabase
+      .from("atividades_etiquetas")
+      .delete()
+      .eq("id", id);
+    if (error) throw error;
+  }
+  async reorder(idsOrdenados: string[]): Promise<void> {
+    await Promise.all(
+      idsOrdenados.map((id, i) =>
+        supabase.from("atividades_etiquetas").update({ ordem: i }).eq("id", id),
+      ),
+    );
+  }
+  async link(cardId: string, etiquetaId: string): Promise<void> {
+    const { error } = await supabase
+      .from("atividades_cards_etiquetas")
+      .insert({ card_id: cardId, etiqueta_id: etiquetaId });
+    if (error && !String(error.message).includes("duplicate key")) throw error;
+  }
+  async unlink(cardId: string, etiquetaId: string): Promise<void> {
+    const { error } = await supabase
+      .from("atividades_cards_etiquetas")
+      .delete()
+      .eq("card_id", cardId)
+      .eq("etiqueta_id", etiquetaId);
+    if (error) throw error;
+  }
+}
+
+export const etiquetaRepository: EtiquetaRepository =
+  new SupabaseEtiquetaRepository();
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Repositório do histórico/timeline dos deals (só Supabase — feature nova)

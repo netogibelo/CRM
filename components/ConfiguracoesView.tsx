@@ -8,6 +8,7 @@ import { btnPrimary, inputCls } from "@/lib/ui";
 import { EditableText } from "./EditableText";
 import { AutomacoesSection } from "./AutomacoesSection";
 import { AlertasSection } from "./AlertasSection";
+import { AtividadeEtiquetasConfig } from "./AtividadeEtiquetasConfig";
 import {
   DragHandle,
   SortableConfigList,
@@ -430,6 +431,8 @@ export function ConfiguracoesView() {
           </button>
         </div>
       </section>
+
+      <AtividadeEtiquetasConfig />
 
       <AutomacoesSection />
 

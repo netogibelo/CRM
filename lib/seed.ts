@@ -160,6 +160,8 @@ export function gerarSeedAtividades(): AtividadesState {
     ],
     cards: [],
     checklist: [],
+    etiquetas: [],
+    cardEtiquetas: [],
   };
 }
 
@@ -207,8 +209,17 @@ export function migrarAtividades(parsed: unknown): {
   const checklist = Array.isArray(raw.checklist)
     ? (raw.checklist as AtividadesState["checklist"])
     : ((changed = true), []);
+  const etiquetas = Array.isArray(raw.etiquetas)
+    ? (raw.etiquetas as AtividadesState["etiquetas"])
+    : ((changed = true), []);
+  const cardEtiquetas = Array.isArray(raw.cardEtiquetas)
+    ? (raw.cardEtiquetas as AtividadesState["cardEtiquetas"])
+    : ((changed = true), []);
 
-  return { state: { listas, cards, checklist }, changed };
+  return {
+    state: { listas, cards, checklist, etiquetas, cardEtiquetas },
+    changed,
+  };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

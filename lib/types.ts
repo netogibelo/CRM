@@ -178,6 +178,25 @@ export type AtividadeCardInput = Omit<
 >;
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Etiquetas de card de atividade (com cor hex, configuráveis)
+// ─────────────────────────────────────────────────────────────────────────────
+export interface AtividadeEtiqueta {
+  id: string;
+  nome: string;
+  /** Cor em hexadecimal (#RRGGBB). */
+  cor: string;
+  ordem: number;
+  criadoEm: string;
+}
+export type AtividadeEtiquetaInput = Omit<AtividadeEtiqueta, "id" | "criadoEm">;
+
+/** Vínculo N:N entre cards e etiquetas. */
+export interface AtividadeCardEtiqueta {
+  cardId: string;
+  etiquetaId: string;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Checklist (subtarefas) de um card de atividade
 // ─────────────────────────────────────────────────────────────────────────────
 export interface AtividadeChecklistItem {
@@ -198,6 +217,8 @@ export interface AtividadesState {
   listas: AtividadeLista[];
   cards: AtividadeCard[];
   checklist: AtividadeChecklistItem[];
+  etiquetas: AtividadeEtiqueta[];
+  cardEtiquetas: AtividadeCardEtiqueta[];
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
