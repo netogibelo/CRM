@@ -259,7 +259,7 @@ export function exportarPDF(ctx: ExportContext): void {
 <meta charset="utf-8" />
 <title>Relatório CRM Gibelo — ${escapeHTML(dataAgora)}</title>
 <style>
-  @page { size: A4; margin: 25mm 20mm 22mm 20mm; }
+  @page { size: A4; margin: 25mm; }
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
   body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; color: #0D2137; font-size: 12px; line-height: 1.45; }
