@@ -268,7 +268,7 @@ export function ConfiguracoesView() {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+    <div className="grid grid-cols-1 gap-6 @3xl/canvas:grid-cols-2">
       {/* Origens */}
       <section
         id="cfg-origens"
@@ -459,7 +459,7 @@ export function ConfiguracoesView() {
       <div
         id="cfg-alertas"
         tabIndex={-1}
-        className="scroll-mt-4 focus:outline-none lg:col-span-2"
+        className="scroll-mt-4 focus:outline-none @3xl/canvas:col-span-2"
       >
         <AlertasSection />
       </div>

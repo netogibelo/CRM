@@ -406,8 +406,8 @@ export function DashboardView() {
         </div>
       </div>
 
-      {/* Cards de métricas */}
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      {/* Cards de métricas — grid fluido reflui de 2 a N colunas */}
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-3">
         <StatCard
           rotulo="Total na mesa"
           valor={formatBRL(totalNaMesa)}
@@ -434,8 +434,8 @@ export function DashboardView() {
       {/* Meta mensal */}
       <MetaMesCard />
 
-      {/* Gráficos linha 1 */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      {/* Gráficos linha 1 — fluido (1→N colunas conforme a largura) */}
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] gap-4">
         <ChartCard
           titulo="Funil de conversão"
           detalhe="abertas por etapa"
@@ -526,8 +526,8 @@ export function DashboardView() {
         </ChartCard>
       </div>
 
-      {/* Gráficos linha 2 */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+      {/* Gráficos linha 2 — fluido (1→N colunas conforme a largura) */}
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-4">
         <ChartCard
           titulo="Taxa de fechamento"
           detalhe={`${taxaFechamento}% no período`}
