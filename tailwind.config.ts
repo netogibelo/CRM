@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import containerQueries from "@tailwindcss/container-queries";
 
 /**
  * Paleta Gibelo Construtora (Manual de Marca v1.0):
@@ -73,7 +74,7 @@ const config: Config = {
       },
     },
   },
-  plugins: [],
+  plugins: [containerQueries],
 };
 
 export default config;

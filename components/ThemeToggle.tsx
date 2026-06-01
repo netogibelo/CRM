@@ -6,10 +6,22 @@ import { useTheme } from "@/lib/theme";
  * Botão de alternância de tema (lua/sol). Aria-label dinâmico anuncia
  * a ação que será executada, não o estado atual — convenção de A11y
  * para toggles assimétricos.
+ *
+ * `variant="rail"` renderiza o botão para o rail (fundo permanentemente
+ * escuro): sem borda, texto claro, hover translúcido.
  */
-export function ThemeToggle() {
+export function ThemeToggle({
+  variant = "header",
+}: {
+  variant?: "header" | "rail";
+}) {
   const { tema, alternar } = useTheme();
   const isDark = tema === "dark";
+
+  const classes =
+    variant === "rail"
+      ? "flex h-11 w-11 items-center justify-center rounded-xl text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+      : "flex h-10 w-10 items-center justify-center rounded-lg border border-navy-200 bg-white text-navy-700 transition-colors hover:bg-navy-50 dark:border-dark-border dark:bg-dark-surface dark:text-gibelo-offwhite dark:hover:bg-dark-elevated";
 
   return (
     <button
@@ -17,7 +29,7 @@ export function ThemeToggle() {
       onClick={alternar}
       aria-label={isDark ? "Ativar tema claro" : "Ativar tema escuro"}
       title={isDark ? "Ativar tema claro" : "Ativar tema escuro"}
-      className="flex h-10 w-10 items-center justify-center rounded-lg border border-navy-200 bg-white text-navy-700 transition-colors hover:bg-navy-50 dark:border-dark-border dark:bg-dark-surface dark:text-gibelo-offwhite dark:hover:bg-dark-elevated"
+      className={classes}
     >
       {isDark ? (
         // Sol (modo claro vai ser ativado ao clicar)

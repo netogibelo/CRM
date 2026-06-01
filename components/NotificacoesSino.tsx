@@ -20,6 +20,8 @@ import type { HistoricoItem } from "@/lib/types";
 interface NotificacoesSinoProps {
   onIrParaDeal?: (dealId: string) => void;
   onIrParaDashboard?: () => void;
+  /** "rail" estiliza o gatilho para o rail escuro e abre o popover à direita. */
+  placement?: "header" | "rail";
 }
 
 const ROTULO_TIPO: Record<Notificacao["tipo"], string> = {
@@ -32,7 +34,9 @@ const ROTULO_TIPO: Record<Notificacao["tipo"], string> = {
 export function NotificacoesSino({
   onIrParaDeal,
   onIrParaDashboard,
+  placement = "header",
 }: NotificacoesSinoProps) {
+  const noRail = placement === "rail";
   const { deals } = useDeals();
   const { etapas } = useStages();
   const { tarefas } = useTarefas();
@@ -107,7 +111,11 @@ export function NotificacoesSino({
       <button
         type="button"
         onClick={() => setAberto((v) => !v)}
-        className="relative rounded-lg border border-navy-200 dark:border-dark-border p-1.5 text-navy-700 dark:text-gibelo-offwhite transition-colors hover:bg-navy-50 dark:hover:bg-dark-elevated dark:bg-dark-elevated"
+        className={
+          noRail
+            ? "relative flex h-11 w-11 items-center justify-center rounded-xl text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+            : "relative rounded-lg border border-navy-200 dark:border-dark-border p-1.5 text-navy-700 dark:text-gibelo-offwhite transition-colors hover:bg-navy-50 dark:hover:bg-dark-elevated dark:bg-dark-elevated"
+        }
         aria-label={
           ativas.length > 0
             ? `Notificações (${ativas.length} pendente${ativas.length === 1 ? "" : "s"})`
@@ -151,7 +159,11 @@ export function NotificacoesSino({
         <div
           role="dialog"
           aria-label="Centro de notificações"
-          className="absolute right-0 top-full z-50 mt-2 w-[min(380px,calc(100vw-2rem))] overflow-hidden rounded-xl border border-navy-100 dark:border-dark-border bg-white dark:bg-dark-surface shadow-card-hover"
+          className={`absolute z-50 w-[min(380px,calc(100vw-6rem))] overflow-hidden rounded-xl border border-navy-100 bg-white shadow-card-hover dark:border-dark-border dark:bg-dark-surface ${
+            noRail
+              ? "bottom-0 left-full ml-3"
+              : "right-0 top-full mt-2"
+          }`}
         >
           <div className="flex items-baseline justify-between border-b border-navy-100 dark:border-dark-border px-4 py-3">
             <h2 className="text-sm font-semibold text-navy-900 dark:text-gibelo-offwhite">

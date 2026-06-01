@@ -12,7 +12,12 @@ interface Sessao {
   email: string;
 }
 
-export function PerfilButton() {
+export function PerfilButton({
+  placement = "header",
+}: {
+  placement?: "header" | "rail";
+}) {
+  const noRail = placement === "rail";
   const router = useRouter();
   const { perfis, salvar } = usePerfis();
   const [sessao, setSessao] = useState<Sessao | null>(null);
@@ -107,27 +112,39 @@ export function PerfilButton() {
       <button
         type="button"
         onClick={() => setAberto((v) => !v)}
-        className="flex items-center gap-2 rounded-lg border border-navy-200 dark:border-dark-border px-2 py-1 text-xs font-medium text-navy-700 dark:text-gibelo-offwhite transition-colors hover:bg-navy-50 dark:hover:bg-dark-elevated dark:bg-dark-elevated"
+        className={
+          noRail
+            ? "flex h-11 w-11 items-center justify-center rounded-xl text-white/70 transition-colors hover:bg-white/10"
+            : "flex items-center gap-2 rounded-lg border border-navy-200 dark:border-dark-border px-2 py-1 text-xs font-medium text-navy-700 dark:text-gibelo-offwhite transition-colors hover:bg-navy-50 dark:hover:bg-dark-elevated dark:bg-dark-elevated"
+        }
         aria-label={`Menu do perfil de ${nomeAtual}`}
         aria-expanded={aberto}
         aria-haspopup="true"
       >
         <span
-          className="flex h-6 w-6 items-center justify-center rounded-full bg-navy-900 text-[10px] font-bold text-white"
+          className={`flex items-center justify-center rounded-full bg-navy-900 font-bold text-white ${
+            noRail
+              ? "h-8 w-8 text-xs ring-1 ring-white/20"
+              : "h-6 w-6 text-[10px]"
+          }`}
           aria-hidden="true"
         >
           {iniciais}
         </span>
-        <span className="hidden max-w-[140px] truncate sm:inline">
-          {nomeAtual}
-        </span>
+        {!noRail && (
+          <span className="hidden max-w-[140px] truncate sm:inline">
+            {nomeAtual}
+          </span>
+        )}
       </button>
 
       {aberto && (
         <div
           role="dialog"
           aria-label="Meu perfil"
-          className="absolute right-0 top-full z-50 mt-2 w-[min(320px,calc(100vw-2rem))] overflow-hidden rounded-xl border border-navy-100 dark:border-dark-border bg-white dark:bg-dark-surface shadow-card-hover"
+          className={`absolute z-50 w-[min(320px,calc(100vw-6rem))] overflow-hidden rounded-xl border border-navy-100 bg-white shadow-card-hover dark:border-dark-border dark:bg-dark-surface ${
+            noRail ? "bottom-0 left-full ml-3" : "right-0 top-full mt-2"
+          }`}
         >
           <div className="border-b border-navy-100 dark:border-dark-border px-4 py-3">
             <p className="text-[10px] font-semibold uppercase tracking-wide text-navy-700 dark:text-gibelo-areia">

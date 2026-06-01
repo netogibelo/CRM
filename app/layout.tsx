@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Exo, Source_Serif_4 } from "next/font/google";
 import "./globals.css";
-import { Footer } from "@/components/Footer";
 import { ThemeProvider, THEME_BOOT_SCRIPT } from "@/lib/theme";
 
 // Fontes oficiais da marca Gibelo Construtora (Manual de Marca v1.0).
@@ -54,11 +53,11 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }}
         />
       </head>
-      <body className="flex min-h-screen flex-col">
-        <ThemeProvider>
-          <div className="flex-1">{children}</div>
-          <Footer />
-        </ThemeProvider>
+      <body>
+        {/* Cada rota controla a própria altura: o shell do app é 100dvh
+            (rail + conteúdo rolável) e o /login é min-h-screen centralizado.
+            O footer institucional é renderizado por rota (não global). */}
+        <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
   );

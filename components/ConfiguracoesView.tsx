@@ -10,6 +10,7 @@ import { AutomacoesSection } from "./AutomacoesSection";
 import { AlertasSection } from "./AlertasSection";
 import { AtividadeEtiquetasConfig } from "./AtividadeEtiquetasConfig";
 import { AtividadeTemplatesConfig } from "./AtividadeTemplatesConfig";
+import { EquipeSection } from "./EquipeSection";
 import {
   DragHandle,
   SortableConfigList,
@@ -270,8 +271,10 @@ export function ConfiguracoesView() {
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
       {/* Origens */}
       <section
+        id="cfg-origens"
+        tabIndex={-1}
         aria-label="Origens"
-        className="rounded-2xl border border-navy-100 dark:border-dark-border bg-navy-50 dark:bg-dark-elevated/40 p-4 sm:p-5"
+        className="scroll-mt-4 rounded-2xl border border-navy-100 dark:border-dark-border bg-navy-50 dark:bg-dark-elevated/40 p-4 sm:p-5 focus:outline-none"
       >
         <h2 className="text-sm font-semibold text-navy-900 dark:text-gibelo-offwhite">Origens</h2>
         <p className="mt-0.5 text-xs text-navy-700 dark:text-gibelo-areia">
@@ -316,8 +319,10 @@ export function ConfiguracoesView() {
 
       {/* Etapas */}
       <section
+        id="cfg-etapas"
+        tabIndex={-1}
         aria-label="Etapas do funil"
-        className="rounded-2xl border border-navy-100 dark:border-dark-border bg-navy-50 dark:bg-dark-elevated/40 p-4 sm:p-5"
+        className="scroll-mt-4 rounded-2xl border border-navy-100 dark:border-dark-border bg-navy-50 dark:bg-dark-elevated/40 p-4 sm:p-5 focus:outline-none"
       >
         <h2 className="text-sm font-semibold text-navy-900 dark:text-gibelo-offwhite">Etapas do funil</h2>
         <p className="mt-0.5 text-xs text-navy-700 dark:text-gibelo-areia">
@@ -389,8 +394,10 @@ export function ConfiguracoesView() {
 
       {/* Tipos de serviço */}
       <section
+        id="cfg-tipos-servico"
+        tabIndex={-1}
         aria-label="Tipos de serviço"
-        className="rounded-2xl border border-navy-100 dark:border-dark-border bg-navy-50 dark:bg-dark-elevated/40 p-4 sm:p-5"
+        className="scroll-mt-4 rounded-2xl border border-navy-100 dark:border-dark-border bg-navy-50 dark:bg-dark-elevated/40 p-4 sm:p-5 focus:outline-none"
       >
         <h2 className="text-sm font-semibold text-navy-900 dark:text-gibelo-offwhite">Tipos de serviço</h2>
         <p className="mt-0.5 text-xs text-navy-700 dark:text-gibelo-areia">
@@ -433,13 +440,29 @@ export function ConfiguracoesView() {
         </div>
       </section>
 
-      <AtividadeEtiquetasConfig />
+      <div id="cfg-etiquetas-atividade" tabIndex={-1} className="scroll-mt-4 focus:outline-none">
+        <AtividadeEtiquetasConfig />
+      </div>
 
-      <AtividadeTemplatesConfig />
+      <div id="cfg-templates-atividade" tabIndex={-1} className="scroll-mt-4 focus:outline-none">
+        <AtividadeTemplatesConfig />
+      </div>
 
-      <AutomacoesSection />
+      <div id="cfg-automacoes" tabIndex={-1} className="scroll-mt-4 focus:outline-none">
+        <AutomacoesSection />
+      </div>
 
-      <AlertasSection />
+      <div id="cfg-equipe" tabIndex={-1} className="scroll-mt-4 focus:outline-none">
+        <EquipeSection />
+      </div>
+
+      <div
+        id="cfg-alertas"
+        tabIndex={-1}
+        className="scroll-mt-4 focus:outline-none lg:col-span-2"
+      >
+        <AlertasSection />
+      </div>
     </div>
   );
 }

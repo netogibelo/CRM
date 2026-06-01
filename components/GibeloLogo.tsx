@@ -18,19 +18,25 @@ interface GibeloLogoProps {
   className?: string;
   /** Mostra "CONSTRUTORA" abaixo do wordmark. Default true. */
   comDescritor?: boolean;
+  /**
+   * Classes de cor do wordmark (currentColor). Default segue o tema; o rail
+   * escuro passa "text-white" para a versão clara da marca.
+   */
+  corClasse?: string;
 }
 
 export function GibeloLogo({
   width = 160,
   className = "",
   comDescritor = true,
+  corClasse = "text-navy-900 dark:text-gibelo-offwhite",
 }: GibeloLogoProps) {
   // Aspect ~3.2:1 do wordmark. Mantém box estável em qualquer tema.
   const height = Math.round(width / 3.2);
 
   return (
     <div
-      className={`inline-flex flex-col leading-none text-navy-900 dark:text-gibelo-offwhite ${className}`}
+      className={`inline-flex flex-col leading-none ${corClasse} ${className}`}
       style={{ width }}
       aria-label="Gibelo Construtora"
       role="img"
