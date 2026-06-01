@@ -114,7 +114,7 @@ export function PerfilButton({
         onClick={() => setAberto((v) => !v)}
         className={
           noRail
-            ? "flex h-11 w-11 items-center justify-center rounded-xl text-white/70 transition-colors hover:bg-white/10"
+            ? "flex h-11 w-11 items-center justify-center rounded-xl text-white/70 transition-colors hover:bg-white/10 focus-visible:outline-gibelo-areia"
             : "flex items-center gap-2 rounded-lg border border-navy-200 dark:border-dark-border px-2 py-1 text-xs font-medium text-navy-700 dark:text-gibelo-offwhite transition-colors hover:bg-navy-50 dark:hover:bg-dark-elevated dark:bg-dark-elevated"
         }
         aria-label={`Menu do perfil de ${nomeAtual}`}

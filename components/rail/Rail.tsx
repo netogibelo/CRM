@@ -36,7 +36,7 @@ export function Rail() {
         type="button"
         onClick={() => setAba("dashboard")}
         aria-label="Gibelo Construtora — ir para o Dashboard"
-        className="flex items-center justify-center rounded-lg p-1 transition-colors hover:bg-white/10"
+        className="flex items-center justify-center rounded-lg p-1 transition-colors hover:bg-white/10 focus-visible:outline-gibelo-areia"
       >
         <GibeloLogo width={48} comDescritor={false} corClasse="text-white" />
       </button>

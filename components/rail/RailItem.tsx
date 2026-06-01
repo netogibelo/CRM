@@ -71,7 +71,7 @@ export function RailItem({
         aria-disabled={desabilitado || undefined}
         aria-describedby={mostrarDica ? dicaId : undefined}
         tabIndex={desabilitado ? -1 : 0}
-        className={`relative flex h-12 w-12 items-center justify-center rounded-xl transition-colors ${
+        className={`relative flex h-12 w-12 items-center justify-center rounded-xl transition-colors focus-visible:outline-gibelo-areia ${
           desabilitado
             ? "cursor-not-allowed text-white/25"
             : ativo

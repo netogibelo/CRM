@@ -125,7 +125,7 @@ export function MobileNav() {
                   hamburguerRef.current?.focus();
                 }}
                 aria-label="Fechar menu"
-                className="flex h-9 w-9 items-center justify-center rounded-lg text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+                className="flex h-9 w-9 items-center justify-center rounded-lg text-white/70 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-gibelo-areia"
               >
                 <X size={20} aria-hidden="true" />
               </button>
@@ -153,7 +153,7 @@ export function MobileNav() {
                 onClick={() => setConfigExpandido((v) => !v)}
                 aria-expanded={configExpandido}
                 aria-current={aba === "config" ? "page" : undefined}
-                className={`flex w-full items-center gap-3 px-4 py-3 text-left text-sm transition-colors ${
+                className={`flex w-full items-center gap-3 px-4 py-3 text-left text-sm transition-colors focus-visible:outline-gibelo-areia focus-visible:-outline-offset-2 ${
                   aba === "config"
                     ? "bg-navy-900 text-white"
                     : "text-white/80 hover:bg-white/10 hover:text-white"
@@ -177,7 +177,7 @@ export function MobileNav() {
                         irParaConfig(s.id);
                         setAberto(false);
                       }}
-                      className="block w-full py-2 pl-12 pr-4 text-left text-sm text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+                      className="block w-full py-2 pl-12 pr-4 text-left text-sm text-white/70 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-gibelo-areia focus-visible:-outline-offset-2"
                     >
                       {s.label}
                     </button>
@@ -225,7 +225,7 @@ function DrawerLinha({
       aria-disabled={desabilitado || undefined}
       aria-current={ativo ? "page" : undefined}
       tabIndex={desabilitado ? -1 : 0}
-      className={`flex w-full items-center gap-3 px-4 py-3 text-left text-sm transition-colors ${
+      className={`flex w-full items-center gap-3 px-4 py-3 text-left text-sm transition-colors focus-visible:outline-gibelo-areia focus-visible:-outline-offset-2 ${
         desabilitado
           ? "cursor-not-allowed text-white/30"
           : ativo

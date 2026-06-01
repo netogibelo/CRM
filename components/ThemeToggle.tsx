@@ -20,7 +20,7 @@ export function ThemeToggle({
 
   const classes =
     variant === "rail"
-      ? "flex h-11 w-11 items-center justify-center rounded-xl text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+      ? "flex h-11 w-11 items-center justify-center rounded-xl text-white/70 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-gibelo-areia"
       : "flex h-10 w-10 items-center justify-center rounded-lg border border-navy-200 bg-white text-navy-700 transition-colors hover:bg-navy-50 dark:border-dark-border dark:bg-dark-surface dark:text-gibelo-offwhite dark:hover:bg-dark-elevated";
 
   return (

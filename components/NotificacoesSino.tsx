@@ -113,7 +113,7 @@ export function NotificacoesSino({
         onClick={() => setAberto((v) => !v)}
         className={
           noRail
-            ? "relative flex h-11 w-11 items-center justify-center rounded-xl text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+            ? "relative flex h-11 w-11 items-center justify-center rounded-xl text-white/70 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-gibelo-areia"
             : "relative rounded-lg border border-navy-200 dark:border-dark-border p-1.5 text-navy-700 dark:text-gibelo-offwhite transition-colors hover:bg-navy-50 dark:hover:bg-dark-elevated dark:bg-dark-elevated"
         }
         aria-label={

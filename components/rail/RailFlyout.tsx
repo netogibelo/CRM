@@ -98,6 +98,12 @@ export function RailFlyout({ ativo }: { ativo: boolean }) {
       className="relative flex justify-center"
       onMouseEnter={abrir}
       onMouseLeave={fecharComDelay}
+      onBlur={(e) => {
+        // Fecha quando o foco sai do conjunto trigger+painel (Tab para fora).
+        if (!wrapRef.current?.contains(e.relatedTarget as Node)) {
+          setAberto(false);
+        }
+      }}
     >
       <button
         ref={triggerRef}
@@ -109,7 +115,7 @@ export function RailFlyout({ ativo }: { ativo: boolean }) {
         onFocus={abrir}
         onClick={() => (aberto ? fecharEFocarPai() : abrirEFocarPrimeiro())}
         onKeyDown={onTriggerKey}
-        className={`relative flex h-12 w-12 items-center justify-center rounded-xl transition-colors ${
+        className={`relative flex h-12 w-12 items-center justify-center rounded-xl transition-colors focus-visible:outline-gibelo-areia ${
           ativo || aberto
             ? "bg-navy-900 text-white"
             : "text-white/70 hover:bg-white/10 hover:text-white"
