@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { AlertTriangle } from "lucide-react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import type { AtividadeCard as TCard, AtividadeLista } from "@/lib/types";
@@ -40,6 +41,18 @@ export function AtividadeCard({
   const total = checklist.length;
   const etiquetas = etiquetasDoCard(card.id);
 
+  // Estagnação/atenção do card = vencido e não concluído. Destaque por ring
+  // coral suave (claro + escuro) — não usa a borda esquerda, ocupada pela
+  // cor do card (cardBarra).
+  const vencCard = card.dataVencimento ?? card.data;
+  const hojeZero = new Date();
+  hojeZero.setHours(0, 0, 0, 0);
+  const atrasado = Boolean(
+    vencCard &&
+      !card.concluidaEm &&
+      new Date(vencCard + "T00:00:00") < hojeZero,
+  );
+
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
@@ -63,7 +76,9 @@ export function AtividadeCard({
       }}
       className={`group relative cursor-grab rounded-xl border border-navy-100 dark:border-dark-border bg-white dark:bg-dark-surface shadow-card transition-shadow hover:shadow-card-hover active:cursor-grabbing ${
         barra ? `border-l-4 ${barra}` : ""
-      } ${isDragging ? "opacity-40" : ""}`}
+      } ${atrasado ? "ring-1 ring-red-300/70 dark:ring-red-500/35" : ""} ${
+        isDragging ? "opacity-40" : ""
+      }`}
     >
       <div className="p-3">
         {etiquetas.length > 0 && (
@@ -129,28 +144,33 @@ export function AtividadeCard({
                 : diff === 0
                   ? "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-200"
                   : "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300";
+            const atrasadoBadge = !concluido && diff < 0;
+            const titulo = concluido
+              ? "Card concluído"
+              : diff < 0
+                ? `Atrasado em ${Math.abs(diff)} dia(s)`
+                : diff === 0
+                  ? "Vence hoje"
+                  : `Vence em ${diff} dia(s)`;
             return (
               <span
                 className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-medium ${cls}`}
-                title={
-                  concluido
-                    ? "Card concluído"
-                    : diff < 0
-                      ? `Atrasado em ${Math.abs(diff)} dia(s)`
-                      : diff === 0
-                        ? "Vence hoje"
-                        : `Vence em ${diff} dia(s)`
-                }
+                title={titulo}
+                aria-label={`${titulo} — ${formatDateBR(venc)}`}
               >
-                <svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true">
-                  <path
-                    d="M5 1v2M11 1v2M2.5 6.5h11M3 3h10a1 1 0 011 1v9a1 1 0 01-1 1H3a1 1 0 01-1-1V4a1 1 0 011-1z"
-                    stroke="currentColor"
-                    strokeWidth="1.1"
-                    fill="none"
-                    strokeLinecap="round"
-                  />
-                </svg>
+                {atrasadoBadge ? (
+                  <AlertTriangle size={12} strokeWidth={2.4} aria-hidden="true" />
+                ) : (
+                  <svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true">
+                    <path
+                      d="M5 1v2M11 1v2M2.5 6.5h11M3 3h10a1 1 0 011 1v9a1 1 0 01-1 1H3a1 1 0 01-1-1V4a1 1 0 011-1z"
+                      stroke="currentColor"
+                      strokeWidth="1.1"
+                      fill="none"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                )}
                 {formatDateBR(venc)}
                 {card.horaVencimento ? ` ${card.horaVencimento}` : ""}
               </span>

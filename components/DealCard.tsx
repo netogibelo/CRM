@@ -1,5 +1,6 @@
 "use client";
 
+import { Clock } from "lucide-react";
 import type { Deal } from "@/lib/types";
 import {
   useContatos,
@@ -80,14 +81,21 @@ export function DealCard({
   const tipoObraAbrev = abrevTipoObra(deal.tipoObra);
   const localExibir = deal.cidadeObra || deal.condominio || "";
 
+  // Destaque de estagnação: borda + ring âmbar suave (cor + ícone no badge),
+  // funcional em tema claro e escuro. Âmbar = severidade "alerta" (mesma do
+  // motor de notificações para "parado"); vermelho fica reservado a "vencido".
+  const destaqueBorda = parado
+    ? "border-amber-300 ring-1 ring-amber-300/50 dark:border-amber-500/50 dark:ring-amber-500/25"
+    : "border-navy-100 hover:border-navy-200 dark:border-dark-border dark:hover:border-gibelo-areia/40";
+
   return (
     <div
       {...activationProps(() => onAbrir(deal))}
       {...dragProps(deal.id, onDragStart, onDragEnd)}
       aria-label={`Oportunidade ${deal.projeto}, cliente ${clienteNome(
         deal.clienteId,
-      )}, valor ${formatBRL(deal.valor)}. Abrir para editar.`}
-      className={`group cursor-grab rounded-xl border border-navy-100 dark:border-dark-border bg-white dark:bg-dark-surface p-3.5 shadow-card transition-all hover:-translate-y-0.5 hover:border-navy-200 dark:hover:border-gibelo-areia/40 dark:border-dark-border hover:shadow-card-hover active:cursor-grabbing ${
+      )}, valor ${formatBRL(deal.valor)}.${parado ? ` Parado há ${diasParado} dias.` : ""} Abrir para editar.`}
+      className={`group cursor-grab rounded-xl border ${destaqueBorda} bg-white dark:bg-dark-surface p-3.5 shadow-card transition-all hover:-translate-y-0.5 hover:shadow-card-hover active:cursor-grabbing ${
         arrastando ? "opacity-40" : "opacity-100"
       }`}
     >
@@ -171,13 +179,11 @@ export function DealCard({
           )}
           {parado && (
             <span
-              className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700"
+              className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700 dark:bg-amber-950/50 dark:text-amber-200"
               title={`Sem atualização há ${diasParado} dias`}
+              aria-label={`Parado há ${diasParado} dias sem atualização`}
             >
-              <span
-                className="h-1.5 w-1.5 rounded-full bg-amber-500"
-                aria-hidden="true"
-              />
+              <Clock size={11} strokeWidth={2.5} aria-hidden="true" />
               Parado {diasParado}d
             </span>
           )}
