@@ -26,26 +26,59 @@ export const ABA_LABEL: Record<Aba, string> = {
 };
 
 /**
- * Subitens do flyout de Configurações. O `id` vira a âncora
- * `id="cfg-<id>"` nas seções de ConfiguracoesView (scroll-to-section).
- * Ordem segue o brief; "Alertas por email" entra como último para não
- * deixar a seção real sem entrada no flyout.
+ * Subitens de Configurações. Cada `id` é a chave da subpágina ativa
+ * (ver `subpaginaConfig` em lib/nav-store.tsx) e dirige o que ConfiguracoesView
+ * renderiza. O `label` aparece no flyout do rail, no drawer mobile, no
+ * breadcrumb e no card da tela inicial; `descricao` só na tela inicial.
+ *
+ * Ordem: alfabética por `label` (pt-BR) — espelhada no flyout, no drawer e na
+ * grade de cards da tela inicial.
  */
 export interface ConfigSecao {
   id: string;
   label: string;
+  descricao: string;
 }
 
 export const CONFIG_SECOES: ConfigSecao[] = [
-  { id: "origens", label: "Origens" },
-  { id: "etapas", label: "Etapas do funil" },
-  { id: "tipos-servico", label: "Tipos de serviço" },
-  { id: "automacoes", label: "Automações" },
-  { id: "templates-atividade", label: "Templates de atividade" },
-  { id: "etiquetas-atividade", label: "Etiquetas de atividade" },
-  { id: "equipe", label: "Equipe" },
-  { id: "alertas", label: "Alertas por email" },
+  {
+    id: "alertas",
+    label: "Alertas por email",
+    descricao: "Resumo diário enviado por email.",
+  },
+  {
+    id: "automacoes",
+    label: "Automações",
+    descricao: "Regras que disparam ações nos deals.",
+  },
+  {
+    id: "equipe",
+    label: "Equipe",
+    descricao: "Membros e nomes de exibição.",
+  },
+  {
+    id: "etapas",
+    label: "Etapas do funil",
+    descricao: "Colunas, probabilidade e ordem.",
+  },
+  {
+    id: "etiquetas-atividade",
+    label: "Etiquetas de atividade",
+    descricao: "Cores e rótulos das atividades.",
+  },
+  {
+    id: "origens",
+    label: "Origens",
+    descricao: "De onde vêm as oportunidades.",
+  },
+  {
+    id: "templates-atividade",
+    label: "Templates de atividade",
+    descricao: "Modelos reutilizáveis de atividades.",
+  },
+  {
+    id: "tipos-servico",
+    label: "Tipos de serviço",
+    descricao: "Sugestões de serviço nos deals.",
+  },
 ];
-
-/** Prefixo da âncora DOM de cada seção de Configurações. */
-export const configAnchorId = (id: string) => `cfg-${id}`;

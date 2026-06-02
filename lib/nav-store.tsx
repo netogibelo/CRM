@@ -15,48 +15,46 @@ import {
   useMemo,
   useState,
 } from "react";
-import { type Aba, configAnchorId } from "@/lib/nav";
+import { type Aba } from "@/lib/nav";
 
 interface NavContextValue {
   aba: Aba;
   setAba: (a: Aba) => void;
-  /** Vai para Configurações e rola até a seção `secaoId` (âncora cfg-<id>). */
+  /**
+   * Subpágina ativa dentro de Configurações (id de CONFIG_SECOES) ou `null`
+   * para a tela inicial (grade de cards). Lida por ConfiguracoesView.
+   */
+  subpaginaConfig: string | null;
+  setSubpaginaConfig: (id: string | null) => void;
+  /**
+   * Vai para Configurações. Com `secaoId` abre a subpágina correspondente;
+   * sem argumento abre a tela inicial de Configurações.
+   */
   irParaConfig: (secaoId?: string) => void;
 }
 
 const NavContext = createContext<NavContextValue | null>(null);
 
-function prefereMovimentoReduzido(): boolean {
-  return (
-    typeof window !== "undefined" &&
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches
-  );
-}
-
 export function NavProvider({ children }: { children: React.ReactNode }) {
   const [aba, setAbaState] = useState<Aba>("dashboard");
+  const [subpaginaConfig, setSubpaginaConfig] = useState<string | null>(null);
 
   const setAba = useCallback((a: Aba) => setAbaState(a), []);
 
   const irParaConfig = useCallback((secaoId?: string) => {
     setAbaState("config");
-    if (!secaoId) return;
-    // ConfiguracoesView é import estático (renderiza no mesmo tick). Dois rAF
-    // garantem que o DOM da seção já existe antes de rolar.
-    const rolar = () => {
-      const el = document.getElementById(configAnchorId(secaoId));
-      el?.scrollIntoView({
-        behavior: prefereMovimentoReduzido() ? "auto" : "smooth",
-        block: "start",
-      });
-      el?.focus?.({ preventScroll: true });
-    };
-    requestAnimationFrame(() => requestAnimationFrame(rolar));
+    setSubpaginaConfig(secaoId ?? null);
   }, []);
 
   const value = useMemo(
-    () => ({ aba, setAba, irParaConfig }),
-    [aba, setAba, irParaConfig],
+    () => ({
+      aba,
+      setAba,
+      subpaginaConfig,
+      setSubpaginaConfig,
+      irParaConfig,
+    }),
+    [aba, setAba, subpaginaConfig, irParaConfig],
   );
 
   return <NavContext.Provider value={value}>{children}</NavContext.Provider>;

@@ -86,7 +86,7 @@ export function AlertasSection() {
   return (
     <section
       aria-label="Alertas por email"
-      className="rounded-2xl border border-navy-100 dark:border-dark-border bg-navy-50 dark:bg-dark-elevated/40 p-4 sm:p-5 lg:col-span-2"
+      className="rounded-2xl border border-navy-100 dark:border-dark-border bg-navy-50 dark:bg-dark-elevated/40 p-4 sm:p-5"
     >
       <h2 className="text-sm font-semibold text-navy-900 dark:text-gibelo-offwhite">Alertas por email</h2>
       <p className="mt-0.5 text-xs text-navy-700 dark:text-gibelo-areia">

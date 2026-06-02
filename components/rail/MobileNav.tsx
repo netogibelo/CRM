@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import {
   BarChart2,
   CheckSquare,
-  ChevronRight,
   Clock,
   Mail,
   Menu,
@@ -21,7 +20,7 @@ import { PerfilButton } from "@/components/PerfilButton";
 import { useNav } from "@/lib/nav-store";
 import { useClients, useDeals } from "@/lib/crm-store";
 import { useBoard } from "@/lib/activities-store";
-import { CONFIG_SECOES, type Aba } from "@/lib/nav";
+import { type Aba } from "@/lib/nav";
 
 interface ItemDef {
   aba: Aba;
@@ -33,7 +32,8 @@ interface ItemDef {
 /**
  * Navegação mobile (≤640px): top bar com hambúrguer + drawer escuro que
  * espelha o rail. Overlay fecha ao clicar fora ou Esc; selecionar um item
- * fecha o drawer. Configurações expande para as seções (âncoras).
+ * fecha o drawer. Configurações leva à tela inicial (grade de cards), de onde
+ * cada subpágina é aberta.
  */
 export function MobileNav() {
   const { aba, setAba, irParaConfig } = useNav();
@@ -41,7 +41,6 @@ export function MobileNav() {
   const { clientes } = useClients();
   const { cards } = useBoard();
   const [aberto, setAberto] = useState(false);
-  const [configExpandido, setConfigExpandido] = useState(false);
   const hamburguerRef = useRef<HTMLButtonElement>(null);
   const painelRef = useRef<HTMLDivElement>(null);
 
@@ -148,42 +147,15 @@ export function MobileNav() {
 
               <DrawerLinha Icon={Mail} label="Email" desabilitado tooltip="Em breve" />
 
-              <button
-                type="button"
-                onClick={() => setConfigExpandido((v) => !v)}
-                aria-expanded={configExpandido}
-                aria-current={aba === "config" ? "page" : undefined}
-                className={`flex w-full items-center gap-3 px-4 py-3 text-left text-sm transition-colors focus-visible:outline-gibelo-areia focus-visible:-outline-offset-2 ${
-                  aba === "config"
-                    ? "bg-navy-900 text-white"
-                    : "text-white/80 hover:bg-white/10 hover:text-white"
-                }`}
-              >
-                <Settings size={20} aria-hidden="true" />
-                <span className="flex-1">Configurações</span>
-                <ChevronRight
-                  size={16}
-                  aria-hidden="true"
-                  className={`transition-transform ${configExpandido ? "rotate-90" : ""}`}
-                />
-              </button>
-              {configExpandido && (
-                <div className="bg-black/20 py-1">
-                  {CONFIG_SECOES.map((s) => (
-                    <button
-                      key={s.id}
-                      type="button"
-                      onClick={() => {
-                        irParaConfig(s.id);
-                        setAberto(false);
-                      }}
-                      className="block w-full py-2 pl-12 pr-4 text-left text-sm text-white/70 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-gibelo-areia focus-visible:-outline-offset-2"
-                    >
-                      {s.label}
-                    </button>
-                  ))}
-                </div>
-              )}
+              <DrawerLinha
+                Icon={Settings}
+                label="Configurações"
+                ativo={aba === "config"}
+                onClick={() => {
+                  irParaConfig();
+                  setAberto(false);
+                }}
+              />
 
               <DrawerLinha
                 Icon={Clock}

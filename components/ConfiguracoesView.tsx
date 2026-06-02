@@ -1,8 +1,25 @@
 "use client";
 
 import { useState } from "react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  ChevronRight,
+  Compass,
+  Filter,
+  LayoutTemplate,
+  Mail,
+  Settings,
+  Tags,
+  Users,
+  Wrench,
+  Zap,
+  type LucideIcon,
+} from "lucide-react";
 import type { Etapa, Origem, TipoServico } from "@/lib/types";
 import { useOrigins, useStages, useTiposServico } from "@/lib/crm-store";
+import { useNav } from "@/lib/nav-store";
+import { CONFIG_SECOES } from "@/lib/nav";
 import { ordenarEtapas, corDaEtapa } from "@/lib/stages";
 import { btnPrimary, inputCls } from "@/lib/ui";
 import { EditableText } from "./EditableText";
@@ -19,6 +36,17 @@ import {
 
 const nomeInlineCls =
   "min-w-0 flex-1 rounded-md border border-transparent bg-transparent px-2 py-1 text-sm text-navy-900 dark:text-gibelo-offwhite hover:border-navy-200 dark:hover:border-gibelo-areia/40 dark:border-dark-border focus:border-navy-500 focus:bg-white dark:bg-dark-surface focus:outline-none focus:ring-2 focus:ring-navy-500/30";
+
+const cardCls =
+  "rounded-2xl border border-navy-100 dark:border-dark-border bg-navy-50 dark:bg-dark-elevated/40 p-4 sm:p-5";
+
+// Subpáginas com lista arrastável + formulário de adição usam uma coluna
+// centrada e legível em telas normais e abrem em 2 colunas (lista à esquerda,
+// formulário à direita) quando o canvas é largo — nunca esticam a lista.
+const listShellCls =
+  "mx-auto w-full max-w-[900px] @5xl/canvas:max-w-[1180px]";
+const listGridCls =
+  "mt-4 grid gap-6 @5xl/canvas:grid-cols-[minmax(0,1fr)_22rem] @5xl/canvas:items-start";
 
 // ── Origem ───────────────────────────────────────────────────────────────────
 function OrigemRow({
@@ -195,19 +223,28 @@ function TipoServicoRow({
   );
 }
 
-export function ConfiguracoesView() {
+// ── Painel de adição (coluna direita no layout largo) ─────────────────────────
+function AddPanel({
+  titulo,
+  children,
+}: {
+  titulo: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-xl border border-dashed border-navy-200 bg-white p-4 dark:border-dark-border dark:bg-dark-surface @5xl/canvas:sticky @5xl/canvas:top-0">
+      <p className="text-xs font-semibold uppercase tracking-wide text-navy-700 dark:text-gibelo-areia">
+        {titulo}
+      </p>
+      <div className="mt-3 space-y-2">{children}</div>
+    </div>
+  );
+}
+
+// ── Subpágina: Origens ────────────────────────────────────────────────────────
+function OrigensSubpagina() {
   const origens = useOrigins();
-  const stages = useStages();
-  const tipos = useTiposServico();
-
   const [novaOrigem, setNovaOrigem] = useState("");
-  const [novaEtapa, setNovaEtapa] = useState("");
-  const [novaProb, setNovaProb] = useState(50);
-  const [novoTipo, setNovoTipo] = useState("");
-
-  const etapasOrd = ordenarEtapas(stages.etapas);
-  const ativas = etapasOrd.filter((e) => !e.final);
-  const final = etapasOrd.find((e) => e.final);
 
   async function addOrigem() {
     const t = novaOrigem.trim();
@@ -224,65 +261,18 @@ export function ConfiguracoesView() {
     if (!r.ok) window.alert(r.erro);
   }
 
-  async function addEtapa() {
-    const t = novaEtapa.trim();
-    if (!t) return;
-    const maxAtiva = ativas.reduce((m, e) => Math.max(m, e.ordem), -1);
-    const novaOrdem = maxAtiva + 1;
-    if (final && final.ordem <= novaOrdem) {
-      await stages.atualizar(final.id, { ordem: novaOrdem + 1 });
-    }
-    const prob = Number.isNaN(novaProb) ? 0 : Math.max(0, Math.min(100, novaProb));
-    await stages.criar({
-      nome: t,
-      probabilidade: prob / 100,
-      ordem: novaOrdem,
-    });
-    setNovaEtapa("");
-    setNovaProb(50);
-  }
-
-  async function delEtapa(id: string, nome: string) {
-    if (!window.confirm(`Excluir a etapa "${nome}"?`)) return;
-    const r = await stages.remover(id);
-    if (!r.ok) window.alert(r.erro);
-  }
-
-  async function addTipoServico() {
-    const t = novoTipo.trim();
-    if (!t) return;
-    const maxOrdem = tipos.ativos.reduce((m, x) => Math.max(m, x.ordem), -1);
-    await tipos.criar({ nome: t, ordem: maxOrdem + 1, ativo: true });
-    setNovoTipo("");
-  }
-
-  async function delTipoServico(id: string, nome: string) {
-    if (!window.confirm(`Excluir o tipo "${nome}"?`)) return;
-    await tipos.desativar(id);
-  }
-
-  // Para etapas: garante que a etapa final sempre fique no final da lista.
-  async function reordenarEtapasAtivas(idsAtivas: string[]) {
-    const todos = final ? [...idsAtivas, final.id] : idsAtivas;
-    await stages.reordenar(todos);
-  }
-
   return (
-    <div className="grid grid-cols-1 gap-6 @3xl/canvas:grid-cols-2">
-      {/* Origens */}
-      <section
-        id="cfg-origens"
-        tabIndex={-1}
-        aria-label="Origens"
-        className="scroll-mt-4 rounded-2xl border border-navy-100 dark:border-dark-border bg-navy-50 dark:bg-dark-elevated/40 p-4 sm:p-5 focus:outline-none"
-      >
-        <h2 className="text-sm font-semibold text-navy-900 dark:text-gibelo-offwhite">Origens</h2>
+    <div className={listShellCls}>
+      <section aria-label="Origens" className={cardCls}>
+        <h2 className="text-sm font-semibold text-navy-900 dark:text-gibelo-offwhite">
+          Origens
+        </h2>
         <p className="mt-0.5 text-xs text-navy-700 dark:text-gibelo-areia">
           De onde vêm as oportunidades. Arraste para reordenar. Não é possível
           excluir uma origem em uso.
         </p>
 
-        <div className="mt-4">
+        <div className={listGridCls}>
           <SortableConfigList
             ariaLabel="Lista de origens"
             items={origens.origens}
@@ -300,113 +290,187 @@ export function ConfiguracoesView() {
               />
             )}
           />
-        </div>
 
-        <div className="mt-3 flex gap-2">
-          <input
-            value={novaOrigem}
-            onChange={(e) => setNovaOrigem(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && addOrigem()}
-            placeholder="Nova origem…"
-            aria-label="Nome da nova origem"
-            className={`${inputCls} mt-0 flex-1`}
-          />
-          <button type="button" onClick={addOrigem} className={btnPrimary}>
-            Adicionar
-          </button>
+          <AddPanel titulo="Adicionar origem">
+            <input
+              value={novaOrigem}
+              onChange={(e) => setNovaOrigem(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && addOrigem()}
+              placeholder="Nova origem…"
+              aria-label="Nome da nova origem"
+              className={`${inputCls} mt-0`}
+            />
+            <button
+              type="button"
+              onClick={addOrigem}
+              className={`${btnPrimary} w-full`}
+            >
+              Adicionar
+            </button>
+          </AddPanel>
         </div>
       </section>
+    </div>
+  );
+}
 
-      {/* Etapas */}
-      <section
-        id="cfg-etapas"
-        tabIndex={-1}
-        aria-label="Etapas do funil"
-        className="scroll-mt-4 rounded-2xl border border-navy-100 dark:border-dark-border bg-navy-50 dark:bg-dark-elevated/40 p-4 sm:p-5 focus:outline-none"
-      >
-        <h2 className="text-sm font-semibold text-navy-900 dark:text-gibelo-offwhite">Etapas do funil</h2>
+// ── Subpágina: Etapas do funil ────────────────────────────────────────────────
+function EtapasSubpagina() {
+  const stages = useStages();
+  const [novaEtapa, setNovaEtapa] = useState("");
+  const [novaProb, setNovaProb] = useState(50);
+
+  const etapasOrd = ordenarEtapas(stages.etapas);
+  const ativas = etapasOrd.filter((e) => !e.final);
+  const final = etapasOrd.find((e) => e.final);
+
+  async function addEtapa() {
+    const t = novaEtapa.trim();
+    if (!t) return;
+    const maxAtiva = ativas.reduce((m, e) => Math.max(m, e.ordem), -1);
+    const novaOrdem = maxAtiva + 1;
+    if (final && final.ordem <= novaOrdem) {
+      await stages.atualizar(final.id, { ordem: novaOrdem + 1 });
+    }
+    const prob = Number.isNaN(novaProb)
+      ? 0
+      : Math.max(0, Math.min(100, novaProb));
+    await stages.criar({
+      nome: t,
+      probabilidade: prob / 100,
+      ordem: novaOrdem,
+    });
+    setNovaEtapa("");
+    setNovaProb(50);
+  }
+
+  async function delEtapa(id: string, nome: string) {
+    if (!window.confirm(`Excluir a etapa "${nome}"?`)) return;
+    const r = await stages.remover(id);
+    if (!r.ok) window.alert(r.erro);
+  }
+
+  // Garante que a etapa final sempre fique no fim da lista ao reordenar.
+  async function reordenarEtapasAtivas(idsAtivas: string[]) {
+    const todos = final ? [...idsAtivas, final.id] : idsAtivas;
+    await stages.reordenar(todos);
+  }
+
+  return (
+    <div className={listShellCls}>
+      <section aria-label="Etapas do funil" className={cardCls}>
+        <h2 className="text-sm font-semibold text-navy-900 dark:text-gibelo-offwhite">
+          Etapas do funil
+        </h2>
         <p className="mt-0.5 text-xs text-navy-700 dark:text-gibelo-areia">
           Nome, probabilidade (alimenta o valor ponderado) e ordem das colunas.
           Arraste para reordenar. A etapa de fechamento (ganho) fica fixa no fim.
         </p>
 
-        <div className="mt-4">
-          <SortableConfigList
-            ariaLabel="Lista de etapas ativas"
-            items={ativas}
-            getId={(e) => e.id}
-            getNome={(e) => e.nome}
-            onReorder={reordenarEtapasAtivas}
-            tituloAlfabetizar="Ordenar etapas A→Z"
-            renderRow={(e, handle) => (
-              <EtapaRow
-                etapa={e}
-                usos={stages.emUso(e.id)}
-                handle={handle}
-                onRename={(nome) => stages.atualizar(e.id, { nome })}
-                onProb={(probabilidade) =>
-                  stages.atualizar(e.id, { probabilidade })
-                }
-                onDelete={() => delEtapa(e.id, e.nome)}
-              />
-            )}
-          />
-          {final && (
-            <ul className="mt-2">
-              <EtapaRow
-                etapa={final}
-                usos={stages.emUso(final.id)}
-                onRename={(nome) => stages.atualizar(final.id, { nome })}
-                onProb={(probabilidade) =>
-                  stages.atualizar(final.id, { probabilidade })
-                }
-              />
-            </ul>
-          )}
-        </div>
-
-        <div className="mt-3 flex flex-wrap gap-2">
-          <input
-            value={novaEtapa}
-            onChange={(e) => setNovaEtapa(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && addEtapa()}
-            placeholder="Nova etapa…"
-            aria-label="Nome da nova etapa"
-            className={`${inputCls} mt-0 min-w-[8rem] flex-1`}
-          />
-          <div className="flex items-center gap-1">
-            <input
-              type="number"
-              min={0}
-              max={100}
-              value={novaProb}
-              onChange={(e) => setNovaProb(Number(e.target.value))}
-              aria-label="Probabilidade da nova etapa em %"
-              className="w-16 rounded-lg border border-navy-200 dark:border-dark-border px-2 py-2 text-right text-sm focus:border-navy-500 focus:outline-none focus:ring-2 focus:ring-navy-500/30"
+        <div className={listGridCls}>
+          <div>
+            <SortableConfigList
+              ariaLabel="Lista de etapas ativas"
+              items={ativas}
+              getId={(e) => e.id}
+              getNome={(e) => e.nome}
+              onReorder={reordenarEtapasAtivas}
+              tituloAlfabetizar="Ordenar etapas A→Z"
+              renderRow={(e, handle) => (
+                <EtapaRow
+                  etapa={e}
+                  usos={stages.emUso(e.id)}
+                  handle={handle}
+                  onRename={(nome) => stages.atualizar(e.id, { nome })}
+                  onProb={(probabilidade) =>
+                    stages.atualizar(e.id, { probabilidade })
+                  }
+                  onDelete={() => delEtapa(e.id, e.nome)}
+                />
+              )}
             />
-            <span className="text-xs text-navy-700 dark:text-gibelo-areia">%</span>
+            {final && (
+              <ul className="mt-2">
+                <EtapaRow
+                  etapa={final}
+                  usos={stages.emUso(final.id)}
+                  onRename={(nome) => stages.atualizar(final.id, { nome })}
+                  onProb={(probabilidade) =>
+                    stages.atualizar(final.id, { probabilidade })
+                  }
+                />
+              </ul>
+            )}
           </div>
-          <button type="button" onClick={addEtapa} className={btnPrimary}>
-            Adicionar
-          </button>
+
+          <AddPanel titulo="Adicionar etapa">
+            <input
+              value={novaEtapa}
+              onChange={(e) => setNovaEtapa(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && addEtapa()}
+              placeholder="Nova etapa…"
+              aria-label="Nome da nova etapa"
+              className={`${inputCls} mt-0`}
+            />
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                min={0}
+                max={100}
+                value={novaProb}
+                onChange={(e) => setNovaProb(Number(e.target.value))}
+                aria-label="Probabilidade da nova etapa em %"
+                className="w-20 rounded-lg border border-navy-200 dark:border-dark-border px-2 py-2 text-right text-sm text-navy-900 dark:text-gibelo-offwhite focus:border-navy-500 focus:outline-none focus:ring-2 focus:ring-navy-500/30"
+              />
+              <span className="text-xs text-navy-700 dark:text-gibelo-areia">
+                % de probabilidade
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={addEtapa}
+              className={`${btnPrimary} w-full`}
+            >
+              Adicionar
+            </button>
+          </AddPanel>
         </div>
       </section>
+    </div>
+  );
+}
 
-      {/* Tipos de serviço */}
-      <section
-        id="cfg-tipos-servico"
-        tabIndex={-1}
-        aria-label="Tipos de serviço"
-        className="scroll-mt-4 rounded-2xl border border-navy-100 dark:border-dark-border bg-navy-50 dark:bg-dark-elevated/40 p-4 sm:p-5 focus:outline-none"
-      >
-        <h2 className="text-sm font-semibold text-navy-900 dark:text-gibelo-offwhite">Tipos de serviço</h2>
+// ── Subpágina: Tipos de serviço ───────────────────────────────────────────────
+function TiposServicoSubpagina() {
+  const tipos = useTiposServico();
+  const [novoTipo, setNovoTipo] = useState("");
+
+  async function addTipoServico() {
+    const t = novoTipo.trim();
+    if (!t) return;
+    const maxOrdem = tipos.ativos.reduce((m, x) => Math.max(m, x.ordem), -1);
+    await tipos.criar({ nome: t, ordem: maxOrdem + 1, ativo: true });
+    setNovoTipo("");
+  }
+
+  async function delTipoServico(id: string, nome: string) {
+    if (!window.confirm(`Excluir o tipo "${nome}"?`)) return;
+    await tipos.desativar(id);
+  }
+
+  return (
+    <div className={listShellCls}>
+      <section aria-label="Tipos de serviço" className={cardCls}>
+        <h2 className="text-sm font-semibold text-navy-900 dark:text-gibelo-offwhite">
+          Tipos de serviço
+        </h2>
         <p className="mt-0.5 text-xs text-navy-700 dark:text-gibelo-areia">
           Sugestões oferecidas ao adicionar um serviço dentro de um deal.
           Arraste para reordenar. Excluir não apaga histórico, só remove da lista
           de sugestões.
         </p>
 
-        <div className="mt-4">
+        <div className={listGridCls}>
           <SortableConfigList
             ariaLabel="Lista de tipos de serviço"
             items={tipos.ativos}
@@ -423,46 +487,202 @@ export function ConfiguracoesView() {
               />
             )}
           />
-        </div>
 
-        <div className="mt-3 flex gap-2">
-          <input
-            value={novoTipo}
-            onChange={(e) => setNovoTipo(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && addTipoServico()}
-            placeholder="Novo tipo de serviço…"
-            aria-label="Nome do novo tipo de serviço"
-            className={`${inputCls} mt-0 flex-1`}
-          />
-          <button type="button" onClick={addTipoServico} className={btnPrimary}>
-            Adicionar
-          </button>
+          <AddPanel titulo="Adicionar tipo de serviço">
+            <input
+              value={novoTipo}
+              onChange={(e) => setNovoTipo(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && addTipoServico()}
+              placeholder="Novo tipo de serviço…"
+              aria-label="Nome do novo tipo de serviço"
+              className={`${inputCls} mt-0`}
+            />
+            <button
+              type="button"
+              onClick={addTipoServico}
+              className={`${btnPrimary} w-full`}
+            >
+              Adicionar
+            </button>
+          </AddPanel>
         </div>
       </section>
+    </div>
+  );
+}
 
-      <div id="cfg-etiquetas-atividade" tabIndex={-1} className="scroll-mt-4 focus:outline-none">
-        <AtividadeEtiquetasConfig />
-      </div>
+// ── Wrapper para seções que já são cards completos e auto-contidos ────────────
+function SubpaginaCard({ children }: { children: React.ReactNode }) {
+  return <div className="mx-auto w-full max-w-[960px]">{children}</div>;
+}
 
-      <div id="cfg-templates-atividade" tabIndex={-1} className="scroll-mt-4 focus:outline-none">
-        <AtividadeTemplatesConfig />
-      </div>
+const CONFIG_ICONS: Record<string, LucideIcon> = {
+  alertas: Mail,
+  automacoes: Zap,
+  equipe: Users,
+  etapas: Filter,
+  "etiquetas-atividade": Tags,
+  origens: Compass,
+  "templates-atividade": LayoutTemplate,
+  "tipos-servico": Wrench,
+};
 
-      <div id="cfg-automacoes" tabIndex={-1} className="scroll-mt-4 focus:outline-none">
-        <AutomacoesSection />
-      </div>
+// ── Tela inicial: grade de cards ──────────────────────────────────────────────
+function ConfigHome({ onAbrir }: { onAbrir: (id: string) => void }) {
+  return (
+    <div>
+      <header className="mb-5">
+        <h1 className="text-lg font-semibold text-navy-900 dark:text-gibelo-offwhite">
+          Configurações
+        </h1>
+        <p className="mt-1 text-sm text-navy-700 dark:text-gibelo-areia">
+          Escolha uma área para configurar.
+        </p>
+      </header>
 
-      <div id="cfg-equipe" tabIndex={-1} className="scroll-mt-4 focus:outline-none">
-        <EquipeSection />
-      </div>
+      <ul className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(280px,1fr))]">
+        {CONFIG_SECOES.map((s) => {
+          const Icon = CONFIG_ICONS[s.id] ?? Settings;
+          return (
+            <li key={s.id}>
+              <button
+                type="button"
+                onClick={() => onAbrir(s.id)}
+                aria-label={`Abrir ${s.label}`}
+                className="group flex w-full items-start gap-3 rounded-2xl border border-navy-100 bg-white p-4 text-left transition-colors hover:border-navy-300 hover:bg-navy-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500/40 dark:border-dark-border dark:bg-dark-surface dark:hover:border-gibelo-areia/40 dark:hover:bg-dark-elevated dark:focus-visible:ring-gibelo-areia/40"
+              >
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-navy-50 text-navy-700 transition-colors group-hover:bg-navy-900 group-hover:text-white dark:bg-dark-elevated dark:text-gibelo-areia">
+                  <Icon size={20} aria-hidden="true" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-semibold text-navy-900 dark:text-gibelo-offwhite">
+                    {s.label}
+                  </span>
+                  <span className="mt-0.5 block text-xs text-navy-700 dark:text-gibelo-areia">
+                    {s.descricao}
+                  </span>
+                </span>
+                <ArrowRight
+                  size={16}
+                  aria-hidden="true"
+                  className="mt-1 shrink-0 text-navy-400 transition-transform group-hover:translate-x-0.5 group-hover:text-navy-700 dark:text-gibelo-areia dark:group-hover:text-gibelo-offwhite"
+                />
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
 
-      <div
-        id="cfg-alertas"
-        tabIndex={-1}
-        className="scroll-mt-4 focus:outline-none @3xl/canvas:col-span-2"
+// ── Breadcrumb + voltar ───────────────────────────────────────────────────────
+function ConfigBreadcrumb({
+  label,
+  onVoltar,
+}: {
+  label: string;
+  onVoltar: () => void;
+}) {
+  return (
+    <div className="mb-5 flex flex-wrap items-center gap-x-3 gap-y-2">
+      <button
+        type="button"
+        onClick={onVoltar}
+        aria-label="Voltar para Configurações"
+        className="inline-flex items-center gap-1.5 rounded-lg border border-navy-200 px-3 py-1.5 text-sm font-medium text-navy-700 transition-colors hover:bg-navy-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500/30 dark:border-dark-border dark:text-gibelo-offwhite dark:hover:bg-dark-elevated"
       >
-        <AlertasSection />
-      </div>
+        <ArrowLeft size={16} aria-hidden="true" />
+        Voltar
+      </button>
+      <nav aria-label="Trilha de navegação" className="min-w-0">
+        <ol className="flex items-center gap-1.5 text-sm">
+          <li>
+            <button
+              type="button"
+              onClick={onVoltar}
+              className="rounded text-navy-600 transition-colors hover:text-navy-900 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500/30 dark:text-gibelo-areia dark:hover:text-gibelo-offwhite"
+            >
+              Configurações
+            </button>
+          </li>
+          <li aria-hidden="true" className="text-navy-400 dark:text-gibelo-areia/60">
+            <ChevronRight size={14} />
+          </li>
+          <li
+            aria-current="page"
+            className="truncate font-medium text-navy-900 dark:text-gibelo-offwhite"
+          >
+            {label}
+          </li>
+        </ol>
+      </nav>
+    </div>
+  );
+}
+
+function ConfigConteudo({ id }: { id: string }) {
+  switch (id) {
+    case "origens":
+      return <OrigensSubpagina />;
+    case "etapas":
+      return <EtapasSubpagina />;
+    case "tipos-servico":
+      return <TiposServicoSubpagina />;
+    case "automacoes":
+      return (
+        <SubpaginaCard>
+          <AutomacoesSection />
+        </SubpaginaCard>
+      );
+    case "templates-atividade":
+      return (
+        <SubpaginaCard>
+          <AtividadeTemplatesConfig />
+        </SubpaginaCard>
+      );
+    case "etiquetas-atividade":
+      return (
+        <SubpaginaCard>
+          <AtividadeEtiquetasConfig />
+        </SubpaginaCard>
+      );
+    case "equipe":
+      return (
+        <SubpaginaCard>
+          <EquipeSection />
+        </SubpaginaCard>
+      );
+    case "alertas":
+      return (
+        <SubpaginaCard>
+          <AlertasSection />
+        </SubpaginaCard>
+      );
+    default:
+      return null;
+  }
+}
+
+export function ConfiguracoesView() {
+  const { subpaginaConfig, setSubpaginaConfig } = useNav();
+
+  const secao = subpaginaConfig
+    ? CONFIG_SECOES.find((s) => s.id === subpaginaConfig)
+    : undefined;
+
+  // Sem subpágina (ou id inválido) → tela inicial com a grade de cards.
+  if (!secao) {
+    return <ConfigHome onAbrir={setSubpaginaConfig} />;
+  }
+
+  return (
+    <div>
+      <ConfigBreadcrumb
+        label={secao.label}
+        onVoltar={() => setSubpaginaConfig(null)}
+      />
+      <ConfigConteudo id={secao.id} />
     </div>
   );
 }

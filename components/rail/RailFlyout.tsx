@@ -11,16 +11,17 @@ const DELAY_FECHAR = 220;
 /**
  * Item "Configurações" do rail com flyout POPOVER FLUTUANTE (portal +
  * position:fixed) à direita do rail — não é cortado pelo overflow do rail nem
- * empurra o conteúdo.
+ * empurra o conteúdo. Cada item do flyout abre a subpágina correspondente.
  *
  * Interação:
- *   - hover no ícone abre (modo não-fixado);
+ *   - hover no ícone abre o flyout para acesso rápido às subpáginas;
  *   - safe-triangle: o painel cancela o timer de fechamento ao receber o
  *     mouse, permitindo a diagonal ícone→painel;
- *   - clique FIXA (fica aberto sem hover); clicar de novo fecha;
- *   - quando fixado: clique-fora ou selecionar item fecha;
- *   - Esc fecha sempre e devolve o foco ao ícone;
- *   - setas ↑↓ navegam, Enter/Space ativa.
+ *   - clique/Enter/Space no ícone vai para a tela inicial de Configurações;
+ *   - ↓ (no ícone) abre o flyout e foca o primeiro item;
+ *   - selecionar um item abre a subpágina e fecha o flyout;
+ *   - clique-fora fecha; Esc fecha e devolve o foco ao ícone;
+ *   - setas ↑↓/Home/End navegam dentro do painel.
  */
 export function RailFlyout({ ativo }: { ativo: boolean }) {
   const { irParaConfig } = useNav();
@@ -108,7 +109,9 @@ export function RailFlyout({ ativo }: { ativo: boolean }) {
   }
 
   function onTriggerKey(e: React.KeyboardEvent) {
-    if (e.key === "ArrowDown" || e.key === "Enter" || e.key === " ") {
+    // ↓ abre o flyout e foca o primeiro item; Enter/Space caem no onClick
+    // nativo (vão para a tela inicial de Configurações).
+    if (e.key === "ArrowDown") {
       e.preventDefault();
       setFixado(true);
       abrirEFocarPrimeiro();
@@ -118,12 +121,10 @@ export function RailFlyout({ ativo }: { ativo: boolean }) {
   }
 
   function onTriggerClick() {
-    if (fixado) {
-      fecharEFocar();
-    } else {
-      setFixado(true);
-      abrirEFocarPrimeiro();
-    }
+    // O ícone é a própria seção Configurações: leva à tela inicial (grade de
+    // cards). O flyout continua disponível por hover/seta para atalho rápido.
+    irParaConfig();
+    fecharTudo();
   }
 
   function onPanelKey(e: React.KeyboardEvent) {
@@ -153,8 +154,6 @@ export function RailFlyout({ ativo }: { ativo: boolean }) {
         ref={triggerRef}
         type="button"
         aria-label="Configurações"
-        aria-haspopup="true"
-        aria-expanded={aberto}
         aria-current={ativo ? "page" : undefined}
         onMouseEnter={abrir}
         onMouseLeave={fecharComDelay}
@@ -183,8 +182,8 @@ export function RailFlyout({ ativo }: { ativo: boolean }) {
         createPortal(
           <div
             ref={panelRef}
-            role="menu"
-            aria-label="Configurações"
+            role="group"
+            aria-label="Atalhos de Configurações"
             onMouseEnter={limparTimer}
             onMouseLeave={fecharComDelay}
             onKeyDown={onPanelKey}
@@ -216,7 +215,6 @@ export function RailFlyout({ ativo }: { ativo: boolean }) {
                   ref={(el) => {
                     itemRefs.current[i] = el;
                   }}
-                  role="menuitem"
                   type="button"
                   onClick={() => selecionar(s.id)}
                   className="block w-full px-3 py-2 text-left text-sm text-navy-700 transition-colors hover:bg-navy-50 hover:text-navy-900 dark:text-gibelo-offwhite dark:hover:bg-dark-elevated"
