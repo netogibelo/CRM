@@ -121,6 +121,7 @@ export function NotificacoesSino({
             ? `Notificações (${ativas.length} pendente${ativas.length === 1 ? "" : "s"})`
             : "Notificações"
         }
+        title="Notificações"
         aria-expanded={aberto}
         aria-haspopup="true"
       >

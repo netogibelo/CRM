@@ -118,6 +118,7 @@ export function PerfilButton({
             : "flex items-center gap-2 rounded-lg border border-navy-200 dark:border-dark-border px-2 py-1 text-xs font-medium text-navy-700 dark:text-gibelo-offwhite transition-colors hover:bg-navy-50 dark:hover:bg-dark-elevated dark:bg-dark-elevated"
         }
         aria-label={`Menu do perfil de ${nomeAtual}`}
+        title={nomeAtual}
         aria-expanded={aberto}
         aria-haspopup="true"
       >

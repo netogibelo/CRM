@@ -36,12 +36,15 @@ export function Rail() {
         type="button"
         onClick={() => setAba("dashboard")}
         aria-label="Gibelo Construtora — ir para o Dashboard"
-        className="flex items-center justify-center rounded-lg p-1 transition-colors hover:bg-white/10 focus-visible:outline-gibelo-areia"
+        className="flex shrink-0 items-center justify-center rounded-lg p-1 transition-colors hover:bg-white/10 focus-visible:outline-gibelo-areia"
       >
         <GibeloLogo width={48} comDescritor={false} corClasse="text-white" />
       </button>
 
-      <div className="mt-2 flex flex-1 flex-col items-center gap-1 overflow-y-auto py-1">
+      {/* Itens de navegação: ocupam o espaço livre e rolam só aqui se faltar
+          altura (min-h-0 permite o flex encolher; scrollbar oculta no rail).
+          O cluster da base fica fora deste container, sempre fixo. */}
+      <div className="mt-2 flex min-h-0 w-full flex-1 flex-col items-center gap-1 overflow-y-auto py-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <RailItem
           Icon={BarChart2}
           label="Dashboard"
@@ -80,7 +83,7 @@ export function Rail() {
         />
       </div>
 
-      <div className="flex flex-col items-center gap-1 pt-1">
+      <div className="flex shrink-0 flex-col items-center gap-1 pt-1">
         <NotificacoesSino
           placement="rail"
           onIrParaDeal={() => setAba("funil")}
