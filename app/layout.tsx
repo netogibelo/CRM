@@ -6,19 +6,27 @@ import { ThemeProvider, THEME_BOOT_SCRIPT } from "@/lib/theme";
 // Fontes oficiais da marca Gibelo Construtora (Manual de Marca v1.0).
 // Exo · display + sistema (Extra Bold para hero, Medium para subtítulos, Regular para corpo).
 // Source Serif 4 · slogan, manifesto e leads editoriais — sempre em itálico.
+// `display: "optional"` evita o swap (FOUT) que gera CLS: o texto pinta
+// imediatamente no fallback métrico que o next/font gera (adjustFontFallback),
+// e a Exo só substitui se já estiver pronta na janela de bloqueio (~100ms) —
+// na prática, quando vem do preload/cache. Sem swap = sem layout shift.
 const exo = Exo({
   subsets: ["latin"],
   variable: "--font-exo",
   weight: ["400", "500", "700", "800"],
-  display: "swap",
+  display: "optional",
 });
 
+// Source Serif só aparece em leads editoriais (não está acima da dobra de
+// login/app), então `preload: false` tira um preload concorrente do boot —
+// o arquivo só baixa quando algum texto `font-serif` realmente o usa.
 const sourceSerif = Source_Serif_4({
   subsets: ["latin"],
   variable: "--font-source-serif",
   weight: ["400"],
   style: ["italic"],
-  display: "swap",
+  display: "optional",
+  preload: false,
 });
 
 export const metadata: Metadata = {
