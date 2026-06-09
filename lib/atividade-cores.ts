@@ -48,19 +48,24 @@ export interface CardCorInfo {
   swatch: string;
 }
 
+// A duplicata `dark:border-l-*` não é redundante: o card aplica
+// `dark:border-dark-border` (cor nos 4 lados) com especificidade (0,2,0) por
+// causa do seletor `.dark`, o que vence o `border-l-*` sem prefixo (0,1,0) e
+// apagava a barra no tema escuro. O `dark:border-l-*` empata a especificidade
+// e vence por ordem (utilities de lado vêm depois do shorthand no CSS gerado).
 export const CARD_CORES: CardCorInfo[] = [
-  { id: "slate", nome: "Ardósia", barra: "border-l-slate-500", swatch: "bg-slate-500" },
-  { id: "sky", nome: "Azul-céu", barra: "border-l-sky-500", swatch: "bg-sky-500" },
-  { id: "emerald", nome: "Esmeralda", barra: "border-l-emerald-500", swatch: "bg-emerald-500" },
-  { id: "orange", nome: "Laranja", barra: "border-l-orange-500", swatch: "bg-orange-500" },
-  { id: "rose", nome: "Rosa", barra: "border-l-rose-500", swatch: "bg-rose-500" },
-  { id: "violet", nome: "Violeta", barra: "border-l-violet-500", swatch: "bg-violet-500" },
-  { id: "zinc", nome: "Zinco", barra: "border-l-zinc-500", swatch: "bg-zinc-500" },
-  { id: "blue", nome: "Azul", barra: "border-l-blue-500", swatch: "bg-blue-500" },
-  { id: "teal", nome: "Turquesa", barra: "border-l-teal-500", swatch: "bg-teal-500" },
-  { id: "yellow", nome: "Amarelo", barra: "border-l-yellow-500", swatch: "bg-yellow-500" },
-  { id: "pink", nome: "Pink", barra: "border-l-pink-500", swatch: "bg-pink-500" },
-  { id: "purple", nome: "Roxo", barra: "border-l-purple-500", swatch: "bg-purple-500" },
+  { id: "slate", nome: "Ardósia", barra: "border-l-slate-500 dark:border-l-slate-500", swatch: "bg-slate-500" },
+  { id: "sky", nome: "Azul-céu", barra: "border-l-sky-500 dark:border-l-sky-500", swatch: "bg-sky-500" },
+  { id: "emerald", nome: "Esmeralda", barra: "border-l-emerald-500 dark:border-l-emerald-500", swatch: "bg-emerald-500" },
+  { id: "orange", nome: "Laranja", barra: "border-l-orange-500 dark:border-l-orange-500", swatch: "bg-orange-500" },
+  { id: "rose", nome: "Rosa", barra: "border-l-rose-500 dark:border-l-rose-500", swatch: "bg-rose-500" },
+  { id: "violet", nome: "Violeta", barra: "border-l-violet-500 dark:border-l-violet-500", swatch: "bg-violet-500" },
+  { id: "zinc", nome: "Zinco", barra: "border-l-zinc-500 dark:border-l-zinc-500", swatch: "bg-zinc-500" },
+  { id: "blue", nome: "Azul", barra: "border-l-blue-500 dark:border-l-blue-500", swatch: "bg-blue-500" },
+  { id: "teal", nome: "Turquesa", barra: "border-l-teal-500 dark:border-l-teal-500", swatch: "bg-teal-500" },
+  { id: "yellow", nome: "Amarelo", barra: "border-l-yellow-500 dark:border-l-yellow-500", swatch: "bg-yellow-500" },
+  { id: "pink", nome: "Pink", barra: "border-l-pink-500 dark:border-l-pink-500", swatch: "bg-pink-500" },
+  { id: "purple", nome: "Roxo", barra: "border-l-purple-500 dark:border-l-purple-500", swatch: "bg-purple-500" },
 ];
 
 export const CARD_COR_IDS: CardCor[] = CARD_CORES.map((c) => c.id);

@@ -26,16 +26,20 @@ interface DealCardProps {
 // Cores semânticas para as origens padrão; origens criadas pelo usuário recebem
 // uma cor estável derivada do id (não se perde ao renomear).
 const origemCorPorNome: Record<string, string> = {
-  "Indicação de cliente": "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
-  "Arquiteto parceiro": "bg-violet-50 text-violet-700 ring-violet-600/20",
-  "Vizinho / condomínio": "bg-sky-50 text-sky-700 ring-sky-600/20",
-  "Site / Instagram": "bg-amber-50 text-amber-700 ring-amber-600/20",
+  "Indicação de cliente":
+    "bg-emerald-50 text-emerald-700 ring-emerald-600/20 dark:bg-emerald-950/40 dark:text-emerald-300 dark:ring-emerald-500/30",
+  "Arquiteto parceiro":
+    "bg-violet-50 text-violet-700 ring-violet-600/20 dark:bg-violet-950/40 dark:text-violet-300 dark:ring-violet-500/30",
+  "Vizinho / condomínio":
+    "bg-sky-50 text-sky-700 ring-sky-600/20 dark:bg-sky-950/40 dark:text-sky-300 dark:ring-sky-500/30",
+  "Site / Instagram":
+    "bg-amber-50 text-amber-700 ring-amber-600/20 dark:bg-amber-950/40 dark:text-amber-200 dark:ring-amber-500/30",
 };
 const origemPaleta = [
-  "bg-rose-50 text-rose-700 ring-rose-600/20",
-  "bg-teal-50 text-teal-700 ring-teal-600/20",
-  "bg-indigo-50 text-indigo-700 ring-indigo-600/20",
-  "bg-navy-100 dark:bg-dark-elevated text-navy-700 dark:text-gibelo-areia ring-navy-600/20",
+  "bg-rose-50 text-rose-700 ring-rose-600/20 dark:bg-rose-950/40 dark:text-rose-300 dark:ring-rose-500/30",
+  "bg-teal-50 text-teal-700 ring-teal-600/20 dark:bg-teal-950/40 dark:text-teal-300 dark:ring-teal-500/30",
+  "bg-indigo-50 text-indigo-700 ring-indigo-600/20 dark:bg-indigo-950/40 dark:text-indigo-300 dark:ring-indigo-500/30",
+  "bg-navy-100 dark:bg-dark-elevated text-navy-700 dark:text-gibelo-areia ring-navy-600/20 dark:ring-gibelo-areia/25",
 ];
 
 function hash(s: string): number {
@@ -133,7 +137,7 @@ export function DealCard({
           {nomeOrigem}
         </span>
         {tipoObraAbrev && (
-          <span className="inline-flex items-center rounded-full bg-navy-50 dark:bg-dark-elevated px-2 py-0.5 text-[11px] font-medium text-navy-700 dark:text-gibelo-areia ring-1 ring-inset ring-navy-200">
+          <span className="inline-flex items-center rounded-full bg-navy-50 dark:bg-dark-elevated px-2 py-0.5 text-[11px] font-medium text-navy-700 dark:text-gibelo-areia ring-1 ring-inset ring-navy-200 dark:ring-dark-border">
             {tipoObraAbrev}
           </span>
         )}
@@ -144,7 +148,7 @@ export function DealCard({
         )}
       </div>
 
-      <div className="mt-3 flex items-center justify-between border-t border-navy-50 pt-2.5">
+      <div className="mt-3 flex items-center justify-between border-t border-navy-50 dark:border-dark-divider pt-2.5">
         <span className="inline-flex items-center gap-1 text-xs text-navy-700 dark:text-gibelo-areia">
           <svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true">
             <path
@@ -161,7 +165,7 @@ export function DealCard({
         <div className="flex items-center gap-1.5">
           {tarefasVencidas > 0 && (
             <span
-              className="inline-flex items-center gap-1 rounded-full bg-red-50 px-1.5 py-0.5 text-[10px] font-semibold text-red-700"
+              className="inline-flex items-center gap-1 rounded-full bg-red-50 px-1.5 py-0.5 text-[10px] font-semibold text-red-700 dark:bg-red-950/50 dark:text-red-300"
               title={`${tarefasVencidas} tarefa(s) vencida(s)`}
               aria-label={`${tarefasVencidas} tarefas vencidas`}
             >
@@ -170,7 +174,7 @@ export function DealCard({
           )}
           {tarefasVencidas === 0 && tarefasAbertas > 0 && (
             <span
-              className="inline-flex items-center gap-1 rounded-full bg-sky-50 px-1.5 py-0.5 text-[10px] font-medium text-sky-700"
+              className="inline-flex items-center gap-1 rounded-full bg-sky-50 px-1.5 py-0.5 text-[10px] font-medium text-sky-700 dark:bg-sky-950/40 dark:text-sky-300"
               title={`${tarefasAbertas} tarefa(s) aberta(s)`}
               aria-label={`${tarefasAbertas} tarefas abertas`}
             >
