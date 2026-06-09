@@ -244,7 +244,7 @@ export function DealForm({
                 <button
                   type="button"
                   onClick={() => setNovoClienteAberto(true)}
-                  className="shrink-0 rounded-lg border border-navy-200 dark:border-dark-border px-3 py-2 text-sm font-semibold text-navy-700 dark:text-gibelo-offwhite transition-colors hover:bg-navy-50 dark:hover:bg-dark-elevated dark:bg-dark-elevated"
+                  className="shrink-0 rounded-lg border border-navy-200 dark:border-dark-border px-3 py-2 text-sm font-semibold text-navy-700 dark:text-gibelo-offwhite transition-colors hover:bg-navy-50 dark:hover:bg-dark-elevated"
                   aria-label="Cadastrar novo cliente"
                 >
                   + Novo
@@ -526,7 +526,7 @@ export function DealForm({
               <button
                 type="button"
                 onClick={() => deal && onReabrir?.(deal.id)}
-                className="rounded-lg border border-navy-200 dark:border-dark-border bg-white dark:bg-dark-surface px-3 py-1.5 text-sm font-semibold text-navy-700 dark:text-gibelo-offwhite transition-colors hover:bg-navy-100 dark:hover:bg-dark-elevated dark:bg-dark-elevated"
+                className="rounded-lg border border-navy-200 dark:border-dark-border bg-white dark:bg-dark-surface px-3 py-1.5 text-sm font-semibold text-navy-700 dark:text-gibelo-offwhite transition-colors hover:bg-navy-100 dark:hover:bg-dark-elevated"
               >
                 Reabrir oportunidade
               </button>

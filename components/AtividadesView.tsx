@@ -303,7 +303,7 @@ export function AtividadesView() {
       )}
 
       {listas.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-navy-200 dark:border-dark-border dark:border-dark-border bg-white dark:bg-dark-surface px-6 py-14 text-center">
+        <div className="rounded-2xl border border-dashed border-navy-200 dark:border-dark-border bg-white dark:bg-dark-surface px-6 py-14 text-center">
           <p className="text-sm font-medium text-navy-700 dark:text-gibelo-offwhite">
             Nenhuma lista no quadro.
           </p>

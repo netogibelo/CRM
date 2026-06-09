@@ -206,7 +206,7 @@ export function AutomacoesSection() {
                       ? setEditandoId(null)
                       : comecarEdicao(a)
                   }
-                  className="text-xs text-navy-700 dark:text-gibelo-areia transition-colors hover:text-navy-900 dark:text-gibelo-offwhite"
+                  className="text-xs text-navy-700 dark:text-gibelo-areia transition-colors hover:text-navy-900 dark:hover:text-gibelo-offwhite"
                   aria-label={`${editandoId === a.id ? "Cancelar edição" : "Editar"} automação ${a.nome}`}
                 >
                   {editandoId === a.id ? "Fechar" : "Editar"}
@@ -332,7 +332,7 @@ export function AutomacoesSection() {
       </div>
 
       {/* Form nova automação */}
-      <div className="mt-4 rounded-lg border border-dashed border-navy-200 dark:border-dark-border dark:border-dark-border bg-white dark:bg-dark-surface p-3">
+      <div className="mt-4 rounded-lg border border-dashed border-navy-200 dark:border-dark-border bg-white dark:bg-dark-surface p-3">
         <p className="text-xs font-semibold uppercase tracking-wide text-navy-700 dark:text-gibelo-areia">
           Nova automação
         </p>

@@ -254,7 +254,7 @@ export function DealServicos({ dealId, onTotalChange }: DealServicosProps) {
         <button
           type="button"
           onClick={adicionar}
-          className="rounded-lg border border-navy-200 dark:border-dark-border px-3 py-1.5 text-xs font-semibold text-navy-700 dark:text-gibelo-offwhite transition-colors hover:bg-navy-50 dark:hover:bg-dark-elevated dark:bg-dark-elevated"
+          className="rounded-lg border border-navy-200 dark:border-dark-border px-3 py-1.5 text-xs font-semibold text-navy-700 dark:text-gibelo-offwhite transition-colors hover:bg-navy-50 dark:hover:bg-dark-elevated"
           aria-label="Adicionar serviço"
         >
           + Adicionar serviço

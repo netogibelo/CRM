@@ -115,7 +115,7 @@ export function PerfilButton({
         className={
           noRail
             ? "flex h-11 w-11 items-center justify-center rounded-xl text-white/70 transition-colors hover:bg-white/10 focus-visible:outline-gibelo-areia"
-            : "flex items-center gap-2 rounded-lg border border-navy-200 dark:border-dark-border px-2 py-1 text-xs font-medium text-navy-700 dark:text-gibelo-offwhite transition-colors hover:bg-navy-50 dark:hover:bg-dark-elevated dark:bg-dark-elevated"
+            : "flex items-center gap-2 rounded-lg border border-navy-200 dark:border-dark-border px-2 py-1 text-xs font-medium text-navy-700 dark:text-gibelo-offwhite transition-colors hover:bg-navy-50 dark:hover:bg-dark-elevated"
         }
         aria-label={`Menu do perfil de ${nomeAtual}`}
         title={nomeAtual}
@@ -201,7 +201,7 @@ export function PerfilButton({
               <button
                 type="button"
                 onClick={() => setEditando(true)}
-                className="w-full text-left text-sm text-navy-700 dark:text-gibelo-offwhite hover:text-navy-900 dark:text-gibelo-offwhite"
+                className="w-full text-left text-sm text-navy-700 dark:text-gibelo-offwhite hover:text-navy-900 dark:hover:text-gibelo-areia"
                 aria-label="Editar nome de exibição"
               >
                 Editar nome de exibição

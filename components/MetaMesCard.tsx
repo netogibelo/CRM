@@ -90,7 +90,7 @@ export function MetaMesCard() {
           <button
             type="button"
             onClick={() => setEditando(true)}
-            className="rounded-md px-2 py-1 text-xs font-medium text-navy-700 dark:text-gibelo-areia transition-colors hover:bg-navy-50 dark:hover:bg-dark-elevated dark:bg-dark-elevated hover:text-navy-900 dark:text-gibelo-offwhite"
+            className="rounded-md px-2 py-1 text-xs font-medium text-navy-700 dark:text-gibelo-areia transition-colors hover:bg-navy-50 dark:hover:bg-dark-elevated hover:text-navy-900 dark:hover:text-gibelo-offwhite"
             aria-label="Editar meta do mês"
           >
             {resumo.valorMeta > 0 ? "Editar" : "Definir meta"}
@@ -131,7 +131,7 @@ export function MetaMesCard() {
             type="button"
             onClick={handleCancelar}
             disabled={salvando}
-            className="rounded-md border border-navy-200 dark:border-dark-border px-3 py-1.5 text-xs font-medium text-navy-700 dark:text-gibelo-offwhite transition-colors hover:bg-navy-50 dark:hover:bg-dark-elevated dark:bg-dark-elevated"
+            className="rounded-md border border-navy-200 dark:border-dark-border px-3 py-1.5 text-xs font-medium text-navy-700 dark:text-gibelo-offwhite transition-colors hover:bg-navy-50 dark:hover:bg-dark-elevated"
           >
             Cancelar
           </button>

@@ -317,7 +317,7 @@ export function DashboardView() {
                 className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
                   periodoId === p.id
                     ? "bg-navy-900 text-white"
-                    : "text-navy-700 dark:text-gibelo-areia hover:text-navy-900 dark:text-gibelo-offwhite"
+                    : "text-navy-700 dark:text-gibelo-areia hover:text-navy-900 dark:hover:text-gibelo-offwhite"
                 }`}
               >
                 {p.label}
@@ -340,7 +340,7 @@ export function DashboardView() {
                   periodoDias: periodo.dias,
                 })
               }
-              className="inline-flex items-center gap-1.5 rounded-lg border border-navy-200 dark:border-dark-border bg-white dark:bg-dark-surface px-2.5 py-1 text-xs font-semibold text-navy-700 dark:text-gibelo-offwhite transition-colors hover:bg-navy-50 dark:hover:bg-dark-elevated dark:bg-dark-elevated"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-navy-200 dark:border-dark-border bg-white dark:bg-dark-surface px-2.5 py-1 text-xs font-semibold text-navy-700 dark:text-gibelo-offwhite transition-colors hover:bg-navy-50 dark:hover:bg-dark-elevated"
               aria-label="Exportar relatório em Excel"
               title="Baixar planilha XLSX com pipeline, fechados, perdidos e serviços"
             >
@@ -376,7 +376,7 @@ export function DashboardView() {
                   periodoDias: periodo.dias,
                 })
               }
-              className="inline-flex items-center gap-1.5 rounded-lg border border-navy-200 dark:border-dark-border bg-white dark:bg-dark-surface px-2.5 py-1 text-xs font-semibold text-navy-700 dark:text-gibelo-offwhite transition-colors hover:bg-navy-50 dark:hover:bg-dark-elevated dark:bg-dark-elevated"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-navy-200 dark:border-dark-border bg-white dark:bg-dark-surface px-2.5 py-1 text-xs font-semibold text-navy-700 dark:text-gibelo-offwhite transition-colors hover:bg-navy-50 dark:hover:bg-dark-elevated"
               aria-label="Exportar relatório em PDF"
               title="Gerar relatório imprimível em PDF"
             >

@@ -80,7 +80,7 @@ export function ComunicacaoRapida({ dealId, onRegistrado }: ComunicacaoRapidaPro
               onClick={() => registrar(t)}
               disabled={Boolean(registrando)}
               aria-label={t.aria}
-              className="inline-flex items-center gap-2 rounded-lg border border-navy-200 dark:border-dark-border bg-white dark:bg-dark-surface px-3 py-2 text-left text-xs font-medium text-navy-700 dark:text-gibelo-offwhite transition-colors hover:border-navy-900 hover:bg-navy-50 dark:hover:bg-dark-elevated dark:bg-dark-elevated disabled:opacity-50 disabled:hover:border-navy-200 dark:hover:border-gibelo-areia/40 dark:border-dark-border disabled:hover:bg-white dark:bg-dark-surface"
+              className="inline-flex items-center gap-2 rounded-lg border border-navy-200 dark:border-dark-border bg-white dark:bg-dark-surface px-3 py-2 text-left text-xs font-medium text-navy-700 dark:text-gibelo-offwhite transition-colors hover:border-navy-900 dark:hover:border-gibelo-areia/40 hover:bg-navy-50 dark:hover:bg-dark-elevated disabled:opacity-50 disabled:hover:border-navy-200 dark:disabled:hover:border-dark-border disabled:hover:bg-white dark:disabled:hover:bg-dark-surface"
             >
               <span aria-hidden="true" className="text-base leading-none">
                 {t.emoji}

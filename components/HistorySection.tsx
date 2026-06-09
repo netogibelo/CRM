@@ -25,7 +25,7 @@ function HistoricoItem({
       <button
         type="button"
         onClick={() => onAbrir(deal)}
-        className="w-full rounded-xl border border-navy-100 dark:border-dark-border bg-white dark:bg-dark-surface p-3.5 text-left transition-colors hover:border-navy-200 dark:hover:border-gibelo-areia/40 dark:border-dark-border hover:bg-navy-50 dark:hover:bg-dark-elevated dark:bg-dark-elevated/60"
+        className="w-full rounded-xl border border-navy-100 dark:border-dark-border bg-white dark:bg-dark-surface p-3.5 text-left transition-colors hover:border-navy-200 dark:hover:border-gibelo-areia/40 hover:bg-navy-50 dark:hover:bg-dark-elevated"
         aria-label={`${deal.projeto}, ${formatBRL(deal.valor)}. Abrir detalhes.`}
       >
         <div className="flex items-start justify-between gap-3">
@@ -81,7 +81,7 @@ export function HistorySection({
           </span>
         </div>
         {ganhos.length === 0 ? (
-          <p className="rounded-xl border border-dashed border-navy-200 dark:border-dark-border dark:border-dark-border bg-white dark:bg-dark-surface px-4 py-8 text-center text-sm text-navy-700 dark:text-gibelo-areia">
+          <p className="rounded-xl border border-dashed border-navy-200 dark:border-dark-border bg-white dark:bg-dark-surface px-4 py-8 text-center text-sm text-navy-700 dark:text-gibelo-areia">
             Nenhum negócio ganho ainda.
           </p>
         ) : (
@@ -104,7 +104,7 @@ export function HistorySection({
           </span>
         </div>
         {perdidos.length === 0 ? (
-          <p className="rounded-xl border border-dashed border-navy-200 dark:border-dark-border dark:border-dark-border bg-white dark:bg-dark-surface px-4 py-8 text-center text-sm text-navy-700 dark:text-gibelo-areia">
+          <p className="rounded-xl border border-dashed border-navy-200 dark:border-dark-border bg-white dark:bg-dark-surface px-4 py-8 text-center text-sm text-navy-700 dark:text-gibelo-areia">
             Nenhum negócio perdido registrado.
           </p>
         ) : (

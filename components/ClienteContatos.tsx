@@ -35,7 +35,7 @@ export function ClienteContatos({ clienteId }: Props) {
           <button
             type="button"
             onClick={() => setAdicionando(true)}
-            className="rounded-lg border border-navy-200 dark:border-dark-border px-3 py-1.5 text-xs font-semibold text-navy-700 dark:text-gibelo-offwhite transition-colors hover:bg-navy-50 dark:hover:bg-dark-elevated dark:bg-dark-elevated"
+            className="rounded-lg border border-navy-200 dark:border-dark-border px-3 py-1.5 text-xs font-semibold text-navy-700 dark:text-gibelo-offwhite transition-colors hover:bg-navy-50 dark:hover:bg-dark-elevated"
             aria-label="Adicionar novo contato"
           >
             + Adicionar
@@ -44,7 +44,7 @@ export function ClienteContatos({ clienteId }: Props) {
       </header>
 
       {contatos.length === 0 && !adicionando && (
-        <p className="rounded-lg border border-dashed border-navy-200 dark:border-dark-border dark:border-dark-border bg-navy-50 dark:bg-dark-elevated/50 px-3 py-4 text-center text-xs text-navy-700 dark:text-gibelo-areia">
+        <p className="rounded-lg border border-dashed border-navy-200 dark:border-dark-border bg-navy-50 dark:bg-dark-elevated/50 px-3 py-4 text-center text-xs text-navy-700 dark:text-gibelo-areia">
           Nenhum contato cadastrado.
         </p>
       )}
@@ -91,7 +91,7 @@ export function ClienteContatos({ clienteId }: Props) {
                 <button
                   type="button"
                   onClick={() => setEmEdicao(c)}
-                  className="rounded-md px-2 py-1 text-xs font-medium text-navy-700 dark:text-gibelo-areia transition-colors hover:bg-navy-50 dark:hover:bg-dark-elevated dark:bg-dark-elevated"
+                  className="rounded-md px-2 py-1 text-xs font-medium text-navy-700 dark:text-gibelo-areia transition-colors hover:bg-navy-50 dark:hover:bg-dark-elevated"
                   aria-label={`Editar contato ${c.nome}`}
                 >
                   Editar

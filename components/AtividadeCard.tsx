@@ -112,7 +112,7 @@ export function AtividadeCard({
             aria-label="Ações do card"
             aria-haspopup="menu"
             aria-expanded={menu}
-            className="-mr-1 -mt-0.5 shrink-0 rounded-md p-1 text-navy-500 dark:text-gibelo-areia transition-colors hover:bg-navy-50 dark:hover:bg-dark-elevated dark:bg-dark-elevated hover:text-navy-700 dark:text-gibelo-offwhite"
+            className="-mr-1 -mt-0.5 shrink-0 rounded-md p-1 text-navy-500 dark:text-gibelo-areia transition-colors hover:bg-navy-50 dark:hover:bg-dark-elevated hover:text-navy-700 dark:hover:text-gibelo-offwhite"
           >
             <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
               <circle cx="8" cy="3.5" r="1.3" fill="currentColor" />
@@ -270,7 +270,7 @@ export function AtividadeCard({
                 setMenu(false);
                 onAbrir(card);
               }}
-              className="block w-full px-3 py-1.5 text-left text-sm font-medium text-navy-700 dark:text-gibelo-offwhite transition-colors hover:bg-navy-50 dark:hover:bg-dark-elevated dark:bg-dark-elevated"
+              className="block w-full px-3 py-1.5 text-left text-sm font-medium text-navy-700 dark:text-gibelo-offwhite transition-colors hover:bg-navy-50 dark:hover:bg-dark-elevated"
             >
               Editar
             </button>
@@ -292,7 +292,7 @@ export function AtividadeCard({
                     onMover(card.id, l.id);
                     setMenu(false);
                   }}
-                  className="block w-full px-3 py-1.5 text-left text-sm text-navy-700 dark:text-gibelo-offwhite transition-colors hover:bg-navy-50 dark:hover:bg-dark-elevated dark:bg-dark-elevated"
+                  className="block w-full px-3 py-1.5 text-left text-sm text-navy-700 dark:text-gibelo-offwhite transition-colors hover:bg-navy-50 dark:hover:bg-dark-elevated"
                 >
                   {l.nome}
                 </button>

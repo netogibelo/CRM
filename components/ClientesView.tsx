@@ -66,7 +66,7 @@ export function ClientesView() {
       </div>
 
       {filtrados.length === 0 ? (
-        <p className="rounded-2xl border border-dashed border-navy-200 dark:border-dark-border dark:border-dark-border bg-white dark:bg-dark-surface px-6 py-12 text-center text-sm text-navy-700 dark:text-gibelo-areia">
+        <p className="rounded-2xl border border-dashed border-navy-200 dark:border-dark-border bg-white dark:bg-dark-surface px-6 py-12 text-center text-sm text-navy-700 dark:text-gibelo-areia">
           {clientes.length === 0
             ? "Nenhum cliente cadastrado ainda."
             : "Nenhum cliente encontrado para a busca."}
@@ -84,7 +84,7 @@ export function ClientesView() {
                     setEmEdicao(c);
                     setFormAberto(true);
                   }}
-                  className="flex w-full flex-col rounded-xl border border-navy-100 dark:border-dark-border bg-white dark:bg-dark-surface p-4 text-left shadow-card transition-all hover:-translate-y-0.5 hover:border-navy-200 dark:hover:border-gibelo-areia/40 dark:border-dark-border hover:shadow-card-hover"
+                  className="flex w-full flex-col rounded-xl border border-navy-100 dark:border-dark-border bg-white dark:bg-dark-surface p-4 text-left shadow-card transition-all hover:-translate-y-0.5 hover:border-navy-200 dark:hover:border-gibelo-areia/40 hover:shadow-card-hover"
                   aria-label={`Editar cliente ${c.nome}`}
                 >
                   <div className="flex items-start justify-between gap-2">
