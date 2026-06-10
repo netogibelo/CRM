@@ -28,6 +28,7 @@ import {
 import { formatBRL, formatBRLCompact } from "@/lib/format";
 import { ordenarEtapas } from "@/lib/stages";
 import { useTheme } from "@/lib/theme";
+import { useReducedMotion } from "@/lib/use-reduced-motion";
 import type { Deal } from "@/lib/types";
 import { exportarExcel, exportarPDF } from "@/lib/export";
 import { MetaMesCard } from "./MetaMesCard";
@@ -228,6 +229,7 @@ export function DashboardView() {
   const { servicos } = useServicos();
   const { perfis } = usePerfis();
   const cores = useChartColors();
+  const reduzirMovimento = useReducedMotion();
   const [periodoId, setPeriodoId] = useState<Periodo>("30d");
 
   const periodo =
@@ -516,9 +518,13 @@ export function DashboardView() {
                   formatter={(v) => [`${Number(v)} oportunidade(s)`, "Qtd"]}
                   contentStyle={{ fontSize: 12, borderRadius: 8 }}
                 />
-                <Bar dataKey="qtd" radius={[0, 6, 6, 0]}>
-                  {dadosFunil.map((d, i) => (
-                    <Cell key={i} fill={d.cor} />
+                <Bar
+                  dataKey="qtd"
+                  radius={[0, 6, 6, 0]}
+                  isAnimationActive={!reduzirMovimento}
+                >
+                  {dadosFunil.map((d) => (
+                    <Cell key={d.etapa} fill={d.cor} />
                   ))}
                 </Bar>
               </BarChart>
@@ -570,6 +576,7 @@ export function DashboardView() {
                 <Area
                   type="monotone"
                   dataKey="qtd"
+                  isAnimationActive={!reduzirMovimento}
                   stroke={cores.evolucao.stroke}
                   strokeWidth={2.5}
                   fill={cores.evolucao.fill}
@@ -602,9 +609,10 @@ export function DashboardView() {
                   innerRadius={55}
                   outerRadius={85}
                   paddingAngle={2}
+                  isAnimationActive={!reduzirMovimento}
                 >
-                  {dadosFechamento.map((d, i) => (
-                    <Cell key={i} fill={d.cor} />
+                  {dadosFechamento.map((d) => (
+                    <Cell key={d.nome} fill={d.cor} />
                   ))}
                 </Pie>
                 <Tooltip
@@ -652,7 +660,11 @@ export function DashboardView() {
                   formatter={(v) => [formatBRL(Number(v)), "Valor"]}
                   contentStyle={{ fontSize: 12, borderRadius: 8 }}
                 />
-                <Bar dataKey="valor" radius={[6, 6, 0, 0]}>
+                <Bar
+                  dataKey="valor"
+                  radius={[6, 6, 0, 0]}
+                  isAnimationActive={!reduzirMovimento}
+                >
                   {dadosValorEtapa.map((d, i) => (
                     <Cell
                       key={d.etapa}
@@ -697,7 +709,11 @@ export function DashboardView() {
                   formatter={(v) => [formatBRL(Number(v)), "Valor ganho"]}
                   contentStyle={{ fontSize: 12, borderRadius: 8 }}
                 />
-                <Bar dataKey="valor" radius={[0, 6, 6, 0]}>
+                <Bar
+                  dataKey="valor"
+                  radius={[0, 6, 6, 0]}
+                  isAnimationActive={!reduzirMovimento}
+                >
                   {dadosOrigens.map((d, i) => (
                     <Cell
                       key={d.origem}
