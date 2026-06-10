@@ -3,6 +3,9 @@
 
 import { supabase } from "../supabase";
 
+// `any` deliberado: Row representa linhas cruas do Postgres antes dos
+// mapeadores tipados (snake_case → camelCase) de cada domínio.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type Row = Record<string, any>;
 
 /** Reordena em lote: lê as linhas atuais, aplica `ordem` pelo índice no array

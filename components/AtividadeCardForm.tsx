@@ -58,7 +58,7 @@ export function AtividadeCardForm({
   const [titulo, setTitulo] = useState(card?.titulo ?? "");
   const [descricao, setDescricao] = useState(card?.descricao ?? "");
   const [cor, setCor] = useState<CardCor | null>(card?.cor ?? null);
-  const [data, setData] = useState(card?.data ?? "");
+  const [data] = useState(card?.data ?? "");
   const [listaId, setListaId] = useState(card?.listaId ?? listaIdInicial);
   const [erro, setErro] = useState("");
   // Campos personalizados (F3) — armazenados como strings no form, convertidos no submit.

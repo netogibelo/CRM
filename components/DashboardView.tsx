@@ -29,7 +29,6 @@ import { formatBRL, formatBRLCompact } from "@/lib/format";
 import { ordenarEtapas } from "@/lib/stages";
 import { useTheme } from "@/lib/theme";
 import { useReducedMotion } from "@/lib/use-reduced-motion";
-import type { Deal } from "@/lib/types";
 import { exportarExcel, exportarPDF } from "@/lib/export";
 import { MetaMesCard } from "./MetaMesCard";
 

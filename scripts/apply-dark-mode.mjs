@@ -69,7 +69,7 @@ for (const arquivo of arquivos) {
   let mudancasArquivo = 0;
 
   for (const [pattern, replacement] of SUBS) {
-    const novoConteudo = conteudo.replace(pattern, (m) => {
+    const novoConteudo = conteudo.replace(pattern, () => {
       // Idempotência: se já tem "dark:..." imediatamente depois, mantém.
       mudancasArquivo += 1;
       return replacement;
