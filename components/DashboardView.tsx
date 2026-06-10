@@ -27,6 +27,7 @@ import {
 } from "@/lib/crm-store";
 import { formatBRL, formatBRLCompact } from "@/lib/format";
 import { ordenarEtapas } from "@/lib/stages";
+import { useTheme } from "@/lib/theme";
 import type { Deal } from "@/lib/types";
 import { exportarExcel, exportarPDF } from "@/lib/export";
 import { MetaMesCard } from "./MetaMesCard";
@@ -67,6 +68,48 @@ const PALETA_RANKING = [
   "#fcd34d",
   "#fef3c7", // claro
 ];
+
+// ── Paletas por tema ─────────────────────────────────────────────────────────
+// Os tons escuros da paleta clara (ex.: #00385C) somem sobre o fundo escuro;
+// o dark usa as versões -300/-400 (mais claras e saturadas) de cada cor.
+
+interface ChartColors {
+  funil: string[];
+  etapas: string[];
+  ranking: string[];
+  fechamento: { ganhos: string; perdidos: string; andamento: string };
+  evolucao: { stroke: string; fill: string };
+  eixo: string;
+  grid: string;
+}
+
+const CORES_LIGHT: ChartColors = {
+  funil: PALETA_FUNIL,
+  etapas: PALETA_ETAPAS,
+  ranking: PALETA_RANKING,
+  fechamento: { ganhos: EMERALD, perdidos: CORAL, andamento: SLATE },
+  evolucao: { stroke: ROYAL, fill: "url(#gradEvolucao)" },
+  eixo: NAVY_500,
+  grid: "#e2e9f1",
+};
+
+const CORES_DARK: ChartColors = {
+  funil: ["#60A5FA", "#34D399", "#FBBF24", "#F87171"],
+  etapas: ["#818CF8", "#22D3EE", "#FBBF24", "#FB7185", "#34D399", "#60A5FA"],
+  // Degradê claro por ranking (1º mais claro, como o light faz com o escuro).
+  ranking: ["#FEF3C7", "#FDE68A", "#FCD34D", "#FBBF24", "#F59E0B"],
+  fechamento: { ganhos: "#34D399", perdidos: "#F87171", andamento: "#6B7280" },
+  evolucao: { stroke: "#93C5FD", fill: "rgba(147,197,253,0.15)" },
+  eixo: "#C8B89D", // gibelo-areia
+  grid: "rgba(255,255,255,0.1)",
+};
+
+/** Paleta dos gráficos seguindo o tema ativo. O ThemeProvider já reage à
+ * troca manual e ao prefers-color-scheme, então basta ler `tema`. */
+function useChartColors(): ChartColors {
+  const { tema } = useTheme();
+  return tema === "dark" ? CORES_DARK : CORES_LIGHT;
+}
 
 function dentroDoPeriodo(iso: string, diasJanela: number): boolean {
   const corte = Date.now() - diasJanela * 24 * 60 * 60 * 1000;
@@ -184,6 +227,7 @@ export function DashboardView() {
   const { contatos } = useContatos();
   const { servicos } = useServicos();
   const { perfis } = usePerfis();
+  const cores = useChartColors();
   const [periodoId, setPeriodoId] = useState<Periodo>("30d");
 
   const periodo =
@@ -230,9 +274,9 @@ export function DashboardView() {
       qtd: deals.filter(
         (d) => d.etapaId === e.id && d.status === "aberto",
       ).length,
-      cor: PALETA_FUNIL[i % PALETA_FUNIL.length],
+      cor: cores.funil[i % cores.funil.length],
     }));
-  }, [deals, etapas]);
+  }, [deals, etapas, cores]);
 
   // ── Evolução temporal: deals criados por bucket ─────────────────────────
   const dadosEvolucao = useMemo(() => {
@@ -255,11 +299,15 @@ export function DashboardView() {
   ).length;
   const dadosFechamento = useMemo(() => {
     return [
-      { nome: "Ganhos", valor: ganhosQtd, cor: EMERALD },
-      { nome: "Perdidos", valor: perdidosQtd, cor: CORAL },
-      { nome: "Em andamento", valor: abertosNoPeriodo, cor: SLATE },
+      { nome: "Ganhos", valor: ganhosQtd, cor: cores.fechamento.ganhos },
+      { nome: "Perdidos", valor: perdidosQtd, cor: cores.fechamento.perdidos },
+      {
+        nome: "Em andamento",
+        valor: abertosNoPeriodo,
+        cor: cores.fechamento.andamento,
+      },
     ].filter((d) => d.valor > 0);
-  }, [ganhosQtd, perdidosQtd, abertosNoPeriodo]);
+  }, [ganhosQtd, perdidosQtd, abertosNoPeriodo, cores]);
   const taxaFechamento =
     ganhosQtd + perdidosQtd > 0
       ? Math.round((ganhosQtd / (ganhosQtd + perdidosQtd)) * 100)
@@ -450,17 +498,17 @@ export function DashboardView() {
                 layout="vertical"
                 margin={{ top: 8, right: 16, left: 8, bottom: 8 }}
               >
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e9f1" />
+                <CartesianGrid strokeDasharray="3 3" stroke={cores.grid} />
                 <XAxis
                   type="number"
                   allowDecimals={false}
-                  stroke={NAVY_500}
+                  stroke={cores.eixo}
                   fontSize={11}
                 />
                 <YAxis
                   type="category"
                   dataKey="etapa"
-                  stroke={NAVY_500}
+                  stroke={cores.eixo}
                   fontSize={11}
                   width={110}
                 />
@@ -492,19 +540,27 @@ export function DashboardView() {
               >
                 <defs>
                   <linearGradient id="gradEvolucao" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={ROYAL} stopOpacity={0.45} />
-                    <stop offset="100%" stopColor={ROYAL} stopOpacity={0} />
+                    <stop
+                      offset="0%"
+                      stopColor={cores.evolucao.stroke}
+                      stopOpacity={0.45}
+                    />
+                    <stop
+                      offset="100%"
+                      stopColor={cores.evolucao.stroke}
+                      stopOpacity={0}
+                    />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e9f1" />
+                <CartesianGrid strokeDasharray="3 3" stroke={cores.grid} />
                 <XAxis
                   dataKey="label"
-                  stroke={NAVY_500}
+                  stroke={cores.eixo}
                   fontSize={11}
                 />
                 <YAxis
                   allowDecimals={false}
-                  stroke={NAVY_500}
+                  stroke={cores.eixo}
                   fontSize={11}
                 />
                 <Tooltip
@@ -514,10 +570,10 @@ export function DashboardView() {
                 <Area
                   type="monotone"
                   dataKey="qtd"
-                  stroke={ROYAL}
+                  stroke={cores.evolucao.stroke}
                   strokeWidth={2.5}
-                  fill="url(#gradEvolucao)"
-                  dot={{ fill: ROYAL, r: 3 }}
+                  fill={cores.evolucao.fill}
+                  dot={{ fill: cores.evolucao.stroke, r: 3 }}
                   activeDot={{ r: 5 }}
                 />
               </AreaChart>
@@ -577,10 +633,10 @@ export function DashboardView() {
                 data={dadosValorEtapa}
                 margin={{ top: 8, right: 8, left: -8, bottom: 8 }}
               >
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e9f1" />
+                <CartesianGrid strokeDasharray="3 3" stroke={cores.grid} />
                 <XAxis
                   dataKey="etapa"
-                  stroke={NAVY_500}
+                  stroke={cores.eixo}
                   fontSize={10}
                   interval={0}
                   angle={-12}
@@ -588,7 +644,7 @@ export function DashboardView() {
                   height={48}
                 />
                 <YAxis
-                  stroke={NAVY_500}
+                  stroke={cores.eixo}
                   fontSize={11}
                   tickFormatter={(v) => formatBRLCompact(Number(v))}
                 />
@@ -597,10 +653,10 @@ export function DashboardView() {
                   contentStyle={{ fontSize: 12, borderRadius: 8 }}
                 />
                 <Bar dataKey="valor" radius={[6, 6, 0, 0]}>
-                  {dadosValorEtapa.map((_, i) => (
+                  {dadosValorEtapa.map((d, i) => (
                     <Cell
-                      key={i}
-                      fill={PALETA_ETAPAS[i % PALETA_ETAPAS.length]}
+                      key={d.etapa}
+                      fill={cores.etapas[i % cores.etapas.length]}
                     />
                   ))}
                 </Bar>
@@ -623,17 +679,17 @@ export function DashboardView() {
                 layout="vertical"
                 margin={{ top: 8, right: 16, left: 8, bottom: 8 }}
               >
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e9f1" />
+                <CartesianGrid strokeDasharray="3 3" stroke={cores.grid} />
                 <XAxis
                   type="number"
-                  stroke={NAVY_500}
+                  stroke={cores.eixo}
                   fontSize={10}
                   tickFormatter={(v) => formatBRLCompact(Number(v))}
                 />
                 <YAxis
                   type="category"
                   dataKey="origem"
-                  stroke={NAVY_500}
+                  stroke={cores.eixo}
                   fontSize={11}
                   width={100}
                 />
@@ -642,10 +698,10 @@ export function DashboardView() {
                   contentStyle={{ fontSize: 12, borderRadius: 8 }}
                 />
                 <Bar dataKey="valor" radius={[0, 6, 6, 0]}>
-                  {dadosOrigens.map((_, i) => (
+                  {dadosOrigens.map((d, i) => (
                     <Cell
-                      key={i}
-                      fill={PALETA_RANKING[i % PALETA_RANKING.length]}
+                      key={d.origem}
+                      fill={cores.ranking[i % cores.ranking.length]}
                     />
                   ))}
                 </Bar>
