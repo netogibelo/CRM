@@ -619,58 +619,59 @@ export function CrmProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   // ── Contatos ───────────────────────────────────────────────────────────
-  const criarContato = useCallback(async (input: ContatoInput) => {
-    // Se este contato é marcado como principal, desmarcar os outros do mesmo cliente.
-    if (input.principal) {
+  // Desmarca o "principal" dos demais contatos do cliente, espelhando no state
+  // apenas os updates que o Supabase confirmou. Falha parcial → erro visível.
+  const desmarcarPrincipais = useCallback(
+    async (clienteId: string, exceto?: string) => {
       const outros = refContatos.current.filter(
-        (c) => c.clienteId === input.clienteId && c.principal,
+        (c) => c.clienteId === clienteId && c.principal && c.id !== exceto,
       );
-      await Promise.all(
-        outros.map((o) =>
-          contatoRepository.update(o.id, { principal: false }),
-        ),
+      if (outros.length === 0) return;
+      const resultados = await Promise.allSettled(
+        outros.map((o) => contatoRepository.update(o.id, { principal: false })),
       );
-      if (outros.length > 0) {
+      const okIds = new Set(
+        outros.filter((_, i) => resultados[i].status === "fulfilled").map((o) => o.id),
+      );
+      if (okIds.size > 0) {
         setContatos((prev) =>
-          prev.map((c) =>
-            outros.some((o) => o.id === c.id) ? { ...c, principal: false } : c,
-          ),
+          prev.map((c) => (okIds.has(c.id) ? { ...c, principal: false } : c)),
         );
       }
-    }
-    const c = await contatoRepository.create(input);
-    setContatos((prev) => [...prev, c]);
-    return c;
-  }, []);
+      if (okIds.size < outros.length) {
+        notificarErro(
+          "Não foi possível atualizar o contato principal. Tente novamente.",
+        );
+        throw new Error("Falha ao desmarcar contato principal");
+      }
+    },
+    [],
+  );
+
+  const criarContato = useCallback(
+    async (input: ContatoInput) => {
+      if (input.principal) {
+        await desmarcarPrincipais(input.clienteId);
+      }
+      const c = await contatoRepository.create(input);
+      setContatos((prev) => [...prev, c]);
+      return c;
+    },
+    [desmarcarPrincipais],
+  );
 
   const atualizarContato = useCallback(
     async (id: string, patch: Partial<ContatoInput>) => {
       const atual = refContatos.current.find((c) => c.id === id);
       // Se vai marcar como principal, desmarcar outros do mesmo cliente.
       if (patch.principal === true && atual) {
-        const outros = refContatos.current.filter(
-          (c) => c.clienteId === atual.clienteId && c.id !== id && c.principal,
-        );
-        await Promise.all(
-          outros.map((o) =>
-            contatoRepository.update(o.id, { principal: false }),
-          ),
-        );
-        if (outros.length > 0) {
-          setContatos((prev) =>
-            prev.map((c) =>
-              outros.some((o) => o.id === c.id)
-                ? { ...c, principal: false }
-                : c,
-            ),
-          );
-        }
+        await desmarcarPrincipais(atual.clienteId, id);
       }
       const c = await contatoRepository.update(id, patch);
       setContatos((prev) => prev.map((x) => (x.id === id ? c : x)));
       return c;
     },
-    [],
+    [desmarcarPrincipais],
   );
 
   const contatoEmUso = useCallback(

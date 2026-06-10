@@ -34,6 +34,7 @@ import {
 } from "./repository";
 import { LISTA_COR_IDS } from "./atividade-cores";
 import { supabase } from "./supabase";
+import { notificarAviso } from "./toast-store";
 
 async function autorEmail(): Promise<string | null> {
   try {
@@ -464,17 +465,23 @@ export function ActivitiesProvider({ children }: { children: React.ReactNode }) 
       });
       setState((s) => ({ ...s, cards: [...s.cards, card] }));
 
-      // Aplica etiquetas
-      const etqAplicadas: AtividadeCardEtiqueta[] = [];
-      for (const eid of tpl.etiquetasIds) {
-        await etiquetaRepository.link(card.id, eid).catch(() => null);
-        etqAplicadas.push({ cardId: card.id, etiquetaId: eid });
-      }
+      // Aplica etiquetas — espelha no state só os links confirmados pelo banco.
+      const linkResultados = await Promise.allSettled(
+        tpl.etiquetasIds.map((eid) => etiquetaRepository.link(card.id, eid)),
+      );
+      const etqAplicadas: AtividadeCardEtiqueta[] = tpl.etiquetasIds
+        .filter((_, i) => linkResultados[i].status === "fulfilled")
+        .map((eid) => ({ cardId: card.id, etiquetaId: eid }));
       if (etqAplicadas.length > 0) {
         setState((s) => ({
           ...s,
           cardEtiquetas: [...s.cardEtiquetas, ...etqAplicadas],
         }));
+      }
+      if (etqAplicadas.length < tpl.etiquetasIds.length) {
+        notificarAviso(
+          "Algumas etiquetas do template não puderam ser aplicadas.",
+        );
       }
 
       // Cria subtarefas
@@ -493,6 +500,11 @@ export function ActivitiesProvider({ children }: { children: React.ReactNode }) 
       }
       if (novosChk.length > 0) {
         setState((s) => ({ ...s, checklist: [...s.checklist, ...novosChk] }));
+      }
+      if (novosChk.length < tpl.checklistItems.length) {
+        notificarAviso(
+          "Algumas subtarefas do template não puderam ser criadas.",
+        );
       }
 
       // Log
