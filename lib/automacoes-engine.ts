@@ -13,6 +13,7 @@ import type {
   TarefaInput,
 } from "./types";
 import { historicoRepository, tarefaRepository } from "./repository";
+import { notificarAviso } from "./toast-store";
 
 function dataPlusDias(dias: number): string {
   const d = new Date();
@@ -43,7 +44,11 @@ export async function executarAutomacao(
       concluida: false,
       concluidaEm: null,
     };
-    await tarefaRepository.create(input).catch(() => null);
+    await tarefaRepository.create(input).catch((err) => {
+      console.error(`Automação "${automacao.nome}" falhou ao criar tarefa:`, err);
+      notificarAviso(`Automação "${automacao.nome}" não pôde ser executada.`);
+      return null;
+    });
     return;
   }
 
@@ -55,7 +60,14 @@ export async function executarAutomacao(
       descricao: cfg.texto,
       autorEmail: null,
     };
-    await historicoRepository.create(input).catch(() => null);
+    await historicoRepository.create(input).catch((err) => {
+      console.error(
+        `Automação "${automacao.nome}" falhou ao registrar nota:`,
+        err,
+      );
+      notificarAviso(`Automação "${automacao.nome}" não pôde ser executada.`);
+      return null;
+    });
   }
 }
 

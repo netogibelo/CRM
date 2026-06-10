@@ -1167,7 +1167,15 @@ class SupabaseAtividadeHistoricoRepository
       })
       .select()
       .single();
-    if (error) return null;
+    if (error) {
+      // Best-effort: histórico não pode quebrar a operação principal, mas a
+      // falha precisa ficar visível para diagnóstico.
+      console.error(
+        `Falha ao registrar histórico de atividade ("${input.descricao}"):`,
+        error,
+      );
+      return null;
+    }
     return atividadeHistoricoFromRow(data);
   }
 }

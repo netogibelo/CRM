@@ -267,7 +267,11 @@ export function CrmProvider({ children }: { children: React.ReactNode }) {
               descricao: `Movido de "${eAnt.nome}" para "${eNew.nome}"`,
               autorEmail: userData.user?.email ?? null,
             })
-            .catch(() => null);
+            .catch((err) => {
+              // Best-effort: a timeline não bloqueia a movimentação do deal.
+              console.error("Falha ao registrar mudança de etapa:", err);
+              return null;
+            });
         }
 
         const aDisparar = selecionarAutomacoes(refAutomacoes.current, {
