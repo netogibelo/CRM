@@ -185,7 +185,8 @@ create table atividades_listas (
   id text primary key,
   nome text not null,
   cor text not null,
-  ordem integer not null unique
+  -- Sem UNIQUE pra permitir reorder em batch (mesma razão de etapas.ordem).
+  ordem integer not null
 );
 
 create table atividades_cards (

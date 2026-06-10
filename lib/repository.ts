@@ -155,6 +155,7 @@ export interface ActivityRepository {
     patch: Partial<AtividadeListaInput>,
   ): Promise<AtividadeLista>;
   removeLista(id: string): Promise<void>;
+  reordenarListas(idsOrdenados: string[]): Promise<void>;
   createCard(input: AtividadeCardInput): Promise<AtividadeCard>;
   updateCard(
     id: string,
@@ -353,6 +354,14 @@ class LocalStorageActivityRepository implements ActivityRepository {
     const s = readAtiv();
     s.listas = s.listas.filter((l) => l.id !== id);
     s.cards = s.cards.filter((c) => c.listaId !== id); // cascata
+    writeAtiv(s);
+  }
+  async reordenarListas(idsOrdenados: string[]): Promise<void> {
+    const s = readAtiv();
+    const pos = new Map(idsOrdenados.map((id, i) => [id, i]));
+    s.listas = s.listas.map((l) =>
+      pos.has(l.id) ? { ...l, ordem: pos.get(l.id)! } : l,
+    );
     writeAtiv(s);
   }
   async createCard(input: AtividadeCardInput): Promise<AtividadeCard> {
@@ -843,6 +852,9 @@ class SupabaseActivityRepository implements ActivityRepository {
     // Os cards caem em cascata via FK (on delete cascade no schema).
     const { error } = await supabase.from("atividades_listas").delete().eq("id", id);
     if (error) throw error;
+  }
+  async reordenarListas(idsOrdenados: string[]): Promise<void> {
+    await reorderBatch("atividades_listas", idsOrdenados);
   }
   async createCard(input: AtividadeCardInput): Promise<AtividadeCard> {
     const ts = agoraISO();

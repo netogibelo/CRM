@@ -200,14 +200,22 @@ export function ActivitiesProvider({ children }: { children: React.ReactNode }) 
   }, []);
 
   const reordenarListas = useCallback(async (ids: string[]) => {
-    const updated = await Promise.all(
-      ids.map((id, i) => activityRepository.updateLista(id, { ordem: i })),
-    );
-    const byId = new Map(updated.map((l) => [l.id, l]));
+    // Update otimista; em falha, restaura a ordem real do banco.
     setState((s) => ({
       ...s,
-      listas: s.listas.map((l) => byId.get(l.id) ?? l),
+      listas: s.listas.map((l) => {
+        const i = ids.indexOf(l.id);
+        return i === -1 ? l : { ...l, ordem: i };
+      }),
     }));
+    try {
+      await activityRepository.reordenarListas(ids);
+    } catch (err) {
+      console.error("Falha ao reordenar listas:", err);
+      const fresh = await activityRepository.load().catch(() => null);
+      if (fresh) setState((s) => ({ ...s, listas: fresh.listas }));
+      notificarAviso("Erro ao reordenar. Ordem restaurada.");
+    }
   }, []);
 
   const criarCard = useCallback(
