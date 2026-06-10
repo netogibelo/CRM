@@ -8,6 +8,12 @@
 //   - retorno_vencido: previsao_fechamento < hoje
 //   - tarefa_vencida: tarefa não concluída com data_vencimento < hoje
 //
+// Também monitora o quadro de atividades (atividades_cards), quando
+// incluir_atividades está ligado em alertas_config:
+//   - atividade_hoje: data_vencimento = hoje e não concluída
+//   - atividade_vencida: data_vencimento < hoje e não concluída (mostra
+//     progresso do checklist quando há subtarefas pendentes)
+//
 // Agrupa por responsavel_email, envia um email por responsável via Brevo. Se
 // algum alerta não tiver responsável definido, é enviado para
 // netogibelo@gmail.com (fallback do dono).
@@ -52,6 +58,16 @@ type Tarefa = {
 type Cliente = { id: string; nome: string };
 type Perfil = { email: string; nome_exibicao: string };
 type Historico = { deal_id: string; criado_em: string };
+type Lista = { id: string; nome: string };
+type Card = {
+  id: string;
+  titulo: string;
+  lista_id: string;
+  data_vencimento: string | null;
+  concluida_em: string | null;
+  responsavel_email: string | null;
+};
+type ChecklistItem = { card_id: string; concluida: boolean };
 
 // ── Utilitários ──────────────────────────────────────────────────────────────
 function hojeISO(): string {
@@ -114,16 +130,44 @@ interface AlertaTarefa {
   vencimento: string;
   diasAtraso: number;
 }
-type Alerta = AlertaParado | AlertaRetorno | AlertaTarefa;
+interface AlertaAtividade {
+  tipo: "atividade_hoje" | "atividade_vencida";
+  cardId: string;
+  titulo: string;
+  lista: string;
+  vencimento: string;
+  diasAtraso: number;
+  checklistPendentes: number;
+  checklistTotal: number;
+}
+type Alerta = AlertaParado | AlertaRetorno | AlertaTarefa | AlertaAtividade;
 
 interface AlertasPorResponsavel {
   parados: AlertaParado[];
   retornos: AlertaRetorno[];
   tarefas: AlertaTarefa[];
+  atividadesHoje: AlertaAtividade[];
+  atividadesVencidas: AlertaAtividade[];
 }
 
 function emptyBucket(): AlertasPorResponsavel {
-  return { parados: [], retornos: [], tarefas: [] };
+  return {
+    parados: [],
+    retornos: [],
+    tarefas: [],
+    atividadesHoje: [],
+    atividadesVencidas: [],
+  };
+}
+
+function totalDoBucket(b: AlertasPorResponsavel): number {
+  return (
+    b.parados.length +
+    b.retornos.length +
+    b.tarefas.length +
+    b.atividadesHoje.length +
+    b.atividadesVencidas.length
+  );
 }
 
 function calcularAlertas(input: {
@@ -132,8 +176,11 @@ function calcularAlertas(input: {
   tarefas: Tarefa[];
   clientes: Cliente[];
   historicoPorDeal: Map<string, string>;
+  cards: Card[];
+  listas: Lista[];
+  checklist: ChecklistItem[];
 }): Map<string, AlertasPorResponsavel> {
-  const { deals, etapas, tarefas, clientes, historicoPorDeal } = input;
+  const { deals, etapas, tarefas, clientes, historicoPorDeal, cards, listas, checklist } = input;
   const mapaEtapa = new Map(etapas.map((e) => [e.id, e]));
   const mapaCliente = new Map(clientes.map((c) => [c.id, c.nome]));
   const hoje = hojeISO();
@@ -209,6 +256,42 @@ function calcularAlertas(input: {
     });
   }
 
+  // 4. Atividades do quadro (vencendo hoje / vencidas)
+  const mapaLista = new Map(listas.map((l) => [l.id, l.nome]));
+  const checklistPorCard = new Map<string, { pendentes: number; total: number }>();
+  for (const item of checklist) {
+    let c = checklistPorCard.get(item.card_id);
+    if (!c) {
+      c = { pendentes: 0, total: 0 };
+      checklistPorCard.set(item.card_id, c);
+    }
+    c.total += 1;
+    if (!item.concluida) c.pendentes += 1;
+  }
+
+  for (const card of cards) {
+    if (!card.data_vencimento) continue;
+    if (card.concluida_em) continue; // concluída — sem alerta
+    if (card.data_vencimento > hoje) continue;
+    const chk = checklistPorCard.get(card.id) ?? { pendentes: 0, total: 0 };
+    const alerta: AlertaAtividade = {
+      tipo: card.data_vencimento === hoje ? "atividade_hoje" : "atividade_vencida",
+      cardId: card.id,
+      titulo: card.titulo,
+      lista: mapaLista.get(card.lista_id) ?? "—",
+      vencimento: card.data_vencimento,
+      diasAtraso:
+        card.data_vencimento === hoje
+          ? 0
+          : diasDesde(`${card.data_vencimento}T00:00:00`),
+      checklistPendentes: chk.pendentes,
+      checklistTotal: chk.total,
+    };
+    const b = bucket(card.responsavel_email);
+    if (alerta.tipo === "atividade_hoje") b.atividadesHoje.push(alerta);
+    else b.atividadesVencidas.push(alerta);
+  }
+
   return out;
 }
 
@@ -266,13 +349,30 @@ function itemTarefa(a: AlertaTarefa): string {
     </div>`;
 }
 
+function itemAtividade(a: AlertaAtividade): string {
+  const checklistInfo =
+    a.checklistTotal > 0 && a.checklistPendentes > 0
+      ? ` · checklist ${a.checklistTotal - a.checklistPendentes}/${a.checklistTotal}`
+      : "";
+  const atraso =
+    a.tipo === "atividade_hoje"
+      ? `<strong style="color:#b45309;">vence hoje</strong>`
+      : `<strong style="color:#dc2626;">${a.diasAtraso}d em atraso</strong>`;
+  return `
+    <div style="font-size:14px;font-weight:600;color:${NAVY};margin-bottom:4px;">
+      <a href="${APP_URL}" style="color:${NAVY};text-decoration:none;">${escapeHtml(a.titulo)}</a>
+    </div>
+    <div style="font-size:12px;color:#5b7693;">
+      Lista: ${escapeHtml(a.lista)} · vencimento ${escapeHtml(a.vencimento.split("-").reverse().join("/"))} · ${atraso}${escapeHtml(checklistInfo)}
+    </div>`;
+}
+
 function montarHTML(
   destinatario: string,
   nomeDest: string,
   alertas: AlertasPorResponsavel,
 ): string {
-  const total =
-    alertas.parados.length + alertas.retornos.length + alertas.tarefas.length;
+  const total = totalDoBucket(alertas);
 
   return `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -298,6 +398,8 @@ function montarHTML(
             ${secao("Deals parados", "#b45309", alertas.parados.map(itemParado))}
             ${secao("Retornos vencidos", "#dc2626", alertas.retornos.map(itemRetorno))}
             ${secao("Tarefas vencidas", "#dc2626", alertas.tarefas.map(itemTarefa))}
+            ${secao("Atividades vencendo hoje", "#b45309", alertas.atividadesHoje.map(itemAtividade))}
+            ${secao("Atividades vencidas", "#dc2626", alertas.atividadesVencidas.map(itemAtividade))}
           </table>
         </td></tr>
         <tr><td style="padding:0 24px 28px 24px;">
@@ -327,8 +429,7 @@ async function enviarBrevo(
   nomeDest: string,
   alertas: AlertasPorResponsavel,
 ): Promise<{ ok: boolean; status: number; body?: string }> {
-  const total =
-    alertas.parados.length + alertas.retornos.length + alertas.tarefas.length;
+  const total = totalDoBucket(alertas);
   if (total === 0) return { ok: true, status: 200, body: "sem alertas" };
 
   const subject = `CRM Gibelo - ${total} ${total === 1 ? "alerta" : "alertas"} para hoje`;
@@ -414,20 +515,20 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    if (!forcar) {
-      const cfg = await client
-        .from("alertas_config")
-        .select("ativo")
-        .eq("id", 1)
-        .maybeSingle();
-      if (cfg.error) throw cfg.error;
-      if (cfg.data && cfg.data.ativo === false) {
-        return new Response(
-          JSON.stringify({ ok: true, ignorado: true, motivo: "alertas desativados" }),
-          { headers: corsHeaders },
-        );
-      }
+    const cfg = await client
+      .from("alertas_config")
+      .select("ativo, incluir_atividades")
+      .eq("id", 1)
+      .maybeSingle();
+    if (cfg.error) throw cfg.error;
+    if (!forcar && cfg.data && cfg.data.ativo === false) {
+      return new Response(
+        JSON.stringify({ ok: true, ignorado: true, motivo: "alertas desativados" }),
+        { headers: corsHeaders },
+      );
     }
+    // Preferência de conteúdo: vale também no disparo manual (forcar).
+    const incluirAtividades = cfg.data?.incluir_atividades !== false;
 
     const [
       dealsRes,
@@ -463,6 +564,30 @@ Deno.serve(async (req: Request) => {
       if (r.error) throw r.error;
     }
 
+    // Atividades do quadro: só cards não concluídos já vencidos ou vencendo
+    // hoje. Listas e checklist só são buscados quando a seção está ativa.
+    let cards: Card[] = [];
+    let listas: Lista[] = [];
+    let checklist: ChecklistItem[] = [];
+    if (incluirAtividades) {
+      const [cardsRes, listasRes, checklistRes] = await Promise.all([
+        client
+          .from("atividades_cards")
+          .select("id, titulo, lista_id, data_vencimento, concluida_em, responsavel_email")
+          .not("data_vencimento", "is", null)
+          .is("concluida_em", null)
+          .lte("data_vencimento", hojeISO()),
+        client.from("atividades_listas").select("id, nome"),
+        client.from("atividades_checklist").select("card_id, concluida"),
+      ]);
+      for (const r of [cardsRes, listasRes, checklistRes]) {
+        if (r.error) throw r.error;
+      }
+      cards = (cardsRes.data ?? []) as Card[];
+      listas = (listasRes.data ?? []) as Lista[];
+      checklist = (checklistRes.data ?? []) as ChecklistItem[];
+    }
+
     const deals = (dealsRes.data ?? []) as Deal[];
     const etapas = (etapasRes.data ?? []) as Etapa[];
     const tarefas = (tarefasRes.data ?? []) as Tarefa[];
@@ -484,6 +609,9 @@ Deno.serve(async (req: Request) => {
       tarefas,
       clientes,
       historicoPorDeal,
+      cards,
+      listas,
+      checklist,
     });
 
     const enviados: Array<{
@@ -494,10 +622,7 @@ Deno.serve(async (req: Request) => {
     }> = [];
 
     for (const [email, alertas] of buckets.entries()) {
-      const total =
-        alertas.parados.length +
-        alertas.retornos.length +
-        alertas.tarefas.length;
+      const total = totalDoBucket(alertas);
       if (total === 0) continue;
       const nome = nomeResponsavel(email, perfis);
       const res = await enviarBrevo(apiKey, email, nome, alertas);

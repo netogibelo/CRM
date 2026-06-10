@@ -176,6 +176,8 @@ create table metas (
 create table alertas_config (
   id integer primary key default 1 check (id = 1),
   ativo boolean not null default true,
+  -- Inclui alertas do quadro de atividades (cards vencendo/vencidos) no email.
+  incluir_atividades boolean not null default true,
   atualizado_em timestamptz default now()
 );
 

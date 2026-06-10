@@ -2,12 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { alertasConfigRepository } from "@/lib/repository";
 import { btnPrimary } from "@/lib/ui";
 
 type Estado = "ok" | "erro" | null;
 
 export function AlertasSection() {
   const [ativo, setAtivo] = useState(true);
+  const [incluirAtividades, setIncluirAtividades] = useState(true);
   const [carregando, setCarregando] = useState(true);
   const [salvando, setSalvando] = useState(false);
   const [testando, setTestando] = useState(false);
@@ -18,15 +20,16 @@ export function AlertasSection() {
   useEffect(() => {
     let ativoMounted = true;
     (async () => {
-      const { data, error } = await supabase
-        .from("alertas_config")
-        .select("ativo")
-        .eq("id", 1)
-        .maybeSingle();
-      if (ativoMounted) {
-        if (!error && data) setAtivo(Boolean(data.ativo));
-        setCarregando(false);
+      try {
+        const cfg = await alertasConfigRepository.get();
+        if (ativoMounted) {
+          setAtivo(cfg.ativo);
+          setIncluirAtividades(cfg.incluirAtividades);
+        }
+      } catch {
+        /* mantém defaults */
       }
+      if (ativoMounted) setCarregando(false);
     })();
     return () => {
       ativoMounted = false;
@@ -37,13 +40,26 @@ export function AlertasSection() {
     const novo = !ativo;
     setSalvando(true);
     setAtivo(novo); // otimista
-    const { error } = await supabase
-      .from("alertas_config")
-      .update({ ativo: novo, atualizado_em: new Date().toISOString() })
-      .eq("id", 1);
-    if (error) {
+    try {
+      await alertasConfigRepository.update({ ativo: novo });
+    } catch (e) {
       setAtivo(!novo); // reverte
-      setResultado({ estado: "erro", msg: `Falha ao salvar: ${error.message}` });
+      const msg = e instanceof Error ? e.message : String(e);
+      setResultado({ estado: "erro", msg: `Falha ao salvar: ${msg}` });
+    }
+    setSalvando(false);
+  }
+
+  async function toggleAtividades() {
+    const novo = !incluirAtividades;
+    setSalvando(true);
+    setIncluirAtividades(novo); // otimista
+    try {
+      await alertasConfigRepository.update({ incluirAtividades: novo });
+    } catch (e) {
+      setIncluirAtividades(!novo); // reverte
+      const msg = e instanceof Error ? e.message : String(e);
+      setResultado({ estado: "erro", msg: `Falha ao salvar: ${msg}` });
     }
     setSalvando(false);
   }
@@ -91,7 +107,8 @@ export function AlertasSection() {
       <h2 className="text-sm font-semibold text-navy-900 dark:text-gibelo-offwhite">Alertas por email</h2>
       <p className="mt-0.5 text-xs text-navy-700 dark:text-gibelo-areia">
         Resumo diário enviado às 07h00 (horário de Brasília) com deals parados,
-        retornos vencidos e tarefas vencidas — agrupado por responsável.
+        retornos vencidos, tarefas vencidas e atividades do quadro — agrupado
+        por responsável.
       </p>
 
       <div className="mt-4 flex flex-wrap items-center gap-3">
@@ -119,6 +136,33 @@ export function AlertasSection() {
             : ativo
               ? "Alertas diários ativados"
               : "Alertas diários desativados"}
+        </span>
+      </div>
+
+      <div className="mt-4 flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          role="switch"
+          aria-checked={incluirAtividades}
+          aria-label="Incluir alertas de atividades no email diário"
+          disabled={carregando || salvando}
+          onClick={toggleAtividades}
+          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-navy-500/30 disabled:opacity-50 ${
+            incluirAtividades ? "bg-navy-900" : "bg-navy-200"
+          }`}
+        >
+          <span
+            className={`inline-block h-4 w-4 transform rounded-full bg-white dark:bg-dark-surface shadow transition-transform ${
+              incluirAtividades ? "translate-x-6" : "translate-x-1"
+            }`}
+            aria-hidden="true"
+          />
+        </button>
+        <span className="text-sm text-navy-700 dark:text-gibelo-offwhite">
+          Incluir alertas de atividades
+          <span className="block text-xs text-navy-700 dark:text-gibelo-areia">
+            Cards do quadro vencendo hoje ou vencidos, com checklist pendente.
+          </span>
         </span>
       </div>
 
