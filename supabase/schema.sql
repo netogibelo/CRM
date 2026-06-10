@@ -455,15 +455,17 @@ create policy "checklist_insert_auth" on atividades_checklist for insert to auth
 create policy "checklist_update_auth" on atividades_checklist for update to authenticated using (true) with check (true);
 create policy "checklist_delete_auth" on atividades_checklist for delete to authenticated using (true);
 
--- atividades_comentarios (leitura geral; escrita só do próprio autor)
+-- atividades_comentarios (leitura geral; escrita só do próprio autor).
+-- (select auth.jwt()) sozinho no subquery: equivalente e reconhecido pelo
+-- lint auth_rls_initplan.
 create policy "coment_select_auth" on atividades_comentarios for select to authenticated using (true);
 create policy "coment_insert_own" on atividades_comentarios for insert to authenticated
-  with check (autor_email = (select auth.jwt() ->> 'email'));
+  with check (autor_email = ((select auth.jwt()) ->> 'email'));
 create policy "coment_update_own" on atividades_comentarios for update to authenticated
-  using (autor_email = (select auth.jwt() ->> 'email'))
-  with check (autor_email = (select auth.jwt() ->> 'email'));
+  using (autor_email = ((select auth.jwt()) ->> 'email'))
+  with check (autor_email = ((select auth.jwt()) ->> 'email'));
 create policy "coment_delete_own" on atividades_comentarios for delete to authenticated
-  using (autor_email = (select auth.jwt() ->> 'email'));
+  using (autor_email = ((select auth.jwt()) ->> 'email'));
 
 -- atividades_historico (append-only: sem update/delete via app)
 create policy "ahist_select_auth" on atividades_historico for select to authenticated using (true);
