@@ -55,6 +55,7 @@ import {
 import { etapaFinal, etapasAtivas } from "./stages";
 import { supabase } from "./supabase";
 import { executarAutomacao, selecionarAutomacoes } from "./automacoes-engine";
+import { notificarErro } from "./toast-store";
 
 /** Resultado de operações que podem ser bloqueadas por integridade referencial. */
 export interface OpResult {
@@ -64,6 +65,10 @@ export interface OpResult {
 
 interface CrmContextValue {
   carregando: boolean;
+  /** true quando o carregamento inicial falhou (Supabase indisponível). */
+  erroBoot: boolean;
+  /** Tenta o carregamento inicial novamente. */
+  recarregar: () => void;
   state: CrmState;
   // deals
   criarDeal: (input: DealInput) => Promise<Deal>;
@@ -155,6 +160,8 @@ export function CrmProvider({ children }: { children: React.ReactNode }) {
   const [tiposServico, setTiposServico] = useState<TipoServico[]>([]);
   const [contatos, setContatos] = useState<Contato[]>([]);
   const [carregando, setCarregando] = useState(true);
+  const [erroBoot, setErroBoot] = useState(false);
+  const montadoRef = useRef(true);
 
   const refTiposServico = useRef(tiposServico);
   refTiposServico.current = tiposServico;
@@ -167,29 +174,34 @@ export function CrmProvider({ children }: { children: React.ReactNode }) {
   const refAutomacoes = useRef(automacoes);
   refAutomacoes.current = automacoes;
 
-  useEffect(() => {
-    let ativo = true;
+  // Carregamento inicial. O snapshot principal NÃO tem fallback silencioso:
+  // se o Supabase estiver indisponível, sinaliza `erroBoot` (tela de erro com
+  // retry) em vez de deixar a UI presa em "carregando" para sempre.
+  const recarregar = useCallback(() => {
+    setCarregando(true);
+    setErroBoot(false);
     (async () => {
-      const [
-        snapshot,
-        listaTarefas,
-        listaAutomacoes,
-        listaPerfis,
-        listaMetas,
-        listaServicos,
-        listaTiposServico,
-        listaContatos,
-      ] = await Promise.all([
-        loadCrmSnapshot(),
-        tarefaRepository.listAll().catch(() => []),
-        automacaoRepository.listAll().catch(() => []),
-        perfilRepository.listAll().catch(() => []),
-        metaRepository.listAll().catch(() => []),
-        servicoRepository.listAll().catch(() => []),
-        tipoServicoRepository.listAll().catch(() => []),
-        contatoRepository.listAll().catch(() => []),
-      ]);
-      if (ativo) {
+      try {
+        const [
+          snapshot,
+          listaTarefas,
+          listaAutomacoes,
+          listaPerfis,
+          listaMetas,
+          listaServicos,
+          listaTiposServico,
+          listaContatos,
+        ] = await Promise.all([
+          loadCrmSnapshot(),
+          tarefaRepository.listAll().catch(() => []),
+          automacaoRepository.listAll().catch(() => []),
+          perfilRepository.listAll().catch(() => []),
+          metaRepository.listAll().catch(() => []),
+          servicoRepository.listAll().catch(() => []),
+          tipoServicoRepository.listAll().catch(() => []),
+          contatoRepository.listAll().catch(() => []),
+        ]);
+        if (!montadoRef.current) return;
         setState(snapshot);
         setTarefas(listaTarefas);
         setAutomacoes(listaAutomacoes);
@@ -198,13 +210,24 @@ export function CrmProvider({ children }: { children: React.ReactNode }) {
         setServicos(listaServicos);
         setTiposServico(listaTiposServico);
         setContatos(listaContatos);
-        setCarregando(false);
+      } catch (err) {
+        if (!montadoRef.current) return;
+        console.error("Falha no carregamento inicial do CRM:", err);
+        setErroBoot(true);
+        notificarErro("Falha ao conectar. Verifique sua conexão.");
+      } finally {
+        if (montadoRef.current) setCarregando(false);
       }
     })();
-    return () => {
-      ativo = false;
-    };
   }, []);
+
+  useEffect(() => {
+    montadoRef.current = true;
+    recarregar();
+    return () => {
+      montadoRef.current = false;
+    };
+  }, [recarregar]);
 
   // ── Deals ──────────────────────────────────────────────────────────────
   const criarDeal = useCallback(async (input: DealInput) => {
@@ -684,6 +707,8 @@ export function CrmProvider({ children }: { children: React.ReactNode }) {
 
   const value: CrmContextValue = {
     carregando,
+    erroBoot,
+    recarregar,
     state,
     criarDeal,
     atualizarDeal,
@@ -750,6 +775,8 @@ export function useDeals() {
   return {
     deals: c.state.deals,
     carregando: c.carregando,
+    erroBoot: c.erroBoot,
+    recarregar: c.recarregar,
     criar: c.criarDeal,
     atualizar: c.atualizarDeal,
     remover: c.removerDeal,

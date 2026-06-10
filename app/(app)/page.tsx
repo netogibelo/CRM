@@ -7,6 +7,7 @@ import { FunilView } from "@/components/FunilView";
 import { ClientesView } from "@/components/ClientesView";
 import { ConfiguracoesView } from "@/components/ConfiguracoesView";
 import { HistoricoView } from "@/components/HistoricoView";
+import { ErroBoot } from "@/components/ErroBoot";
 
 // DashboardView usa Recharts (~250KB de bundle). AtividadesView usa @dnd-kit.
 // Carregamos sob demanda — quem entra direto no Funil paga só o JS do Funil,
@@ -31,10 +32,13 @@ const AtividadesView = dynamic(
 );
 
 export default function HomePage() {
-  const { carregando } = useDeals();
+  const { carregando, erroBoot, recarregar } = useDeals();
   const { aba } = useNav();
 
   // Atividades tem seu próprio store/carregamento; não bloqueia no gate do CRM.
+  if (erroBoot && aba !== "atividades") {
+    return <ErroBoot onRetry={recarregar} />;
+  }
   if (carregando && aba !== "atividades") {
     return <PlaceholderCarregando />;
   }
