@@ -55,7 +55,7 @@ import {
 import { etapaFinal, etapasAtivas } from "./stages";
 import { supabase } from "./supabase";
 import { executarAutomacao, selecionarAutomacoes } from "./automacoes-engine";
-import { notificarErro } from "./toast-store";
+import { notificarAviso, notificarErro } from "./toast-store";
 
 /** Resultado de operações que podem ser bloqueadas por integridade referencial. */
 export interface OpResult {
@@ -372,7 +372,7 @@ export function CrmProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const reordenarOrigens = useCallback(async (idsOrdenados: string[]) => {
-    // Update otimista local + persist em paralelo.
+    // Update otimista local; em falha, restaura a ordem real do banco.
     setState((s) => ({
       ...s,
       origens: s.origens
@@ -382,7 +382,14 @@ export function CrmProvider({ children }: { children: React.ReactNode }) {
         })
         .sort((a, b) => a.ordem - b.ordem),
     }));
-    await originRepository.reorder(idsOrdenados);
+    try {
+      await originRepository.reorder(idsOrdenados);
+    } catch (err) {
+      console.error("Falha ao reordenar origens:", err);
+      const fresh = await originRepository.listAll().catch(() => null);
+      if (fresh) setState((s) => ({ ...s, origens: fresh }));
+      notificarAviso("Erro ao reordenar. Ordem restaurada.");
+    }
   }, []);
 
   // ── Etapas ─────────────────────────────────────────────────────────────
@@ -440,7 +447,14 @@ export function CrmProvider({ children }: { children: React.ReactNode }) {
         return idx === -1 ? e : { ...e, ordem: idx };
       }),
     }));
-    await stageRepository.reorder(idsOrdenados);
+    try {
+      await stageRepository.reorder(idsOrdenados);
+    } catch (err) {
+      console.error("Falha ao reordenar etapas:", err);
+      const fresh = await stageRepository.listAll().catch(() => null);
+      if (fresh) setState((s) => ({ ...s, etapas: fresh }));
+      notificarAviso("Erro ao reordenar. Ordem restaurada.");
+    }
   }, []);
 
   // Reordena trocando a posição `ordem` com a etapa vizinha (entre as ativas).
@@ -519,7 +533,14 @@ export function CrmProvider({ children }: { children: React.ReactNode }) {
         })
         .sort((a, b) => a.ordem - b.ordem),
     );
-    await automacaoRepository.reorder(idsOrdenados);
+    try {
+      await automacaoRepository.reorder(idsOrdenados);
+    } catch (err) {
+      console.error("Falha ao reordenar automações:", err);
+      const fresh = await automacaoRepository.listAll().catch(() => null);
+      if (fresh) setAutomacoes(fresh);
+      notificarAviso("Erro ao reordenar. Ordem restaurada.");
+    }
   }, []);
 
   // ── Perfis ─────────────────────────────────────────────────────────────
@@ -594,7 +615,14 @@ export function CrmProvider({ children }: { children: React.ReactNode }) {
         })
         .sort((a, b) => a.ordem - b.ordem),
     );
-    await tipoServicoRepository.reorder(idsOrdenados);
+    try {
+      await tipoServicoRepository.reorder(idsOrdenados);
+    } catch (err) {
+      console.error("Falha ao reordenar tipos de serviço:", err);
+      const fresh = await tipoServicoRepository.listAll().catch(() => null);
+      if (fresh) setTiposServico(fresh);
+      notificarAviso("Erro ao reordenar. Ordem restaurada.");
+    }
   }, []);
 
   // Reordena entre itens ativos trocando a posição com o vizinho.

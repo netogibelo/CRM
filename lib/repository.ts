@@ -400,6 +400,33 @@ import { supabase } from "./supabase";
 
 type Row = Record<string, any>;
 
+/** Reordena em lote: lê as linhas atuais, aplica `ordem` pelo índice no array
+ * e grava tudo num único upsert — uma transação: ou aplica tudo, ou nada.
+ * (Upsert parcial só com {id, ordem} violaria NOT NULL das demais colunas;
+ * por isso as linhas completas são reenviadas.) Lança em caso de falha para o
+ * chamador reverter o estado otimista. */
+async function reorderBatch(
+  tabela: string,
+  idsOrdenados: string[],
+): Promise<void> {
+  if (idsOrdenados.length === 0) return;
+  const { data, error } = await supabase
+    .from(tabela)
+    .select("*")
+    .in("id", idsOrdenados);
+  if (error) throw error;
+  const porId = new Map((data ?? []).map((r: Row) => [r.id as string, r]));
+  const rows = idsOrdenados.flatMap((id, i) => {
+    const row = porId.get(id);
+    return row ? [{ ...row, ordem: i }] : [];
+  });
+  if (rows.length === 0) return;
+  const { error: upsertError } = await supabase
+    .from(tabela)
+    .upsert(rows, { onConflict: "id" });
+  if (upsertError) throw upsertError;
+}
+
 // ── Deal ─────────────────────────────────────────────────────────────────────
 function dealFromRow(row: Row): Deal {
   return {
@@ -611,11 +638,7 @@ class SupabaseOriginRepository implements OriginRepository {
     if (error) throw error;
   }
   async reorder(idsOrdenados: string[]): Promise<void> {
-    await Promise.all(
-      idsOrdenados.map((id, i) =>
-        supabase.from("origens").update({ ordem: i }).eq("id", id),
-      ),
-    );
+    await reorderBatch("origens", idsOrdenados);
   }
 }
 
@@ -671,13 +694,9 @@ class SupabaseStageRepository implements StageRepository {
     if (error) throw error;
   }
   async reorder(idsOrdenados: string[]): Promise<void> {
-    // Aplica novos índices em paralelo. O UNIQUE da coluna ordem foi removido
-    // na migration prepare_config_reorder para permitir essa estratégia.
-    await Promise.all(
-      idsOrdenados.map((id, i) =>
-        supabase.from("etapas").update({ ordem: i }).eq("id", id),
-      ),
-    );
+    // O UNIQUE da coluna ordem foi removido na migration
+    // prepare_config_reorder, permitindo o upsert em lote.
+    await reorderBatch("etapas", idsOrdenados);
   }
 }
 
@@ -930,11 +949,7 @@ class SupabaseChecklistRepository implements ChecklistRepository {
     if (error) throw error;
   }
   async reorder(idsOrdenados: string[]): Promise<void> {
-    await Promise.all(
-      idsOrdenados.map((id, i) =>
-        supabase.from("atividades_checklist").update({ ordem: i }).eq("id", id),
-      ),
-    );
+    await reorderBatch("atividades_checklist", idsOrdenados);
   }
 }
 
@@ -1019,11 +1034,7 @@ class SupabaseEtiquetaRepository implements EtiquetaRepository {
     if (error) throw error;
   }
   async reorder(idsOrdenados: string[]): Promise<void> {
-    await Promise.all(
-      idsOrdenados.map((id, i) =>
-        supabase.from("atividades_etiquetas").update({ ordem: i }).eq("id", id),
-      ),
-    );
+    await reorderBatch("atividades_etiquetas", idsOrdenados);
   }
   async link(cardId: string, etiquetaId: string): Promise<void> {
     const { error } = await supabase
@@ -1252,11 +1263,7 @@ class SupabaseAtividadeTemplateRepository
     if (error) throw error;
   }
   async reorder(idsOrdenados: string[]): Promise<void> {
-    await Promise.all(
-      idsOrdenados.map((id, i) =>
-        supabase.from("atividades_templates").update({ ordem: i }).eq("id", id),
-      ),
-    );
+    await reorderBatch("atividades_templates", idsOrdenados);
   }
 }
 
@@ -1489,11 +1496,7 @@ class SupabaseAutomacaoRepository implements AutomacaoRepository {
     if (error) throw error;
   }
   async reorder(idsOrdenados: string[]): Promise<void> {
-    await Promise.all(
-      idsOrdenados.map((id, i) =>
-        supabase.from("automacoes").update({ ordem: i }).eq("id", id),
-      ),
-    );
+    await reorderBatch("automacoes", idsOrdenados);
   }
 }
 
@@ -1800,11 +1803,7 @@ class SupabaseTipoServicoRepository implements TipoServicoRepository {
     return this.update(id, { ativo: false });
   }
   async reorder(idsOrdenados: string[]): Promise<void> {
-    await Promise.all(
-      idsOrdenados.map((id, i) =>
-        supabase.from("tipos_servico").update({ ordem: i }).eq("id", id),
-      ),
-    );
+    await reorderBatch("tipos_servico", idsOrdenados);
   }
 }
 

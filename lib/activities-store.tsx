@@ -353,7 +353,7 @@ export function ActivitiesProvider({ children }: { children: React.ReactNode }) 
 
   const reordenarChecklist = useCallback(
     async (cardId: string, idsOrdenados: string[]) => {
-      // update otimista + persist em paralelo
+      // Update otimista; em falha, restaura a ordem real do banco.
       setState((s) => ({
         ...s,
         checklist: s.checklist.map((c) => {
@@ -362,7 +362,24 @@ export function ActivitiesProvider({ children }: { children: React.ReactNode }) 
           return i === -1 ? c : { ...c, ordem: i };
         }),
       }));
-      await checklistRepository.reorder(idsOrdenados);
+      try {
+        await checklistRepository.reorder(idsOrdenados);
+      } catch (err) {
+        console.error("Falha ao reordenar checklist:", err);
+        const fresh = await checklistRepository
+          .listByCard(cardId)
+          .catch(() => null);
+        if (fresh) {
+          setState((s) => ({
+            ...s,
+            checklist: [
+              ...s.checklist.filter((c) => c.cardId !== cardId),
+              ...fresh,
+            ],
+          }));
+        }
+        notificarAviso("Erro ao reordenar. Ordem restaurada.");
+      }
     },
     [],
   );
@@ -404,7 +421,14 @@ export function ActivitiesProvider({ children }: { children: React.ReactNode }) 
         })
         .sort((a, b) => a.ordem - b.ordem),
     }));
-    await etiquetaRepository.reorder(idsOrdenados);
+    try {
+      await etiquetaRepository.reorder(idsOrdenados);
+    } catch (err) {
+      console.error("Falha ao reordenar etiquetas:", err);
+      const fresh = await etiquetaRepository.listAll().catch(() => null);
+      if (fresh) setState((s) => ({ ...s, etiquetas: fresh }));
+      notificarAviso("Erro ao reordenar. Ordem restaurada.");
+    }
   }, []);
 
   // ── Templates (F8) ────────────────────────────────────────────────────────
@@ -433,7 +457,16 @@ export function ActivitiesProvider({ children }: { children: React.ReactNode }) 
         })
         .sort((a, b) => a.ordem - b.ordem),
     );
-    await atividadeTemplateRepository.reorder(idsOrdenados);
+    try {
+      await atividadeTemplateRepository.reorder(idsOrdenados);
+    } catch (err) {
+      console.error("Falha ao reordenar templates:", err);
+      const fresh = await atividadeTemplateRepository
+        .listAll()
+        .catch(() => null);
+      if (fresh) setTemplates(fresh);
+      notificarAviso("Erro ao reordenar. Ordem restaurada.");
+    }
   }, []);
 
   const criarCardPorTemplate = useCallback(
