@@ -21,6 +21,7 @@ import { useOrigins, useStages, useTiposServico } from "@/lib/crm-store";
 import { useNav } from "@/lib/nav-store";
 import { CONFIG_SECOES } from "@/lib/nav";
 import { ordenarEtapas, corDaEtapa } from "@/lib/stages";
+import { notificarErro } from "@/lib/toast-store";
 import { btnPrimary, inputCls } from "@/lib/ui";
 import { EditableText } from "./EditableText";
 import { AutomacoesSection } from "./AutomacoesSection";
@@ -258,7 +259,7 @@ function OrigensSubpagina() {
   async function delOrigem(id: string, nome: string) {
     if (!window.confirm(`Excluir a origem "${nome}"?`)) return;
     const r = await origens.remover(id);
-    if (!r.ok) window.alert(r.erro);
+    if (!r.ok && r.erro) notificarErro(r.erro);
   }
 
   return (
@@ -347,7 +348,7 @@ function EtapasSubpagina() {
   async function delEtapa(id: string, nome: string) {
     if (!window.confirm(`Excluir a etapa "${nome}"?`)) return;
     const r = await stages.remover(id);
-    if (!r.ok) window.alert(r.erro);
+    if (!r.ok && r.erro) notificarErro(r.erro);
   }
 
   // Garante que a etapa final sempre fique no fim da lista ao reordenar.

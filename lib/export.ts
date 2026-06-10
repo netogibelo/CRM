@@ -13,6 +13,7 @@ import type {
 import { formatBRL, formatDateBR, diasDesde } from "./format";
 import { nomeOuEmail } from "./equipe";
 import { ordenarEtapas } from "./stages";
+import { notificarErro } from "./toast-store";
 
 export interface ExportContext {
   deals: Deal[];
@@ -445,7 +446,7 @@ export function exportarPDF(ctx: ExportContext): void {
 
   const w = window.open("", "_blank", "width=900,height=1100");
   if (!w) {
-    window.alert(
+    notificarErro(
       "Não foi possível abrir a janela do relatório. Verifique se o navegador está bloqueando popups.",
     );
     return;

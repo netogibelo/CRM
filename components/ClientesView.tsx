@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import type { Cliente, ClienteInput } from "@/lib/types";
 import { useClients, useContatos } from "@/lib/crm-store";
+import { notificarErro } from "@/lib/toast-store";
 import { btnPrimary, inputCls } from "@/lib/ui";
 import { ClienteForm } from "./ClienteForm";
 import { ExemploBadge } from "./ExemploBadge";
@@ -35,7 +36,7 @@ export function ClientesView() {
     if (!window.confirm(`Excluir o cliente "${alvo?.nome ?? ""}"?`)) return;
     const r = await remover(id);
     if (!r.ok) {
-      window.alert(r.erro);
+      if (r.erro) notificarErro(r.erro);
       return;
     }
     setFormAberto(false);

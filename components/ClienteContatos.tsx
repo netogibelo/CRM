@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { Contato, ContatoInput } from "@/lib/types";
 import { useContatos } from "@/lib/crm-store";
+import { notificarErro } from "@/lib/toast-store";
 import { btnGhost, inputCls, labelCls } from "@/lib/ui";
 
 interface Props {
@@ -19,7 +20,7 @@ export function ClienteContatos({ clienteId }: Props) {
   async function excluir(c: Contato) {
     if (!window.confirm(`Excluir o contato "${c.nome}"?`)) return;
     const r = await remover(c.id);
-    if (!r.ok) window.alert(r.erro);
+    if (!r.ok && r.erro) notificarErro(r.erro);
   }
 
   return (
