@@ -10,6 +10,7 @@ import {
   type DragHandleProps,
 } from "./SortableConfigList";
 import { Modal } from "./Modal";
+import { useConfirm } from "./ConfirmDialog";
 
 function TemplateRow({
   template,
@@ -219,6 +220,7 @@ export function AtividadeTemplatesConfig() {
     aberto: boolean;
     template: AtividadeTemplate | null;
   }>({ aberto: false, template: null });
+  const { confirmar, dialogo } = useConfirm();
 
   async function salvar(data: {
     nome: string;
@@ -240,7 +242,12 @@ export function AtividadeTemplatesConfig() {
   }
 
   async function excluir(id: string, nome: string) {
-    if (!window.confirm(`Excluir o template "${nome}"?`)) return;
+    const ok = await confirmar({
+      titulo: "Excluir template",
+      mensagem: `Excluir o template "${nome}"?`,
+      labelConfirmar: "Excluir",
+    });
+    if (!ok) return;
     await removerTemplate(id);
   }
 
@@ -296,6 +303,8 @@ export function AtividadeTemplatesConfig() {
           onClose={() => setEditor({ aberto: false, template: null })}
         />
       )}
+
+      {dialogo}
     </>
   );
 }

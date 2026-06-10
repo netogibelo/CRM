@@ -12,6 +12,7 @@ import type {
   ConfigRegistrarNota,
 } from "@/lib/types";
 import { DragHandle, SortableConfigList } from "./SortableConfigList";
+import { useConfirm } from "./ConfirmDialog";
 
 interface NovaAutomacao {
   nome: string;
@@ -71,9 +72,19 @@ export function AutomacoesSection() {
     responsavel: string;
     textoNota: string;
   }>({ tituloTarefa: "", prazoEmDias: 3, responsavel: "mesmo_do_deal", textoNota: "" });
+  const { confirmar, dialogo } = useConfirm();
 
   function nomeEtapa(id: string): string {
     return etapas.find((e) => e.id === id)?.nome ?? "—";
+  }
+
+  async function excluirAutomacao(a: Automacao) {
+    const ok = await confirmar({
+      titulo: "Excluir automação",
+      mensagem: `Excluir automação "${a.nome}"?`,
+      labelConfirmar: "Excluir",
+    });
+    if (ok) await remover(a.id);
   }
 
   function comecarEdicao(a: Automacao) {
@@ -213,9 +224,7 @@ export function AutomacoesSection() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => {
-                    if (confirm(`Excluir automação "${a.nome}"?`)) remover(a.id);
-                  }}
+                  onClick={() => excluirAutomacao(a)}
                   className="text-xs text-navy-700 dark:text-gibelo-areia transition-colors hover:text-red-600"
                   aria-label={`Excluir automação ${a.nome}`}
                 >
@@ -503,6 +512,8 @@ export function AutomacoesSection() {
           </button>
         </div>
       </div>
+
+      {dialogo}
     </section>
   );
 }

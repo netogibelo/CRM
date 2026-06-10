@@ -5,6 +5,7 @@ import type { Contato, ContatoInput } from "@/lib/types";
 import { useContatos } from "@/lib/crm-store";
 import { notificarErro } from "@/lib/toast-store";
 import { btnGhost, inputCls, labelCls } from "@/lib/ui";
+import { useConfirm } from "./ConfirmDialog";
 
 interface Props {
   clienteId: string;
@@ -16,9 +17,15 @@ export function ClienteContatos({ clienteId }: Props) {
 
   const [adicionando, setAdicionando] = useState(false);
   const [emEdicao, setEmEdicao] = useState<Contato | null>(null);
+  const { confirmar, dialogo } = useConfirm();
 
   async function excluir(c: Contato) {
-    if (!window.confirm(`Excluir o contato "${c.nome}"?`)) return;
+    const ok = await confirmar({
+      titulo: "Excluir contato",
+      mensagem: `Excluir o contato "${c.nome}"?`,
+      labelConfirmar: "Excluir",
+    });
+    if (!ok) return;
     const r = await remover(c.id);
     if (!r.ok && r.erro) notificarErro(r.erro);
   }
@@ -124,6 +131,8 @@ export function ClienteContatos({ clienteId }: Props) {
           />
         </div>
       )}
+
+      {dialogo}
     </section>
   );
 }

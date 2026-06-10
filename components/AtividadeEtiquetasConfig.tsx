@@ -9,6 +9,7 @@ import {
   SortableConfigList,
   type DragHandleProps,
 } from "./SortableConfigList";
+import { useConfirm } from "./ConfirmDialog";
 
 const CORES_SUGERIDAS = [
   "#EF4444",
@@ -154,6 +155,7 @@ export function AtividadeEtiquetasConfig() {
   } = useBoard();
   const [nova, setNova] = useState("");
   const [novaCor, setNovaCor] = useState(CORES_SUGERIDAS[0]);
+  const { confirmar, dialogo } = useConfirm();
 
   async function adicionar() {
     const t = nova.trim();
@@ -164,7 +166,12 @@ export function AtividadeEtiquetasConfig() {
   }
 
   async function excluir(id: string, nome: string) {
-    if (!window.confirm(`Excluir a etiqueta "${nome}"?`)) return;
+    const ok = await confirmar({
+      titulo: "Excluir etiqueta",
+      mensagem: `Excluir a etiqueta "${nome}"?`,
+      labelConfirmar: "Excluir",
+    });
+    if (!ok) return;
     await removerEtiqueta(id);
   }
 
@@ -232,6 +239,8 @@ export function AtividadeEtiquetasConfig() {
           Adicionar
         </button>
       </div>
+
+      {dialogo}
     </section>
   );
 }

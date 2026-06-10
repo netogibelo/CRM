@@ -8,6 +8,8 @@ interface ModalProps {
   onClose: () => void;
   children: React.ReactNode;
   maxWidth?: string;
+  /** "alertdialog" para confirmações que exigem resposta (ConfirmDialog). */
+  role?: "dialog" | "alertdialog";
 }
 
 const FOCO_SELETOR =
@@ -22,6 +24,7 @@ export function Modal({
   onClose,
   children,
   maxWidth = "max-w-lg",
+  role = "dialog",
 }: ModalProps) {
   const painelRef = useRef<HTMLDivElement>(null);
   const id = useId();
@@ -87,7 +90,7 @@ export function Modal({
     >
       <div
         ref={painelRef}
-        role="dialog"
+        role={role}
         aria-modal="true"
         aria-labelledby={tituloId}
         aria-describedby={descricao ? `${tituloId}-desc` : undefined}

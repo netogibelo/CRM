@@ -24,6 +24,7 @@ import { cardBarra } from "@/lib/atividade-cores";
 import { btnPrimary } from "@/lib/ui";
 import { AtividadeColuna } from "./AtividadeColuna";
 import { AtividadeCardForm, type CardFormData } from "./AtividadeCardForm";
+import { useConfirm } from "./ConfirmDialog";
 import { AtividadesCalendario } from "./AtividadesCalendario";
 import {
   AtividadesFiltros,
@@ -117,6 +118,7 @@ export function AtividadesView() {
     listaId: string;
   }>({ aberto: false, card: null, listaId: "" });
   const [modo, setModo] = useState<"kanban" | "calendario">("kanban");
+  const { confirmar, dialogo } = useConfirm();
   const [filtros, setFiltros] = useState<FiltrosAtividades>(() =>
     typeof window !== "undefined" ? carregarFiltros() : FILTROS_VAZIOS,
   );
@@ -153,7 +155,12 @@ export function AtividadesView() {
     fecharForm();
   }
   async function excluirCard(id: string) {
-    if (!window.confirm("Excluir este card?")) return;
+    const ok = await confirmar({
+      titulo: "Excluir card",
+      mensagem: "Excluir este card?",
+      labelConfirmar: "Excluir",
+    });
+    if (!ok) return;
     await removerCard(id);
     fecharForm();
   }
@@ -164,7 +171,12 @@ export function AtividadesView() {
       qtd > 0
         ? `Excluir a lista "${lista?.nome}" e seus ${qtd} card(s)?`
         : `Excluir a lista "${lista?.nome}"?`;
-    if (!window.confirm(aviso)) return;
+    const ok = await confirmar({
+      titulo: "Excluir lista",
+      mensagem: aviso,
+      labelConfirmar: "Excluir",
+    });
+    if (!ok) return;
     await removerLista(id);
   }
 
@@ -380,6 +392,8 @@ export function AtividadesView() {
           }}
         />
       )}
+
+      {dialogo}
     </div>
   );
 }

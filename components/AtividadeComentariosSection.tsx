@@ -10,6 +10,7 @@ import { supabase } from "@/lib/supabase";
 import { usePerfis } from "@/lib/crm-store";
 import { EQUIPE, iniciaisOuFallback, nomeOuEmail } from "@/lib/equipe";
 import { labelCls } from "@/lib/ui";
+import { useConfirm } from "./ConfirmDialog";
 
 interface Props {
   cardId: string;
@@ -61,6 +62,7 @@ export function AtividadeComentariosSection({ cardId }: Props) {
     query: string;
   } | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const { confirmar, dialogo } = useConfirm();
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -145,7 +147,12 @@ export function AtividadeComentariosSection({ cardId }: Props) {
   }
 
   async function excluir(id: string) {
-    if (!window.confirm("Excluir este comentário?")) return;
+    const ok = await confirmar({
+      titulo: "Excluir comentário",
+      mensagem: "Excluir este comentário?",
+      labelConfirmar: "Excluir",
+    });
+    if (!ok) return;
     await comentarioRepository.remove(id);
     setComentarios((prev) => prev.filter((c) => c.id !== id));
   }
@@ -334,6 +341,8 @@ export function AtividadeComentariosSection({ cardId }: Props) {
           </button>
         </div>
       </div>
+
+      {dialogo}
     </section>
   );
 }

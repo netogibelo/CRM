@@ -24,6 +24,7 @@ import { ordenarEtapas, corDaEtapa } from "@/lib/stages";
 import { notificarErro } from "@/lib/toast-store";
 import { btnPrimary, inputCls } from "@/lib/ui";
 import { EditableText } from "./EditableText";
+import { useConfirm } from "./ConfirmDialog";
 import { AutomacoesSection } from "./AutomacoesSection";
 import { AlertasSection } from "./AlertasSection";
 import { AtividadeEtiquetasConfig } from "./AtividadeEtiquetasConfig";
@@ -246,6 +247,7 @@ function AddPanel({
 function OrigensSubpagina() {
   const origens = useOrigins();
   const [novaOrigem, setNovaOrigem] = useState("");
+  const { confirmar, dialogo } = useConfirm();
 
   async function addOrigem() {
     const t = novaOrigem.trim();
@@ -257,7 +259,12 @@ function OrigensSubpagina() {
   }
 
   async function delOrigem(id: string, nome: string) {
-    if (!window.confirm(`Excluir a origem "${nome}"?`)) return;
+    const ok = await confirmar({
+      titulo: "Excluir origem",
+      mensagem: `Excluir a origem "${nome}"?`,
+      labelConfirmar: "Excluir",
+    });
+    if (!ok) return;
     const r = await origens.remover(id);
     if (!r.ok && r.erro) notificarErro(r.erro);
   }
@@ -311,6 +318,8 @@ function OrigensSubpagina() {
           </AddPanel>
         </div>
       </section>
+
+      {dialogo}
     </div>
   );
 }
@@ -320,6 +329,7 @@ function EtapasSubpagina() {
   const stages = useStages();
   const [novaEtapa, setNovaEtapa] = useState("");
   const [novaProb, setNovaProb] = useState(50);
+  const { confirmar, dialogo } = useConfirm();
 
   const etapasOrd = ordenarEtapas(stages.etapas);
   const ativas = etapasOrd.filter((e) => !e.final);
@@ -346,7 +356,12 @@ function EtapasSubpagina() {
   }
 
   async function delEtapa(id: string, nome: string) {
-    if (!window.confirm(`Excluir a etapa "${nome}"?`)) return;
+    const ok = await confirmar({
+      titulo: "Excluir etapa",
+      mensagem: `Excluir a etapa "${nome}"?`,
+      labelConfirmar: "Excluir",
+    });
+    if (!ok) return;
     const r = await stages.remover(id);
     if (!r.ok && r.erro) notificarErro(r.erro);
   }
@@ -437,6 +452,8 @@ function EtapasSubpagina() {
           </AddPanel>
         </div>
       </section>
+
+      {dialogo}
     </div>
   );
 }
@@ -445,6 +462,7 @@ function EtapasSubpagina() {
 function TiposServicoSubpagina() {
   const tipos = useTiposServico();
   const [novoTipo, setNovoTipo] = useState("");
+  const { confirmar, dialogo } = useConfirm();
 
   async function addTipoServico() {
     const t = novoTipo.trim();
@@ -455,7 +473,12 @@ function TiposServicoSubpagina() {
   }
 
   async function delTipoServico(id: string, nome: string) {
-    if (!window.confirm(`Excluir o tipo "${nome}"?`)) return;
+    const ok = await confirmar({
+      titulo: "Excluir tipo de serviço",
+      mensagem: `Excluir o tipo "${nome}"?`,
+      labelConfirmar: "Excluir",
+    });
+    if (!ok) return;
     await tipos.desativar(id);
   }
 
@@ -508,6 +531,8 @@ function TiposServicoSubpagina() {
           </AddPanel>
         </div>
       </section>
+
+      {dialogo}
     </div>
   );
 }

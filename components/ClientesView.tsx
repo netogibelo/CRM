@@ -7,6 +7,7 @@ import { notificarErro } from "@/lib/toast-store";
 import { btnPrimary, inputCls } from "@/lib/ui";
 import { ClienteForm } from "./ClienteForm";
 import { ExemploBadge } from "./ExemploBadge";
+import { useConfirm } from "./ConfirmDialog";
 
 export function ClientesView() {
   const { clientes, criar, atualizar, remover, emUso } = useClients();
@@ -14,6 +15,7 @@ export function ClientesView() {
   const [busca, setBusca] = useState("");
   const [formAberto, setFormAberto] = useState(false);
   const [emEdicao, setEmEdicao] = useState<Cliente | null>(null);
+  const { confirmar, dialogo } = useConfirm();
 
   const filtrados = useMemo(() => {
     const q = busca.trim().toLowerCase();
@@ -33,7 +35,12 @@ export function ClientesView() {
 
   async function excluir(id: string) {
     const alvo = clientes.find((c) => c.id === id);
-    if (!window.confirm(`Excluir o cliente "${alvo?.nome ?? ""}"?`)) return;
+    const ok = await confirmar({
+      titulo: "Excluir cliente",
+      mensagem: `Excluir o cliente "${alvo?.nome ?? ""}"?`,
+      labelConfirmar: "Excluir",
+    });
+    if (!ok) return;
     const r = await remover(id);
     if (!r.ok) {
       if (r.erro) notificarErro(r.erro);
@@ -129,6 +136,8 @@ export function ClientesView() {
           onExcluir={excluir}
         />
       )}
+
+      {dialogo}
     </div>
   );
 }

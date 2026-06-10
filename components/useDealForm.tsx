@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { Deal, DealInput } from "@/lib/types";
 import { useDeals, useStages } from "@/lib/crm-store";
 import { DealForm } from "./DealForm";
+import { useConfirm } from "./ConfirmDialog";
 
 /**
  * Encapsula o modal de oportunidade e os desfechos (ganho/perdido/reabrir),
@@ -15,6 +16,7 @@ export function useDealForm() {
 
   const [aberto, setAberto] = useState(false);
   const [emEdicao, setEmEdicao] = useState<Deal | null>(null);
+  const { confirmar, dialogo } = useConfirm();
 
   function abrirNovo() {
     setEmEdicao(null);
@@ -37,12 +39,12 @@ export function useDealForm() {
 
   async function excluir(id: string) {
     const alvo = deals.find((d) => d.id === id);
-    if (
-      !window.confirm(
-        `Excluir a oportunidade "${alvo?.projeto ?? ""}"? Esta ação não pode ser desfeita.`,
-      )
-    )
-      return;
+    const ok = await confirmar({
+      titulo: "Excluir oportunidade",
+      mensagem: `Excluir a oportunidade "${alvo?.projeto ?? ""}"? Esta ação não pode ser desfeita.`,
+      labelConfirmar: "Excluir",
+    });
+    if (!ok) return;
     await remover(id);
     fechar();
   }
@@ -72,17 +74,22 @@ export function useDealForm() {
     fechar();
   }
 
-  const elemento = aberto ? (
-    <DealForm
-      deal={emEdicao}
-      onSalvar={salvar}
-      onClose={fechar}
-      onExcluir={excluir}
-      onGanho={marcarGanho}
-      onPerdido={marcarPerdido}
-      onReabrir={reabrir}
-    />
-  ) : null;
+  const elemento = (
+    <>
+      {aberto && (
+        <DealForm
+          deal={emEdicao}
+          onSalvar={salvar}
+          onClose={fechar}
+          onExcluir={excluir}
+          onGanho={marcarGanho}
+          onPerdido={marcarPerdido}
+          onReabrir={reabrir}
+        />
+      )}
+      {dialogo}
+    </>
+  );
 
   return { abrir, abrirNovo, elemento };
 }
