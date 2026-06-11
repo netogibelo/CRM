@@ -23,6 +23,7 @@ import type {
   AtividadesState,
   AtividadeTemplate,
   AtividadeTemplateInput,
+  CardAlerta,
   ListaCor,
 } from "./types";
 import {
@@ -51,6 +52,12 @@ interface ActivitiesContextValue {
   carregadas: boolean;
   /** Dispara o carregamento dos dados (idempotente — segunda chamada é no-op). */
   carregarAtividades: () => Promise<void>;
+  /**
+   * Cards vencidos/vencendo hoje carregados no boot (query enxuta) para o sino
+   * funcionar antes do quadro completo. Enquanto `carregadas` for false, é a
+   * fonte de verdade dos alertas de atividade; depois, use `cards`.
+   */
+  cardsAlerta: CardAlerta[];
   listas: AtividadeLista[];
   cards: AtividadeCard[];
   checklist: AtividadeChecklistItem[];
@@ -120,10 +127,29 @@ export function ActivitiesProvider({ children }: { children: React.ReactNode }) 
   const [templates, setTemplates] = useState<AtividadeTemplate[]>([]);
   const [carregando, setCarregando] = useState(false);
   const [carregadas, setCarregadas] = useState(false);
+  const [cardsAlerta, setCardsAlerta] = useState<CardAlerta[]>([]);
   const ref = useRef(state);
   ref.current = state;
   // Ref previne dupla chamada em paralelo (React StrictMode / chamadas simultâneas).
   const carregandoRef = useRef(false);
+
+  // Boot enxuto: só os cards vencidos/vencendo hoje, para o sino funcionar
+  // antes de a aba Atividades carregar o quadro completo (lazy). 1 query leve.
+  useEffect(() => {
+    let ativo = true;
+    const hoje = new Date().toISOString().slice(0, 10);
+    activityRepository
+      .loadCardsAlerta(hoje)
+      .then((cards) => {
+        if (ativo) setCardsAlerta(cards);
+      })
+      .catch((err) => {
+        console.error("Falha ao carregar alertas de atividades:", err);
+      });
+    return () => {
+      ativo = false;
+    };
+  }, []);
 
   const carregarAtividades = useCallback(async () => {
     if (carregandoRef.current || carregadas) return;
@@ -673,6 +699,7 @@ export function ActivitiesProvider({ children }: { children: React.ReactNode }) 
     carregando,
     carregadas,
     carregarAtividades,
+    cardsAlerta,
     listas: state.listas,
     cards: state.cards,
     checklist: state.checklist,

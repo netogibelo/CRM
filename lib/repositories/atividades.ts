@@ -17,6 +17,7 @@ import type {
   AtividadesState,
   AtividadeTemplate,
   AtividadeTemplateInput,
+  CardAlerta,
 } from "../types";
 import { agoraISO, novoId } from "../id";
 import { supabase } from "../supabase";
@@ -25,6 +26,12 @@ import { reorderBatch, type Row } from "./shared";
 // ── Listas + cards ───────────────────────────────────────────────────────────
 export interface ActivityRepository {
   load(): Promise<AtividadesState>;
+  /**
+   * Query enxuta para o sino de notificações no boot: só os cards em aberto
+   * vencidos ou vencendo até `hoje` (yyyy-mm-dd), com as colunas mínimas.
+   * Evita carregar o quadro completo (listas/checklist/etiquetas) antes do tempo.
+   */
+  loadCardsAlerta(hoje: string): Promise<CardAlerta[]>;
   createLista(input: AtividadeListaInput): Promise<AtividadeLista>;
   updateLista(
     id: string,
@@ -153,6 +160,21 @@ class SupabaseActivityRepository implements ActivityRepository {
         etiquetaId: r.etiqueta_id,
       })),
     };
+  }
+  async loadCardsAlerta(hoje: string): Promise<CardAlerta[]> {
+    const { data, error } = await supabase
+      .from("atividades_cards")
+      .select("id, titulo, data_vencimento, concluida_em")
+      .is("concluida_em", null)
+      .not("data_vencimento", "is", null)
+      .lte("data_vencimento", hoje);
+    if (error) throw error;
+    return (data ?? []).map((r: Row) => ({
+      id: r.id,
+      titulo: r.titulo,
+      dataVencimento: r.data_vencimento ?? null,
+      concluidaEm: r.concluida_em ?? null,
+    }));
   }
   async createLista(input: AtividadeListaInput): Promise<AtividadeLista> {
     const lista: AtividadeLista = { ...input, id: novoId("lista") };

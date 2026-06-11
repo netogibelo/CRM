@@ -197,6 +197,18 @@ export type AtividadeCardInput = Omit<
   "id" | "criadoEm" | "atualizadoEm"
 >;
 
+/**
+ * Projeção mínima de um card usada só pelo sino de notificações no boot — antes
+ * dos dados completos do quadro carregarem (lazy). Subconjunto de
+ * `AtividadeCard`, então um `AtividadeCard` é atribuível a `CardAlerta`.
+ */
+export interface CardAlerta {
+  id: string;
+  titulo: string;
+  dataVencimento: string | null;
+  concluidaEm: string | null;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Templates de atividade (F8) — pré-modelos de card
 // ─────────────────────────────────────────────────────────────────────────────

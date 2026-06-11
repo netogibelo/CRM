@@ -9,6 +9,7 @@ import type {
   AtividadeLista,
   AtividadeListaInput,
   AtividadesState,
+  CardAlerta,
   Cliente,
   ClienteInput,
   CrmState,
@@ -229,6 +230,22 @@ export class LocalStorageActivityRepository implements ActivityRepository {
       etiquetas: s.etiquetas ?? [],
       cardEtiquetas: s.cardEtiquetas ?? [],
     };
+  }
+  async loadCardsAlerta(hoje: string): Promise<CardAlerta[]> {
+    const s = readAtiv();
+    return s.cards
+      .filter(
+        (c) =>
+          !c.concluidaEm &&
+          c.dataVencimento !== null &&
+          c.dataVencimento <= hoje,
+      )
+      .map((c) => ({
+        id: c.id,
+        titulo: c.titulo,
+        dataVencimento: c.dataVencimento,
+        concluidaEm: c.concluidaEm,
+      }));
   }
   async createLista(input: AtividadeListaInput): Promise<AtividadeLista> {
     const s = readAtiv();

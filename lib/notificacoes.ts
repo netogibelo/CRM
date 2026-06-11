@@ -7,8 +7,8 @@
 // auto-registrada mudança de etapa); fallback para deal.atualizadoEm.
 
 import type {
-  AtividadeCard,
   AtividadeChecklistItem,
+  CardAlerta,
   Deal,
   Etapa,
   HistoricoItem,
@@ -86,7 +86,7 @@ export interface CalcularInput {
   /** Metas mensais — usado para o alerta "Meta em risco". */
   metas?: Meta[];
   /** Cards do quadro de atividades — gera alertas de vencimento. */
-  cards?: AtividadeCard[];
+  cards?: CardAlerta[];
   /** Itens de checklist (flat) — enriquece o detalhe dos cards vencidos. */
   checklistItems?: AtividadeChecklistItem[];
 }

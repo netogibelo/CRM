@@ -53,7 +53,12 @@ export function NotificacoesSino({
   const { tarefas } = useTarefas();
   const { perfis } = usePerfis();
   const { metas } = useMetas();
-  const { cards, checklist } = useBoard();
+  const { cards, checklist, cardsAlerta, carregadas } = useBoard();
+  // Antes de a aba Atividades carregar o quadro completo, o sino usa a query
+  // enxuta do boot (`cardsAlerta`). Depois, a fonte completa — nunca as duas,
+  // então não há alerta duplicado. Sem o quadro completo, não há checklist.
+  const cardsParaSino = carregadas ? cards : cardsAlerta;
+  const checklistParaSino = carregadas ? checklist : [];
   const [aberto, setAberto] = useState(false);
   const [vistas, setVistas] = useState<Record<string, string>>({});
   const refContainer = useRef<HTMLDivElement>(null);
@@ -95,10 +100,10 @@ export function NotificacoesSino({
         tarefas,
         perfis,
         metas,
-        cards,
-        checklistItems: checklist,
+        cards: cardsParaSino,
+        checklistItems: checklistParaSino,
       }),
-    [deals, etapas, tarefas, perfis, metas, cards, checklist],
+    [deals, etapas, tarefas, perfis, metas, cardsParaSino, checklistParaSino],
   );
   const ativas = useMemo(
     () => filtrarNaoVistas(todas, vistas),
