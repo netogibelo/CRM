@@ -8,32 +8,43 @@ import {
   useStages,
   useTarefas,
 } from "@/lib/crm-store";
+import { useBoard } from "@/lib/activities-store";
 import {
   calcularNotificacoes,
   filtrarNaoVistas,
   lerVistas,
   marcarComoVisto,
   type Notificacao,
+  type TipoNotificacao,
 } from "@/lib/notificacoes";
 import type { HistoricoItem } from "@/lib/types";
 
 interface NotificacoesSinoProps {
   onIrParaDeal?: (dealId: string) => void;
   onIrParaDashboard?: () => void;
+  onIrParaAtividades?: () => void;
   /** "rail" estiliza o gatilho para o rail escuro e abre o popover à direita. */
   placement?: "header" | "rail";
 }
 
-const ROTULO_TIPO: Record<Notificacao["tipo"], string> = {
+const ROTULO_TIPO: Record<TipoNotificacao, string> = {
   parado: "Deal parado",
   retorno_vencido: "Retorno vencido",
   tarefa_vencida: "Tarefa vencida",
   meta_risco: "Meta em risco",
+  atividade_vencida: "Atividade vencida",
+  atividade_vencendo_hoje: "Vence hoje",
 };
+
+const TIPOS_ATIVIDADE: ReadonlySet<TipoNotificacao> = new Set([
+  "atividade_vencida",
+  "atividade_vencendo_hoje",
+]);
 
 export function NotificacoesSino({
   onIrParaDeal,
   onIrParaDashboard,
+  onIrParaAtividades,
   placement = "header",
 }: NotificacoesSinoProps) {
   const noRail = placement === "rail";
@@ -42,6 +53,7 @@ export function NotificacoesSino({
   const { tarefas } = useTarefas();
   const { perfis } = usePerfis();
   const { metas } = useMetas();
+  const { cards, checklist } = useBoard();
   const [aberto, setAberto] = useState(false);
   const [vistas, setVistas] = useState<Record<string, string>>({});
   const refContainer = useRef<HTMLDivElement>(null);
@@ -83,12 +95,23 @@ export function NotificacoesSino({
         tarefas,
         perfis,
         metas,
+        cards,
+        checklistItems: checklist,
       }),
-    [deals, etapas, tarefas, perfis, metas],
+    [deals, etapas, tarefas, perfis, metas, cards, checklist],
   );
   const ativas = useMemo(
     () => filtrarNaoVistas(todas, vistas),
     [todas, vistas],
+  );
+
+  const ativasDeal = useMemo(
+    () => ativas.filter((n) => !TIPOS_ATIVIDADE.has(n.tipo)),
+    [ativas],
+  );
+  const ativasAtividade = useMemo(
+    () => ativas.filter((n) => TIPOS_ATIVIDADE.has(n.tipo)),
+    [ativas],
   );
 
   function handleMarcar(n: Notificacao) {
@@ -96,9 +119,13 @@ export function NotificacoesSino({
     setVistas((prev) => ({ ...prev, [n.id]: n.marcadorTempo }));
   }
 
-  function handleClicarDeal(n: Notificacao) {
+  function handleClicar(n: Notificacao) {
     handleMarcar(n);
     setAberto(false);
+    if (TIPOS_ATIVIDADE.has(n.tipo)) {
+      onIrParaAtividades?.();
+      return;
+    }
     if (n.tipo === "meta_risco") {
       onIrParaDashboard?.();
       return;
@@ -181,74 +208,126 @@ export function NotificacoesSino({
                 Nenhuma pendência. Bom trabalho.
               </p>
             ) : (
-              <ul className="divide-y divide-navy-100">
-                {ativas.map((n) => (
-                  <li
-                    key={n.id}
-                    className="flex items-start gap-2 px-4 py-3"
-                  >
-                    <button
-                      type="button"
-                      onClick={() => handleClicarDeal(n)}
-                      className="flex-1 text-left"
-                      aria-label={`Abrir oportunidade ${n.projeto}`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={`inline-block h-1.5 w-1.5 rounded-full ${
-                            n.severidade === "vencido"
-                              ? "bg-red-500"
-                              : "bg-amber-500"
-                          }`}
-                          aria-hidden="true"
-                        />
-                        <span
-                          className={`text-[10px] font-semibold uppercase tracking-wide ${
-                            n.severidade === "vencido"
-                              ? "text-red-600"
-                              : "text-amber-700"
-                          }`}
-                        >
-                          {ROTULO_TIPO[n.tipo]}
+              <>
+                {ativasDeal.length > 0 && (
+                  <>
+                    {ativasAtividade.length > 0 && (
+                      <div className="px-4 pb-1 pt-2">
+                        <span className="text-[10px] font-semibold uppercase tracking-wide text-navy-700 dark:text-gibelo-areia">
+                          Oportunidades
                         </span>
                       </div>
-                      <p className="mt-1 text-sm font-medium text-navy-900 dark:text-gibelo-offwhite">
-                        {n.projeto}
-                      </p>
-                      <p className="mt-0.5 text-xs text-navy-700 dark:text-gibelo-areia">
-                        {n.detalhe}
-                      </p>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleMarcar(n)}
-                      className="shrink-0 rounded p-1 text-navy-700 dark:text-gibelo-areia transition-colors hover:bg-navy-50 dark:hover:bg-dark-elevated hover:text-navy-700 dark:hover:text-gibelo-offwhite"
-                      aria-label={`Marcar notificação como vista`}
-                      title="Marcar como vista"
-                    >
-                      <svg
-                        width="14"
-                        height="14"
-                        viewBox="0 0 16 16"
-                        fill="none"
-                        aria-hidden="true"
-                      >
-                        <path
-                          d="M3 8.5l3.5 3.5L13 5"
-                          stroke="currentColor"
-                          strokeWidth="1.7"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
+                    )}
+                    <ul className="divide-y divide-navy-100 dark:divide-dark-border">
+                      {ativasDeal.map((n) => (
+                        <NotifItem
+                          key={n.id}
+                          n={n}
+                          onClicar={handleClicar}
+                          onMarcar={handleMarcar}
                         />
-                      </svg>
-                    </button>
-                  </li>
-                ))}
-              </ul>
+                      ))}
+                    </ul>
+                  </>
+                )}
+                {ativasAtividade.length > 0 && (
+                  <>
+                    {ativasDeal.length > 0 && (
+                      <div className="border-t border-navy-100 dark:border-dark-border" />
+                    )}
+                    <div className="px-4 pb-1 pt-2">
+                      <span className="text-[10px] font-semibold uppercase tracking-wide text-navy-700 dark:text-gibelo-areia">
+                        Atividades
+                      </span>
+                    </div>
+                    <ul className="divide-y divide-navy-100 dark:divide-dark-border">
+                      {ativasAtividade.map((n) => (
+                        <NotifItem
+                          key={n.id}
+                          n={n}
+                          onClicar={handleClicar}
+                          onMarcar={handleMarcar}
+                        />
+                      ))}
+                    </ul>
+                  </>
+                )}
+              </>
             )}
           </div>
         </div>
       )}
     </div>
+  );
+}
+
+function NotifItem({
+  n,
+  onClicar,
+  onMarcar,
+}: {
+  n: Notificacao;
+  onClicar: (n: Notificacao) => void;
+  onMarcar: (n: Notificacao) => void;
+}) {
+  const ehAtividade = TIPOS_ATIVIDADE.has(n.tipo);
+  return (
+    <li className="flex items-start gap-2 px-4 py-3">
+      <button
+        type="button"
+        onClick={() => onClicar(n)}
+        className="flex-1 text-left"
+        aria-label={
+          ehAtividade
+            ? `Ir para atividades: ${n.projeto}`
+            : `Abrir oportunidade ${n.projeto}`
+        }
+      >
+        <div className="flex items-center gap-2">
+          <span
+            className={`inline-block h-1.5 w-1.5 rounded-full ${
+              n.severidade === "vencido" ? "bg-red-500" : "bg-amber-500"
+            }`}
+            aria-hidden="true"
+          />
+          <span
+            className={`text-[10px] font-semibold uppercase tracking-wide ${
+              n.severidade === "vencido" ? "text-red-600" : "text-amber-700"
+            }`}
+          >
+            {ROTULO_TIPO[n.tipo]}
+          </span>
+        </div>
+        <p className="mt-1 text-sm font-medium text-navy-900 dark:text-gibelo-offwhite">
+          {n.projeto}
+        </p>
+        <p className="mt-0.5 text-xs text-navy-700 dark:text-gibelo-areia">
+          {n.detalhe}
+        </p>
+      </button>
+      <button
+        type="button"
+        onClick={() => onMarcar(n)}
+        className="shrink-0 rounded p-1 text-navy-700 dark:text-gibelo-areia transition-colors hover:bg-navy-50 dark:hover:bg-dark-elevated hover:text-navy-700 dark:hover:text-gibelo-offwhite"
+        aria-label="Marcar notificação como vista"
+        title="Marcar como vista"
+      >
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 16 16"
+          fill="none"
+          aria-hidden="true"
+        >
+          <path
+            d="M3 8.5l3.5 3.5L13 5"
+            stroke="currentColor"
+            strokeWidth="1.7"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </button>
+    </li>
   );
 }

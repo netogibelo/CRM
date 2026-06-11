@@ -88,6 +88,7 @@ export function Rail() {
           placement="rail"
           onIrParaDeal={() => setAba("funil")}
           onIrParaDashboard={() => setAba("dashboard")}
+          onIrParaAtividades={() => setAba("atividades")}
         />
         <ThemeToggle variant="rail" />
         <PerfilButton placement="rail" />

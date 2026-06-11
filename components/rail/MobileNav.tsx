@@ -96,6 +96,7 @@ export function MobileNav() {
         <NotificacoesSino
           onIrParaDeal={() => setAba("funil")}
           onIrParaDashboard={() => setAba("dashboard")}
+          onIrParaAtividades={() => setAba("atividades")}
         />
         <ThemeToggle />
         <PerfilButton />

@@ -6,7 +6,16 @@
 // "Última atividade" prefere o evento mais recente no histórico (incluindo a
 // auto-registrada mudança de etapa); fallback para deal.atualizadoEm.
 
-import type { Deal, Etapa, HistoricoItem, Meta, Perfil, Tarefa } from "./types";
+import type {
+  AtividadeCard,
+  AtividadeChecklistItem,
+  Deal,
+  Etapa,
+  HistoricoItem,
+  Meta,
+  Perfil,
+  Tarefa,
+} from "./types";
 import { diasDesde } from "./format";
 import { nomeOuEmail } from "./equipe";
 import { mesAtual, metaEmRisco, resumoMetaMes } from "./metas";
@@ -17,13 +26,17 @@ export type TipoNotificacao =
   | "parado"
   | "retorno_vencido"
   | "tarefa_vencida"
-  | "meta_risco";
+  | "meta_risco"
+  | "atividade_vencida"
+  | "atividade_vencendo_hoje";
 
 export interface Notificacao {
-  /** id estável: tipo + dealId/tarefaId, pra persistir "visto" sem colidir. */
+  /** id estável: tipo + dealId/tarefaId/cardId, pra persistir "visto" sem colidir. */
   id: string;
   tipo: TipoNotificacao;
   dealId: string;
+  /** Populado para atividade_vencida / atividade_vencendo_hoje. */
+  cardId?: string;
   projeto: string;
   /** Texto detalhe (etapa, vencimento). */
   detalhe: string;
@@ -72,11 +85,23 @@ export interface CalcularInput {
   perfis?: Perfil[];
   /** Metas mensais — usado para o alerta "Meta em risco". */
   metas?: Meta[];
+  /** Cards do quadro de atividades — gera alertas de vencimento. */
+  cards?: AtividadeCard[];
+  /** Itens de checklist (flat) — enriquece o detalhe dos cards vencidos. */
+  checklistItems?: AtividadeChecklistItem[];
 }
 
 export function calcularNotificacoes(input: CalcularInput): Notificacao[] {
-  const { deals, etapas, historicoPorDeal, tarefas, perfis = [], metas = [] } =
-    input;
+  const {
+    deals,
+    etapas,
+    historicoPorDeal,
+    tarefas,
+    perfis = [],
+    metas = [],
+    cards = [],
+    checklistItems = [],
+  } = input;
   const mapaEtapa = new Map(etapas.map((e) => [e.id, e]));
   const hoje = hojeISO();
   const out: Notificacao[] = [];
@@ -154,6 +179,51 @@ export function calcularNotificacoes(input: CalcularInput): Notificacao[] {
       severidade: "alerta",
       marcadorTempo: mes,
     });
+  }
+
+  // 5. Atividades vencidas / vencendo hoje
+  if (cards.length > 0) {
+    const chkMap = new Map<string, AtividadeChecklistItem[]>();
+    for (const item of checklistItems) {
+      const arr = chkMap.get(item.cardId);
+      if (arr) arr.push(item);
+      else chkMap.set(item.cardId, [item]);
+    }
+    for (const c of cards) {
+      if (c.concluidaEm) continue;
+      if (!c.dataVencimento) continue;
+      const itens = chkMap.get(c.id) ?? [];
+      const total = itens.length;
+      const concluidos = itens.filter((i) => i.concluida).length;
+      const checkInfo =
+        total > 0 && concluidos < total
+          ? ` · ${concluidos}/${total} subtarefas`
+          : "";
+      if (c.dataVencimento < hoje) {
+        const dias = diasDesde(`${c.dataVencimento}T00:00:00`);
+        out.push({
+          id: `atividade:${c.id}`,
+          tipo: "atividade_vencida",
+          dealId: "",
+          cardId: c.id,
+          projeto: c.titulo,
+          detalhe: `Venceu há ${dias}d${checkInfo}`,
+          severidade: "vencido",
+          marcadorTempo: c.dataVencimento,
+        });
+      } else if (c.dataVencimento === hoje) {
+        out.push({
+          id: `atividade-hoje:${c.id}`,
+          tipo: "atividade_vencendo_hoje",
+          dealId: "",
+          cardId: c.id,
+          projeto: c.titulo,
+          detalhe: `Vence hoje${checkInfo}`,
+          severidade: "alerta",
+          marcadorTempo: c.dataVencimento,
+        });
+      }
+    }
   }
 
   // Ordenação: vencidos antes, depois mais antigos primeiro.
