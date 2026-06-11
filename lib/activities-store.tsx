@@ -47,6 +47,10 @@ async function autorEmail(): Promise<string | null> {
 
 interface ActivitiesContextValue {
   carregando: boolean;
+  /** true após a primeira carga bem-sucedida dos dados de atividades. */
+  carregadas: boolean;
+  /** Dispara o carregamento dos dados (idempotente — segunda chamada é no-op). */
+  carregarAtividades: () => Promise<void>;
   listas: AtividadeLista[];
   cards: AtividadeCard[];
   checklist: AtividadeChecklistItem[];
@@ -114,27 +118,33 @@ export function ActivitiesProvider({ children }: { children: React.ReactNode }) 
     cardEtiquetas: [],
   });
   const [templates, setTemplates] = useState<AtividadeTemplate[]>([]);
-  const [carregando, setCarregando] = useState(true);
+  const [carregando, setCarregando] = useState(false);
+  const [carregadas, setCarregadas] = useState(false);
   const ref = useRef(state);
   ref.current = state;
+  // Ref previne dupla chamada em paralelo (React StrictMode / chamadas simultâneas).
+  const carregandoRef = useRef(false);
 
-  useEffect(() => {
-    let ativo = true;
-    (async () => {
+  const carregarAtividades = useCallback(async () => {
+    if (carregandoRef.current || carregadas) return;
+    carregandoRef.current = true;
+    setCarregando(true);
+    try {
       const [s, tpls] = await Promise.all([
         activityRepository.load(),
         atividadeTemplateRepository.listAll().catch(() => []),
       ]);
-      if (ativo) {
-        setState(s);
-        setTemplates(tpls);
-        setCarregando(false);
-      }
-    })();
-    return () => {
-      ativo = false;
-    };
-  }, []);
+      setState(s);
+      setTemplates(tpls);
+      setCarregadas(true);
+    } catch (err) {
+      console.error("Falha ao carregar atividades:", err);
+      notificarAviso("Erro ao carregar atividades.");
+      carregandoRef.current = false;
+    } finally {
+      setCarregando(false);
+    }
+  }, [carregadas]);
 
   const criarLista = useCallback(async (nome: string) => {
     const ordem =
@@ -661,6 +671,8 @@ export function ActivitiesProvider({ children }: { children: React.ReactNode }) 
 
   const value: ActivitiesContextValue = {
     carregando,
+    carregadas,
+    carregarAtividades,
     listas: state.listas,
     cards: state.cards,
     checklist: state.checklist,

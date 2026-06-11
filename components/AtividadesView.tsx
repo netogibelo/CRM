@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -93,6 +93,8 @@ function aplicaFiltros(
 export function AtividadesView() {
   const {
     carregando,
+    carregadas,
+    carregarAtividades,
     listas,
     cards,
     cardsDaLista,
@@ -110,6 +112,10 @@ export function AtividadesView() {
     cardEtiquetas,
     etiquetas,
   } = useBoard();
+
+  useEffect(() => {
+    carregarAtividades();
+  }, [carregarAtividades]);
 
   const [activeCard, setActiveCard] = useState<TCard | null>(null);
   const [form, setForm] = useState<{
@@ -243,7 +249,7 @@ export function AtividadesView() {
     atualizarCard(activeId, { listaId: destListaId, ordem: novaOrdem });
   }
 
-  if (carregando) {
+  if (!carregadas || carregando) {
     return (
       <div className="py-16 text-center text-sm text-navy-700 dark:text-gibelo-areia" role="status">
         Carregando atividades…
